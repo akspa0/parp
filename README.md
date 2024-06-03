@@ -1,10 +1,8 @@
 Welcome to the PreAlpha Restoration Project!
 
-
-Please read the documents in the documentation folder.
+Contributors: Dovah, akspa
 
 Tools
-
 
 * Noggit
 * Noggit Red
@@ -13,4 +11,7 @@ Tools
 * python 3.10+
 * PureRef
 
+Goals
+
+- Rebuild World of Warcraft as it looked in 2002
 
