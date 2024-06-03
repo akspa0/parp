@@ -32,4 +32,6 @@ Assets
 
 - Additional notes about the project, ideas about how the zones were developed, and other interesting perspectives are included in the documentation folder.
 
+- All project files are located in 'project_files'. Copy and paste them somewhere and point noggit to the folder to do work on the maps! Included is a Map.dbc with the map, prealpha_ek, defined, alongside many other maps that are not provided (I was using Implave's museum mpq's when I made the dbc alterations, oops!)
+
 
