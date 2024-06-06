@@ -1,0 +1,8 @@
+# Ignore noggit red project files
+*.noggitproj
+
+# Ignore blp resources from 0.5.3
+*.blp
+
+# Ignore WLW resources from 0.5.3
+*.wlw
