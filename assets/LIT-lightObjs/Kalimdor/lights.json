@@ -1,0 +1,5385 @@
+{
+    "version": 4,
+    "light_count": 256,
+    "lights": [
+        {
+            "chunk": [
+                -1,
+                -1
+            ],
+            "chunk_radius": -1,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "Global Light",
+            "color": [
+                71,
+                108,
+                111,
+                98
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9944.0,
+                "y": 13685.333333333334,
+                "z": 0.0
+            },
+            "light_radius": 480.0,
+            "light_dropoff": 560.0,
+            "light_name": "Swamp Of Sorrows",
+            "color": [
+                83,
+                119,
+                97,
+                109
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 8970.666666666666,
+                "y": 13754.666666666666,
+                "z": 32.0
+            },
+            "light_radius": 298.6666666666667,
+            "light_dropoff": 362.6666666666667,
+            "light_name": "Deadwind Pass",
+            "color": [
+                68,
+                101,
+                97,
+                100
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 10032.0,
+                "y": 14133.333333333334,
+                "z": 0.0
+            },
+            "light_radius": 480.0,
+            "light_dropoff": 608.0,
+            "light_name": "Blasted Lands",
+            "color": [
+                66,
+                108,
+                97,
+                115
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 10120.0,
+                "y": 13429.333333333334,
+                "z": 0.0
+            },
+            "light_radius": 384.0,
+            "light_dropoff": 448.0,
+            "light_name": "Swamp Of Sorrows 2",
+            "color": [
+                83,
+                119,
+                97,
+                109
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 8997.333333333334,
+                "y": 14005.333333333334,
+                "z": 0.0
+            },
+            "light_radius": 394.6666666666667,
+            "light_dropoff": 448.0,
+            "light_name": "Deadwind Karazan",
+            "color": [
+                68,
+                101,
+                97,
+                100
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 8533.333333333334,
+                "y": 15200.0,
+                "z": 0.0
+            },
+            "light_radius": 1770.6666666666667,
+            "light_dropoff": 2005.3333333333333,
+            "light_name": "StrangleThorn",
+            "color": [
+                83,
+                116,
+                114,
+                97
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 8480.069444444445,
+                "y": 6967.291666666667,
+                "z": 0.0
+            },
+            "light_radius": 722.0555555555555,
+            "light_dropoff": 1104.9444444444443,
+            "light_name": "Ashenvale",
+            "color": [
+                65,
+                115,
+                104,
+                101
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9773.583333333334,
+                "y": 8692.333333333334,
+                "z": 0.0
+            },
+            "light_radius": 853.3333333333334,
+            "light_dropoff": 1436.7222222222222,
+            "light_name": "Barrens-ighlands",
+            "color": [
+                66,
+                97,
+                114,
+                114
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 7542.569444444444,
+                "y": 9183.194444444445,
+                "z": 0.0
+            },
+            "light_radius": 1006.5,
+            "light_dropoff": 1345.638888888889,
+            "light_name": "Desolace",
+            "color": [
+                68,
+                101,
+                115,
+                111
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 10738.583333333334,
+                "y": 12826.638888888889,
+                "z": 0.0
+            },
+            "light_radius": 1750.4166666666667,
+            "light_dropoff": 2013.0,
+            "light_name": "Tanaris Desert",
+            "color": [
+                84,
+                97,
+                110,
+                97
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 10078.069444444445,
+                "y": 4687.472222222223,
+                "z": 138.5
+            },
+            "light_radius": 929.9166666666666,
+            "light_dropoff": 1236.25,
+            "light_name": "Moonglade",
+            "color": [
+                77,
+                111,
+                111,
+                110
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 8053.930555555556,
+                "y": 5944.569444444444,
+                "z": 0.0
+            },
+            "light_radius": 1181.5277777777778,
+            "light_dropoff": 1509.75,
+            "light_name": "Darkshore",
+            "color": [
+                68,
+                97,
+                114,
+                107
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 10440.0,
+                "y": 10346.666666666666,
+                "z": -80.0
+            },
+            "light_radius": 1126.8333333333333,
+            "light_dropoff": 1520.0,
+            "light_name": "Duskwallow-ds Demon",
+            "color": [
+                68,
+                117,
+                115,
+                107
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 8725.333333333334,
+                "y": 4586.666666666667,
+                "z": 0.0
+            },
+            "light_radius": 1568.0,
+            "light_dropoff": 1952.0,
+            "light_name": "Darkshore2",
+            "color": [
+                68,
+                97,
+                114,
+                107
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 7885.333333333333,
+                "y": 3394.6666666666665,
+                "z": 261.3333333333333
+            },
+            "light_radius": 1568.0,
+            "light_dropoff": 2090.6666666666665,
+            "light_name": "Kalidar",
+            "color": [
+                75,
+                97,
+                108,
+                105
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 8714.666666666666,
+                "y": 9141.333333333334,
+                "z": 0.0
+            },
+            "light_radius": 689.2222222222222,
+            "light_dropoff": 1130.6666666666667,
+            "light_name": "Mullgore",
+            "color": [
+                77,
+                117,
+                108,
+                108
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 8842.666666666666,
+                "y": 9898.666666666666,
+                "z": 21.333333333333332
+            },
+            "light_radius": 722.6388888888889,
+            "light_dropoff": 1066.6666666666667,
+            "light_name": "MullgoreSouth",
+            "color": [
+                77,
+                117,
+                108,
+                108
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 11313.861111111111,
+                "y": 8799.666666666666,
+                "z": 0.0
+            },
+            "light_radius": 1115.888888888889,
+            "light_dropoff": 1750.4166666666667,
+            "light_name": "DurotarSouth",
+            "color": [
+                68,
+                117,
+                114,
+                111
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 10946.666666666666,
+                "y": 7933.333333333333,
+                "z": 0.0
+            },
+            "light_radius": 1023.1388888888889,
+            "light_dropoff": 1546.6666666666667,
+            "light_name": "DurotarNorth",
+            "color": [
+                68,
+                117,
+                114,
+                111
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 10376.361111111111,
+                "y": 9289.722222222223,
+                "z": 0.0
+            },
+            "light_radius": 547.0,
+            "light_dropoff": 995.5555555555555,
+            "light_name": "BarrensSouth01",
+            "color": [
+                66,
+                97,
+                114,
+                114
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9651.930555555555,
+                "y": 9566.708333333334,
+                "z": 0.0
+            },
+            "light_radius": 579.8333333333334,
+            "light_dropoff": 984.6111111111111,
+            "light_name": "BarrensSouth02",
+            "color": [
+                66,
+                97,
+                114,
+                114
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9438.875,
+                "y": 10248.527777777777,
+                "z": 0.0
+            },
+            "light_radius": 525.1388888888889,
+            "light_dropoff": 875.9722222222222,
+            "light_name": "BarrensSouth03",
+            "color": [
+                66,
+                97,
+                114,
+                114
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9119.263888888889,
+                "y": 7308.194444444444,
+                "z": 0.0
+            },
+            "light_radius": 886.1666666666666,
+            "light_dropoff": 1269.0555555555557,
+            "light_name": "Ashenvale02-03",
+            "color": [
+                65,
+                115,
+                104,
+                101
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9801.083333333334,
+                "y": 7308.194444444444,
+                "z": 0.0
+            },
+            "light_radius": 918.9722222222222,
+            "light_dropoff": 1389.388888888889,
+            "light_name": "Ashenvale03",
+            "color": [
+                65,
+                115,
+                104,
+                101
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 10312.444444444445,
+                "y": 6796.833333333333,
+                "z": 0.0
+            },
+            "light_radius": 350.0833333333333,
+            "light_dropoff": 743.9444444444445,
+            "light_name": "Ashenvale04",
+            "color": [
+                65,
+                115,
+                104,
+                101
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9097.958333333334,
+                "y": 10845.111111111111,
+                "z": 0.0
+            },
+            "light_radius": 328.19444444444446,
+            "light_dropoff": 503.25,
+            "light_name": "ThousandNeedles01",
+            "color": [
+                84,
+                104,
+                111,
+                117
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9330.833333333334,
+                "y": 11035.375,
+                "z": 0.0
+            },
+            "light_radius": 452.6666666666667,
+            "light_dropoff": 481.3611111111111,
+            "light_name": "ThousandNeedles02",
+            "color": [
+                84,
+                104,
+                111,
+                117
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 10078.069444444445,
+                "y": 11313.861111111111,
+                "z": 0.0
+            },
+            "light_radius": 273.5,
+            "light_dropoff": 503.25,
+            "light_name": "ThousandNeedles03",
+            "color": [
+                84,
+                104,
+                111,
+                117
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9097.958333333334,
+                "y": 6434.625,
+                "z": 74.56944444444444
+            },
+            "light_radius": 568.8888888888889,
+            "light_dropoff": 908.0277777777778,
+            "light_name": "Felwood-1-sWest05",
+            "color": [
+                70,
+                101,
+                108,
+                119
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 8970.125,
+                "y": 6051.097222222223,
+                "z": 117.18055555555556
+            },
+            "light_radius": 382.9166666666667,
+            "light_dropoff": 579.8333333333334,
+            "light_name": "Felwood02",
+            "color": [
+                70,
+                101,
+                108,
+                119
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9133.569444444445,
+                "y": 5582.361111111111,
+                "z": 91.45833333333333
+            },
+            "light_radius": 809.5833333333334,
+            "light_dropoff": 973.6666666666666,
+            "light_name": "Felwood03-ast",
+            "color": [
+                70,
+                101,
+                108,
+                119
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9460.180555555555,
+                "y": 5241.444444444444,
+                "z": 224.91666666666666
+            },
+            "light_radius": 328.19444444444446,
+            "light_dropoff": 623.5833333333334,
+            "light_name": "Felwood04-eppes5",
+            "color": [
+                70,
+                101,
+                108,
+                119
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 8480.069444444445,
+                "y": 10887.722222222223,
+                "z": 0.0
+            },
+            "light_radius": 601.7222222222222,
+            "light_dropoff": 1039.3055555555557,
+            "light_name": "Feralas01-orldTree",
+            "color": [
+                70,
+                101,
+                114,
+                97
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 10127.180555555555,
+                "y": 7649.111111111111,
+                "z": 10.652777777777779
+            },
+            "light_radius": 229.80555555555554,
+            "light_dropoff": 361.1388888888889,
+            "light_name": "AshenvaleHellScream",
+            "color": [
+                65,
+                115,
+                104,
+                101
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 8970.125,
+                "y": 11100.791666666666,
+                "z": 0.0
+            },
+            "light_radius": 317.27777777777777,
+            "light_dropoff": 415.72222222222223,
+            "light_name": "ThousandNeedles04",
+            "color": [
+                84,
+                104,
+                111,
+                117
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 7301.694444444444,
+                "y": 3550.527777777778,
+                "z": 585.9305555555555
+            },
+            "light_radius": 367.0833333333333,
+            "light_dropoff": 482.3611111111111,
+            "light_name": "KalidarDarnassus",
+            "color": [
+                75,
+                97,
+                108,
+                105
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9119.069444444445,
+                "y": 10056.763888888889,
+                "z": 0.0
+            },
+            "light_radius": 240.69444444444446,
+            "light_dropoff": 361.02777777777777,
+            "light_name": "MullgoreBurrow",
+            "color": [
+                77,
+                117,
+                108,
+                108
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9097.958333333334,
+                "y": 6754.222222222223,
+                "z": 117.18055555555556
+            },
+            "light_radius": 131.27777777777777,
+            "light_dropoff": 262.55555555555554,
+            "light_name": "FelwoodSmall",
+            "color": [
+                70,
+                101,
+                108,
+                119
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 10099.375,
+                "y": 8011.319444444444,
+                "z": 0.0
+            },
+            "light_radius": 142.22222222222223,
+            "light_dropoff": 229.75,
+            "light_name": "BarrensOilRig",
+            "color": [
+                66,
+                97,
+                114,
+                114
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 7969.097222222223,
+                "y": 11100.791666666666,
+                "z": 0.0
+            },
+            "light_radius": 647.1666666666666,
+            "light_dropoff": 940.8611111111111,
+            "light_name": "Feralas02",
+            "color": [
+                70,
+                101,
+                114,
+                97
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9630.625,
+                "y": 8374.027777777777,
+                "z": 108.18055555555556
+            },
+            "light_radius": 131.27777777777777,
+            "light_dropoff": 230.55555555555554,
+            "light_name": "BarrensDreadMistPeak",
+            "color": [
+                66,
+                97,
+                114,
+                114
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 8821.972222222223,
+                "y": 8569.791666666666,
+                "z": 0.0
+            },
+            "light_radius": 295.3888888888889,
+            "light_dropoff": 612.6388888888889,
+            "light_name": "StonetalonBarrens",
+            "color": [
+                83,
+                116,
+                111,
+                110
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 8603.402777777777,
+                "y": 7968.208333333333,
+                "z": 0.0
+            },
+            "light_radius": 525.1388888888889,
+            "light_dropoff": 711.1111111111111,
+            "light_name": "StonetalonClearCut",
+            "color": [
+                83,
+                116,
+                111,
+                110
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 7734.333333333333,
+                "y": 8117.847222222223,
+                "z": 0.0
+            },
+            "light_radius": 426.6666666666667,
+            "light_dropoff": 656.4166666666666,
+            "light_name": "StonetalonHarpy",
+            "color": [
+                83,
+                116,
+                111,
+                110
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 8075.041666666667,
+                "y": 7714.027777777777,
+                "z": -2.3472222222222223
+            },
+            "light_radius": 437.6111111111111,
+            "light_dropoff": 601.7222222222222,
+            "light_name": "Stonetalon01",
+            "color": [
+                83,
+                116,
+                111,
+                110
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 7819.555555555556,
+                "y": 7329.5,
+                "z": 0.0
+            },
+            "light_radius": 492.30555555555554,
+            "light_dropoff": 678.2777777777778,
+            "light_name": "StonetalonPeak",
+            "color": [
+                83,
+                116,
+                111,
+                110
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 7649.111111111111,
+                "y": 6738.027777777777,
+                "z": 0.0
+            },
+            "light_radius": 515.3055555555555,
+            "light_dropoff": 1017.4444444444445,
+            "light_name": "AshenvaleCoast",
+            "color": [
+                65,
+                115,
+                104,
+                101
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 10482.902777777777,
+                "y": 11633.458333333334,
+                "z": 0.0
+            },
+            "light_radius": 415.72222222222223,
+            "light_dropoff": 886.1666666666666,
+            "light_name": "ThousandNeedlesSalt",
+            "color": [
+                84,
+                104,
+                111,
+                117
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9831.694444444445,
+                "y": 10361.861111111111,
+                "z": 0.0
+            },
+            "light_radius": 150.22222222222223,
+            "light_dropoff": 284.44444444444446,
+            "light_name": "DuskwallowBarrens",
+            "color": [
+                68,
+                117,
+                115,
+                107
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 8813.472222222223,
+                "y": 6101.722222222223,
+                "z": 148.5
+            },
+            "light_radius": 131.27777777777777,
+            "light_dropoff": 157.16666666666666,
+            "light_name": "FelwoodJadenar",
+            "color": [
+                70,
+                101,
+                108,
+                119
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 8735.75,
+                "y": 6123.833333333333,
+                "z": 193.80555555555554
+            },
+            "light_radius": 81.63888888888889,
+            "light_dropoff": 131.27777777777777,
+            "light_name": "FelwoodJadenar2",
+            "color": [
+                70,
+                101,
+                108,
+                119
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9247.111111111111,
+                "y": 9886.305555555555,
+                "z": 31.958333333333332
+            },
+            "light_radius": 109.38888888888889,
+            "light_dropoff": 153.16666666666666,
+            "light_name": "MullgoreHarpy",
+            "color": [
+                77,
+                117,
+                108,
+                108
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9986.541666666666,
+                "y": 7755.638888888889,
+                "z": 95.875
+            },
+            "light_radius": 159.16666666666666,
+            "light_dropoff": 180.05555555555554,
+            "light_name": "AshenvaleHellScream2",
+            "color": [
+                65,
+                115,
+                104,
+                101
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9538.902777777777,
+                "y": 11139.902777777777,
+                "z": 10.652777777777779
+            },
+            "light_radius": 460.55555555555554,
+            "light_dropoff": 500.3611111111111,
+            "light_name": "ThousandNeedles05",
+            "color": [
+                84,
+                104,
+                111,
+                117
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9822.388888888889,
+                "y": 11271.25,
+                "z": 0.0
+            },
+            "light_radius": 468.72222222222223,
+            "light_dropoff": 532.25,
+            "light_name": "ThousandNeedles06",
+            "color": [
+                84,
+                104,
+                111,
+                117
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 11915.944444444445,
+                "y": 6757.722222222223,
+                "z": 0.0
+            },
+            "light_radius": 1498.8055555555557,
+            "light_dropoff": 1947.361111111111,
+            "light_name": "Azshara2",
+            "color": [
+                65,
+                122,
+                115,
+                104
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 10695.958333333334,
+                "y": 7563.875,
+                "z": 0.0
+            },
+            "light_radius": 459.5,
+            "light_dropoff": 568.8888888888889,
+            "light_name": "DurotarOgrimmar",
+            "color": [
+                68,
+                117,
+                114,
+                111
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 7123.055555555556,
+                "y": 11015.569444444445,
+                "z": 0.0
+            },
+            "light_radius": 820.5,
+            "light_dropoff": 1094.0277777777778,
+            "light_name": "FeralasCoast",
+            "color": [
+                70,
+                101,
+                114,
+                97
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 7362.930555555556,
+                "y": 10211.902777777777,
+                "z": 0.0
+            },
+            "light_radius": 728.9444444444445,
+            "light_dropoff": 995.5555555555555,
+            "light_name": "FeralasTwinColossus",
+            "color": [
+                70,
+                101,
+                114,
+                97
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 11058.180555555555,
+                "y": 12144.819444444445,
+                "z": 0.0
+            },
+            "light_radius": 612.6388888888889,
+            "light_dropoff": 798.6388888888889,
+            "light_name": "Tanaris Desert2",
+            "color": [
+                84,
+                97,
+                110,
+                97
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 10056.763888888889,
+                "y": 12208.736111111111,
+                "z": 0.0
+            },
+            "light_radius": 448.55555555555554,
+            "light_dropoff": 590.7777777777778,
+            "light_name": "Tanaris Desert3",
+            "color": [
+                84,
+                97,
+                110,
+                97
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9996.347222222223,
+                "y": 11751.680555555555,
+                "z": 0.0
+            },
+            "light_radius": 501.3611111111111,
+            "light_dropoff": 645.4722222222222,
+            "light_name": "Tanaries Desert4",
+            "color": [
+                84,
+                97,
+                110,
+                97
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9785.277777777777,
+                "y": 12741.402777777777,
+                "z": 0.0
+            },
+            "light_radius": 503.25,
+            "light_dropoff": 667.3611111111111,
+            "light_name": "Tanaries Desert5",
+            "color": [
+                84,
+                97,
+                110,
+                97
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 7840.861111111111,
+                "y": 8820.972222222223,
+                "z": 0.0
+            },
+            "light_radius": 711.1111111111111,
+            "light_dropoff": 1072.138888888889,
+            "light_name": "Desolace2",
+            "color": [
+                68,
+                101,
+                115,
+                111
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 7031.208333333333,
+                "y": 8416.152777777777,
+                "z": 0.0
+            },
+            "light_radius": 798.6388888888889,
+            "light_dropoff": 1083.0833333333333,
+            "light_name": "DesolaceSea1",
+            "color": [
+                68,
+                101,
+                115,
+                111
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 6562.458333333333,
+                "y": 9289.722222222223,
+                "z": 0.0
+            },
+            "light_radius": 1104.9444444444443,
+            "light_dropoff": 1422.2222222222222,
+            "light_name": "DesolaceSea2",
+            "color": [
+                68,
+                101,
+                115,
+                111
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 10972.944444444445,
+                "y": 7015.708333333333,
+                "z": 0.0
+            },
+            "light_radius": 934.9722222222222,
+            "light_dropoff": 1138.888888888889,
+            "light_name": "Azshara1-ea2",
+            "color": [
+                65,
+                122,
+                115,
+                104
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9194.194444444445,
+                "y": 12204.541666666666,
+                "z": -31.958333333333332
+            },
+            "light_radius": 984.6111111111111,
+            "light_dropoff": 1255.4166666666667,
+            "light_name": "UnGoro-1-ea2",
+            "color": [
+                85,
+                110,
+                71,
+                111
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 8181.777777777777,
+                "y": 12144.819444444445,
+                "z": 0.0
+            },
+            "light_radius": 962.7222222222222,
+            "light_dropoff": 1214.361111111111,
+            "light_name": "Silithus",
+            "color": [
+                83,
+                105,
+                108,
+                105
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 6796.833333333333,
+                "y": 11612.152777777777,
+                "z": 0.0
+            },
+            "light_radius": 897.0833333333334,
+            "light_dropoff": 1334.6944444444443,
+            "light_name": "FeralasCoast02",
+            "color": [
+                70,
+                101,
+                114,
+                97
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 10845.111111111111,
+                "y": 12613.569444444445,
+                "z": 0.0
+            },
+            "light_radius": 207.86111111111111,
+            "light_dropoff": 317.27777777777777,
+            "light_name": "TanarisCavernsTime",
+            "color": [
+                84,
+                97,
+                110,
+                97
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 10062.263888888889,
+                "y": 12791.013888888889,
+                "z": 0.0
+            },
+            "light_radius": 35.75,
+            "light_dropoff": 75.52777777777777,
+            "light_name": "TanarisOger01",
+            "color": [
+                84,
+                97,
+                110,
+                97
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 10796.194444444445,
+                "y": 10453.277777777777,
+                "z": 0.0
+            },
+            "light_radius": 295.3888888888889,
+            "light_dropoff": 466.5,
+            "light_name": "DuskwallowTheramore",
+            "color": [
+                68,
+                117,
+                115,
+                107
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 8467.069444444445,
+                "y": 7447.041666666667,
+                "z": 60.763888888888886
+            },
+            "light_radius": 131.33333333333334,
+            "light_dropoff": 192.05555555555554,
+            "light_name": "AshenvaleFelwood",
+            "color": [
+                65,
+                115,
+                104,
+                101
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9524.097222222223,
+                "y": 4708.777777777777,
+                "z": 245.02777777777777
+            },
+            "light_radius": 459.5,
+            "light_dropoff": 568.8888888888889,
+            "light_name": "MoongladeTest",
+            "color": [
+                77,
+                111,
+                111,
+                110
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9141.694444444445,
+                "y": 11836.833333333334,
+                "z": -139.80555555555554
+            },
+            "light_radius": 220.75,
+            "light_dropoff": 382.9166666666667,
+            "light_name": "UnGoroTarPites",
+            "color": [
+                85,
+                110,
+                71,
+                111
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9537.902777777777,
+                "y": 12262.347222222223,
+                "z": -159.80555555555554
+            },
+            "light_radius": 360.19444444444446,
+            "light_dropoff": 514.1944444444445,
+            "light_name": "UnGoroRaptorMarsh",
+            "color": [
+                85,
+                110,
+                71,
+                111
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9011.541666666666,
+                "y": 12400.5,
+                "z": -181.11111111111111
+            },
+            "light_radius": 373.19444444444446,
+            "light_dropoff": 504.05555555555554,
+            "light_name": "UnGoroTRex",
+            "color": [
+                85,
+                110,
+                71,
+                111
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 9191.0,
+                "y": 12133.333333333334,
+                "z": -123.68055555555556
+            },
+            "light_radius": 141.22222222222223,
+            "light_dropoff": 251.61111111111111,
+            "light_name": "UnGoroVolcano",
+            "color": [
+                85,
+                110,
+                71,
+                111
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 7883.472222222223,
+                "y": 13188.847222222223,
+                "z": 0.0
+            },
+            "light_radius": 1017.4444444444445,
+            "light_dropoff": 1586.3333333333333,
+            "light_name": "SilithusSouth",
+            "color": [
+                83,
+                105,
+                108,
+                105
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 10972.944444444445,
+                "y": 4879.236111111111,
+                "z": 0.0
+            },
+            "light_radius": 1137.7777777777778,
+            "light_dropoff": 1630.0833333333333,
+            "light_name": "WinterSpring01",
+            "color": [
+                87,
+                105,
+                110,
+                116
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 10014.152777777777,
+                "y": 5347.986111111111,
+                "z": 0.0
+            },
+            "light_radius": 809.5833333333334,
+            "light_dropoff": 984.6111111111111,
+            "light_name": "WinterSpring02",
+            "color": [
+                87,
+                105,
+                110,
+                116
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 10887.722222222223,
+                "y": 5774.111111111111,
+                "z": 351.55555555555554
+            },
+            "light_radius": 470.4166666666667,
+            "light_dropoff": 601.7222222222222,
+            "light_name": "WinterSpring03",
+            "color": [
+                87,
+                105,
+                110,
+                116
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 10738.583333333334,
+                "y": 6242.861111111111,
+                "z": 458.09722222222223
+            },
+            "light_radius": 437.6111111111111,
+            "light_dropoff": 700.1666666666666,
+            "light_name": "WinterSpring04",
+            "color": [
+                87,
+                105,
+                110,
+                116
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 1176256512,
+            "position": {
+                "x": 277.77777777777777,
+                "y": 277.77777777777777,
+                "z": 277.77777777777777
+            },
+            "light_radius": 277.77777777777777,
+            "light_dropoff": 277.77777777777777,
+            "light_name": "@\u001cF-@\u001cF",
+            "color": [
+                0,
+                64,
+                28,
+                70
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 1,
+            "position": {
+                "x": 0.027777777777777776,
+                "y": 0.027777777777777776,
+                "z": 0.027777777777777776
+            },
+            "light_radius": 0.027777777777777776,
+            "light_dropoff": 0.027777777777777776,
+            "light_name": "?--?--?",
+            "color": [
+                0,
+                0,
+                128,
+                63
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.013888888888888888,
+                "y": 0.013888888888888888,
+                "z": 0.013888888888888888
+            },
+            "light_radius": 0.013888888888888888,
+            "light_dropoff": 0.013888888888888888,
+            "light_name": "?---?---?",
+            "color": [
+                0,
+                0,
+                0,
+                63
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.027777777777777776,
+                "y": 0.027777777777777776,
+                "z": 0.027777777777777776
+            },
+            "light_radius": 0.027777777777777776,
+            "light_dropoff": 0.027777777777777776,
+            "light_name": "?--?--?",
+            "color": [
+                0,
+                0,
+                128,
+                63
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "\u0001---\u0001---\u0001---\u0001---\u0001---\u0001---\u0001---\u0002",
+            "color": [
+                1,
+                0,
+                0,
+                0
+            ]
+        }
+    ],
+    "unnamed_light_count": 166,
+    "bad_lights": [
+        {
+            "chunk": [
+                6,
+                6
+            ],
+            "chunk_radius": 6,
+            "position": [
+                8.407790785948902e-45,
+                8.407790785948902e-45,
+                8.407790785948902e-45
+            ],
+            "light_radius": 2.3354974405413617e-46,
+            "light_dropoff": 2.3354974405413617e-46,
+            "light_name": "\u0006---\u0006---\u0006---\u0005---\u0001---\u0005",
+            "color": [
+                6,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                4.6188549007226377e-39,
+                5.0446744715693415e-43,
+                4.6188549007226377e-39
+            ],
+            "light_radius": 2.802596928649634e-44,
+            "light_dropoff": 6.52075867793688e-40,
+            "light_name": "\u0005---p\b---m-\t---m-\t--K2",
+            "color": [
+                160,
+                5,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                1.0846050113874084e-41,
+                5.0446744715693415e-43,
+                1.0846050113874084e-41
+            ],
+            "light_radius": 2.802596928649634e-44,
+            "light_dropoff": 1.1569645608389812e-40,
+            "light_name": "\u0005--Z--p\b--xP]-\t--xP]-\t--K2",
+            "color": [
+                160,
+                5,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                5.0446744715693415e-43,
+                0.0
+            ],
+            "light_radius": 2.802596928649634e-44,
+            "light_dropoff": 2.115182181983627e-43,
+            "light_name": "\u0005--I\u001f--p\b---\t---\t",
+            "color": [
+                160,
+                5,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                7.602044168962133e-42,
+                5.0446744715693415e-43,
+                7.602044168962133e-42
+            ],
+            "light_radius": 2.802596928649634e-44,
+            "light_dropoff": 5.395660811925366e-40,
+            "light_name": "\u0005--\u03e2:-p\b--Ry-\t--Ry-\t--\u001e\u000f",
+            "color": [
+                160,
+                5,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                1.624104920152463e-41,
+                5.0446744715693415e-43,
+                1.624104920152463e-41
+            ],
+            "light_radius": 2.802596928649634e-44,
+            "light_dropoff": 6.0379027563459955e-40,
+            "light_name": "\u0005--\u020b-p\b--V-\t--V-\t--F#",
+            "color": [
+                160,
+                5,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                3.2454072433762763e-41,
+                5.0446744715693415e-43,
+                3.2454072433762763e-41
+            ],
+            "light_radius": 2.802596928649634e-44,
+            "light_dropoff": 6.527568209974352e-40,
+            "light_name": "\u0005---p\b--[-\t--[-\t--xF",
+            "color": [
+                160,
+                5,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                1.0846050113874084e-41,
+                5.0446744715693415e-43,
+                1.0846050113874084e-41
+            ],
+            "light_radius": 2.802596928649634e-44,
+            "light_dropoff": 5.2433980562892715e-40,
+            "light_name": "\u0005---p\b--]P-\t--]P-\t--<\u001e",
+            "color": [
+                160,
+                5,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                7.230700075916056e-42,
+                5.0446744715693415e-43,
+                1.0846050113874084e-41
+            ],
+            "light_radius": 2.802596928649634e-44,
+            "light_dropoff": 2.564796968503286e-40,
+            "light_name": "\u0005--xM-p\b--gR[-\t--gR[-\t--\n\u0007",
+            "color": [
+                160,
+                5,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                2520,
+                1802
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                7.099063499475847e-39,
+                5.0446744715693415e-43,
+                7.099063499475847e-39
+            ],
+            "light_radius": 2.802596928649634e-44,
+            "light_dropoff": 2.817088690268193e-40,
+            "light_name": "\u0005--MMM-p\b--nnn-\t--nnn-\t--MMM",
+            "color": [
+                160,
+                5,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                2.3136757669156124e-38,
+                5.0446744715693415e-43,
+                2.3505526175624771e-38
+            ],
+            "light_radius": 2.802596928649634e-44,
+            "light_dropoff": 6.52075867793688e-40,
+            "light_name": "\u0005---p\b---m-\t---m-\t",
+            "color": [
+                160,
+                5,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                2520,
+                16508593
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                6.09720235980989e-39,
+                5.0446744715693415e-43,
+                6.09720235980989e-39
+            ],
+            "light_radius": 2.802596928649634e-44,
+            "light_dropoff": 6.515278043943076e-40,
+            "light_name": "\u0005---p\b---L-\t---L-\t--g",
+            "color": [
+                160,
+                5,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 360,
+            "position": [
+                1.804171772818202e-41,
+                1.0089348943138683e-42,
+                7.398736781265567e-39
+            ],
+            "light_radius": 5.605193857299268e-44,
+            "light_dropoff": 1.3138290249320885e-40,
+            "light_name": "p\b--xP]-\t--xP]",
+            "color": [
+                112,
+                8,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 1440,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 360,
+            "position": [
+                1.804171772818202e-41,
+                1.0089348943138683e-42,
+                2.9661550841071625e-39
+            ],
+            "light_radius": 5.605193857299268e-44,
+            "light_dropoff": 2.487481882732458e-40,
+            "light_name": "p\b--xP]-\t--xP]",
+            "color": [
+                112,
+                8,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 1036831949,
+            "position": [
+                -0.25,
+                0.10000000149011612,
+                0.5
+            ],
+            "light_radius": 0.008333333664470248,
+            "light_dropoff": 0.006944444444444444,
+            "light_name": ">>",
+            "color": [
+                154,
+                153,
+                153,
+                62
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.949999988079071,
+                0.949999988079071,
+                0.949999988079071
+            ],
+            "light_radius": 0.026388888557751972,
+            "light_dropoff": 0.026388888557751972,
+            "light_name": "33s?33s?33s?",
+            "color": [
+                51,
+                51,
+                115,
+                63
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                1.401298464324817e-45,
+                1.401298464324817e-45
+            ],
+            "light_radius": 3.892495734235603e-47,
+            "light_dropoff": 3.892495734235603e-47,
+            "light_name": "\u0001---\u0001---\u0001---\u0001---\u0001---\u0001---\u0001---\u0001",
+            "color": [
+                1,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                1,
+                1
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 5.605193857299268e-44,
+            "light_dropoff": 3.2524569424005506e-40,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 5.605193857299268e-44,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 5.605193857299268e-44,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 5.605193857299268e-44,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 5.605193857299268e-44,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 5.605193857299268e-44,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 5.605193857299268e-44,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 5.605193857299268e-44,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 5.605193857299268e-44,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 5.605193857299268e-44,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 5.605193857299268e-44,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 5.605193857299268e-44,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 5.605193857299268e-44,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 5.605193857299268e-44,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 333.3333333333333,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.006944444444444444,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.027777777777777776,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.013888888888888888,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.026388888557751972,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.027777777777777776,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                0,
+                0,
+                0,
+                0
+            ]
+        }
+    ]
+}

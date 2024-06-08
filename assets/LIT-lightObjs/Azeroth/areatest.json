@@ -1,0 +1,1857 @@
+{
+    "version": 2,
+    "light_count": 88,
+    "lights": [
+        {
+            "chunk": [
+                -1,
+                -1
+            ],
+            "chunk_radius": -1,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "Global Light",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                -858993460,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 8166.666666666667
+            },
+            "light_radius": 31000.0,
+            "light_dropoff": 220.0,
+            "light_name": ";Fa-o",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 2.802596928649634e-44,
+            "light_dropoff": 3.512588150574208e-43,
+            "light_name": "\u0005--I\u001f--p\b--=5]",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "\u001e\u000f--\u0002--<-\u0005--j:-p\b",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                14721687,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "F#--\u0002",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 4.416036410490292e-43,
+            "light_dropoff": 2.802596928649634e-44,
+            "light_name": "\u0005---p\b--S",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "\u0014\u0011--\u0002--R-\u0005--xM",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                2160,
+                9398127
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "BBB",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 1176256512,
+            "position": {
+                "x": 277.77777777777777,
+                "y": 277.77777777777777,
+                "z": 277.77777777777777
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 3.892495734235603e-47,
+            "light_dropoff": 3.892495734235603e-47,
+            "light_name": "\u0001---\u0001---\u0001---\u0001---\u0001---\u0001---\u0001",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                1440,
+                16711680
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "\u0005",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "\u0005",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                1440
+            ],
+            "chunk_radius": 65535,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "\u0005",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "\u0005--@@@",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 333.3333333333333,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "?",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        }
+    ],
+    "unnamed_light_count": 10,
+    "bad_lights": [
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 4,
+            "position": [
+                5.605193857299268e-45,
+                5.605193857299268e-45,
+                5.605193857299268e-45
+            ],
+            "light_radius": 1.5569982936942411e-46,
+            "light_dropoff": 1.5569982936942411e-46,
+            "light_name": "\u0004---\u0004---\u0003------->\f-\u0002",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                1440,
+                16764313
+            ],
+            "chunk_radius": 2160,
+            "position": [
+                2.346719786002856e-38,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                8516
+            ],
+            "chunk_radius": 720,
+            "position": [
+                2.2403959847625175e-41,
+                2.0178697886277366e-42,
+                7.29321340170805e-39
+            ],
+            "light_radius": 8.407790785948902e-44,
+            "light_dropoff": 2.275800568962831e-40,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                15182416,
+                1440
+            ],
+            "chunk_radius": 3843294,
+            "position": [
+                3.026804682941605e-42,
+                2.3415461920725687e-38,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 18040,
+            "position": [
+                1.0089348943138683e-42,
+                2.2112408491734683e-38,
+                2.0178697886277366e-42
+            ],
+            "light_radius": 4.052579681550497e-40,
+            "light_dropoff": 8.407790785948902e-44,
+            "light_name": "r",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                720,
+                8355711
+            ],
+            "chunk_radius": 1440,
+            "position": [
+                7.099063499475847e-39,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.25,
+                -0.20000000298023224
+            ],
+            "light_radius": 0.009166667030917274,
+            "light_dropoff": 0.002777777819169892,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                2.0178697886277366e-42,
+                9.147676375112406e-41
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 0,
+            "position": [
+                0.0,
+                0.0,
+                2.0178697886277366e-42
+            ],
+            "light_radius": 6.5051135698322674e-40,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "chunk": [
+                0,
+                0
+            ],
+            "chunk_radius": 1440,
+            "position": [
+                2.950260155626326e-39,
+                0.0,
+                0.0
+            ],
+            "light_radius": 0.0,
+            "light_dropoff": 0.0,
+            "light_name": "",
+            "color": [
+                255,
+                255,
+                255,
+                255
+            ]
+        }
+    ]
+}
