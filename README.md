@@ -1,6 +1,8 @@
 Welcome to the Pre-Alpha Restoration Project!
 
-Contributors: Dovah, akspa
+Contributors: Alonin, akspa
+
+Discord: https://discord.gg/6YdUksuKuU
 
 Tools
 
@@ -33,5 +35,11 @@ Assets
 - Additional notes about the project, ideas about how the zones were developed, and other interesting perspectives are included in the documentation folder.
 
 - All project files are located in 'project_files'. Copy and paste them somewhere and point noggit to the folder to do work on the maps! Included is a Map.dbc with the map, prealpha_ek, defined, alongside many other maps that are not provided (I was using Implave's museum mpq's when I made the dbc alterations, oops!)
+
+Scripts
+
+- Tools for rebuilding the pre-alpha terrain from pre-alpha assets found in the 0.5.3 assets
+  - LIT file parser For atmospheric lighting information
+  - WLW/WLM/WLQ file parser for water/liquid level information
 
 
