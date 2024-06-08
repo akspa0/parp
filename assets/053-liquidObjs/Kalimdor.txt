@@ -1,0 +1,1520 @@
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ashenvale - Ashenvale River.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 0
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ashenvale - Astranaar Lake.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 163
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ashenvale - Debris Lake.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 21
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ashenvale - Fallen Sky Lake.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 31
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ashenvale - Falls River.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 8
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ashenvale - Hellscream Fire 2.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ashenvale - Hellscream Fire 3.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ashenvale - Hellscream Fire 4.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ashenvale - Hellscream Fire.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ashenvale - Iris Lake.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 39
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ashenvale - Mystral Lake.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 166
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ashenvale - Oasis.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ashenvale - Satyr Lake Feeder.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 7
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ashenvale - Satyr Lake River 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 227
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ashenvale - Satyr Lake River 02.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 217
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ashenvale - Satyr River Lake.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 51
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ashenvale - Stardust Ruins Lake.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 66
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ashenvale - Waterfall Lake.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 2
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Aszhara - TEST Lake.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Azshara - Tidepool 1 - TEST.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Azshara - Tidepool 2 - TEST.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 2
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Azshara - Tidepool 3  - Test.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Azshara - Tidepool 4 - TEST.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Azshara - Tidepool 5 - TEST.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Barrens - Ashenvale River.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 753
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Barrens-Oasis 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 28
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Barrens-Oasis 02.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 26
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Barrens-Oasis 03.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 69
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Barrens-Oasis 04.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 29
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Barrens-pool 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Barrens-River 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 0
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Crtater Lake.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 95
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Darkshore - Glaive.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 39
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Darkshore - Lake 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 112
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Darkshore - Pond 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 9
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Darkshore - Waterfall 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 35
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Darkshore - Waterfall 02.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 67
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Darnassus-Lake 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 220
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Desolace-Pond 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 25
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Desolace-Pond 02.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 36
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Desolace-Pond 03.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 66
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Desolace-Pond 04.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 51
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Durotar - Den Oasis 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 2
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Durotar - Den Oasis 02.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 5
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Durotar - Oasis 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 12
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Durotar - Oasis 03.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 5
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Durotar - Oasis 04.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 9
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Durotar - Oasis 05.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 9
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Durotar - Oasis 06.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 8
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Durotar - Oasis 08.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 6
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Durotar - Oasis 09.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 11
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Durotar - Oassis 02.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 0
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Durotar - Senjin.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 2
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Durotar Oasis - 07.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 6
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Dustwallow Marsh - Marsh 001.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 598
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Dustwallow Marsh - Marsh 002.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 880
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Dustwallow Marsh - Marsh 003.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 848
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Crater 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Crater 02.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Crater 03.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Crater 04.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Crater 05.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Crater 06.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Crater 07.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Crater 08.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Creek 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Creek 02.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Creek 03.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Creek 04.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Creek 05.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Creek 06.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Creek 07.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Creek 08.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Creek 09.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Lake 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Lake 02.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Lake 03.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Pond 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Pond 02.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Pond 03.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Pond 04.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Pond 05.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Pond 06.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Pond 07.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Pond 08.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Pond 09.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Pond 10.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Pond 11.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Pond 12.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Pond 13.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Felwood-Pond 14.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Feralas - Lake.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 64
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Feralas - Statue Water.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Feralas - Stream 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 62
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Feralas - Stream 92.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 39
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Feralas - Twin Water 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 5
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Feralas - Twin Water 02.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 8
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Feralas - Twin Water 03.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 2
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Feralas - Twin Water 04.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 28
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Feralas - Twin Water 05.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 459
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Feralas - Water Hole.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 4
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Feralas Pond 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 10
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Feralas Pond 02.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 7
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Feralas Pond 03.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 46
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Fewlwood-Creek 06.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 0
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Kalidar - Pond 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Kalidar - Pond 02.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Kalidar - Pond 03.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 78
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Kalidar - Pond 04.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Kalidar - Pond 05.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Kalidar - Pond 06.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Kalidar - Pond 07.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 10
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Kalidar - Waterfall.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 76
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Kalidar-Pond 08.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 6
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Maraudon Well.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Moonglade - NightHaven.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 68
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Moonglade - Pool01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 14
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Moonglade - Pool02.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 21
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Moonglade - Pool03.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 6
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Moonglade - Pool10.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 18
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Moonglade - Pool4.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 11
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Moonglade - Pool5.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 19
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Moonglade - Pool6.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 8
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Moonglade - Pool7.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 14
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Moonglade - Pool8.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 4
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Moonglade - Pool9.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 0
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Moonglade Lake.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 573
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\mud pond.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 0
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Mulgore - Lake Stonebull.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 308
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\NeighborhoodTest.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Raptor Marshes.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 210
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Silithus-Pond01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Silithus-Pond02.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Silithus-Pond03.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Silithus-Pond04.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Stonetalon - Mirkfallon Lake.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 63
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Stonetalon - Stonetalon Falls.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 258
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Stonetalon - Taxi lake.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 30
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Tanaris-Pond 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Tanaris-Pond 02.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Tanaris-Pond 03.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\The Mire.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 144
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ungoro Caldera.wlm
+Liquid type: magma (6)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 6
+liquid_type_str: magma
+padding: 0
+block_count: 4
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ungoro Spring01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 4
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ungoro spring02.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 7
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ungoro Spring03.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 24
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ungoro Tar Pit01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 25
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\UnGoro Tar Pit02.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 29
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ungoro Tar Pit03.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 30
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ungoro Tar Pit04.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 15
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ungoro Tar Pit05.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 39
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Kalimdor\Ungoro Tar Pit06.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 6

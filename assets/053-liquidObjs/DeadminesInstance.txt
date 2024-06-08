@@ -1,0 +1,10 @@
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\DeadminesInstance\Deadmines Water.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 106

@@ -1,0 +1,1080 @@
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Aerie Peak - Lake.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 196
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Aerie Peak - Night Elf Pond.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 34
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Aerie Peak - Spider Pond.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 14
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Aerie Peak - Troll Falls.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 9
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Aerie Peak - Troll Pool 1.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 8
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Aerie Peak - Troll pool 2.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 9
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Arathi - Lake 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 21
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Arathi - Lake 02.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 45
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Arathi - Pond 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 6
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Arathi - River.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 20
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Arathi - Stromguard Lake 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 40
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\BRalter.wlm
+Liquid type: magma (6)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 6
+liquid_type_str: magma
+padding: 0
+block_count: 49
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\BRspire01.wlm
+Liquid type: magma (6)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 6
+liquid_type_str: magma
+padding: 0
+block_count: 93
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\BRspire02.wlm
+Liquid type: magma (6)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 6
+liquid_type_str: magma
+padding: 0
+block_count: 8
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\BRspire03.wlm
+Liquid type: magma (6)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 6
+liquid_type_str: magma
+padding: 0
+block_count: 8
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\BRspire04.wlm
+Liquid type: magma (6)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 6
+liquid_type_str: magma
+padding: 0
+block_count: 9
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Copy of Elwynn - Stranglethorn River.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 83
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Dun Algaz - Pond01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Eastern Plaguelands - TEST Lake 2.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Eastern Plaguelands - TEST Lake.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Eastern Plaguelands - TEST Moat.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Elwynn - Circle Lake Waterfall Pieces.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 11
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Elwynn - Circle Lake.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 243
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Elwynn - Crystal Lake.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 92
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Elwynn - Goldshire Pond.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Elwynn - Gryphon lake.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 64
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Elwynn - Mirror Lake Falls.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 16
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Elwynn - Mirror Lake.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 98
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Elwynn - Northshire Lake Waterfall pieces.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 3
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Elwynn - Northshire lake.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 72
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Elwynn - Stranglethorn River.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 83
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Elwynn - Valley of Heroes.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 77
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Elwynn Test.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 2
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Hillsbrad - Pond 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Hillsbrad - Pond 02.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 15
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Hillsbrad - River.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 201
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Hillsbrad-Pond 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 0
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Loch Modan - Loch Modan.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 64
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Murlock3pool.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 12
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Plaguland - TEST Deviding River.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 8
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Programmer Isle - Chow Test Fast.wlw
+Liquid type: fast flowing (8)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 8
+liquid_type_str: fast flowing
+padding: 0
+block_count: 23
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Programmer Isle - Chow test still.wlw
+Liquid type: still (0)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 0
+liquid_type_str: still
+padding: 0
+block_count: 28
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Redridge - Falls Run.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 19
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Redridge - Lake Everstill falls pool.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Redridge - Lake Everstill.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 338
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Silverpine - Lordamere Lake center.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 245
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Silverpine - Lordamere Lake north.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 779
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Silverpine - Lordamere Lake south.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 104
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Silverpine - River 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 49
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Stranglethorn - Falls 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 22
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Stranglethorn - Falls 02.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 3
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Stranglethorn - Falls 03.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 3
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Stranglethorn - Falls 04.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 7
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Stranglethorn - Falls 05.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 6
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Stranglethorn - Falls 06.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 2
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Stranglethorn - Falls 07.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 9
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Stranglethorn - Falls Pond 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 8
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Stranglethorn - Ruins Pond 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 4
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Stranglethorn - Ruins Pond 02.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 10
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Stranglethorn - Ruins pool 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 13
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Swamp of Sorrows - Swamp 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 469
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Swamp of Sorrows - Swamp 02.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 615
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\TarenMill-Pond 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\TEST - gx.wlm
+Liquid type: magma (6)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 6
+liquid_type_str: magma
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\TEST - Programmer ISLE.wlm
+Liquid type: magma (6)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 6
+liquid_type_str: magma
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\test.wlm
+Liquid type: magma (6)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 6
+liquid_type_str: magma
+padding: 0
+block_count: 5
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\test.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 2
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\testpool1.wlm
+Liquid type: magma (6)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 6
+liquid_type_str: magma
+padding: 0
+block_count: 3
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Tirisfal - Brighwater Lake.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 195
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Tirisfal - Pond 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 14
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Twain is my love monkey.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 9
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Western Plaguelands - Darrowmere Lake East.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 342
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Western Plaguelands - Darrowmere Lake.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 831
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Western Plaguelands - Moat.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 1
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 96
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Westfall - Pond 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Lake.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 24
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Marsh 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 90
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Marsh 02.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 35
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Marsh 03.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 23
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Marsh 04.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 28
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Marsh 05.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 443
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Marsh 06.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 156
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Marsh 07.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 51
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Pond 01.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Pond 02.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 10
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Pond 03.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Pond 04.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Pond 05.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Pond 06.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 4
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Pond 07.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Pond 08.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 2
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Pond 09.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Pond 10.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 2
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Pond 11.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 8
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Pond 12.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 4
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Pond 13.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Pond 14.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 12
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Pond 15.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 2
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Pond 16.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 8
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Pond 17.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 15
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Pond 18.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Pond 19.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 2
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Pond 20.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Pond 21.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 1
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Pond 22.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 12
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Waterfall Tier 1.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 58
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Wetlands - Waterfall Tier 2.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 60
+
+Analyzing file: E:\WoW\MPQEditor\x64\Work-0.5.3-misc\World\Maps\Azeroth\Zul Gurub - Lake TEST.wlw
+Liquid type: river (4)
+magic: *QIL
+version: 0
+unk06: 1
+liquid_type: 4
+liquid_type_str: river
+padding: 0
+block_count: 2
