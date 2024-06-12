@@ -2,7 +2,7 @@
 *.noggitproj
 
 # Ignore blp resources from 0.5.3
-*.blp
+#*.blp
 
 # Ignore WLW resources from 0.5.3
-*.wlw
+#*.wlw
