@@ -1,0 +1,3 @@
+[submodule "scripts/scripts/pywowlib"]
+	path = scripts/scripts/pywowlib
+	url = https://github.com/wowdev/pywowlib
