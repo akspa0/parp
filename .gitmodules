@@ -1,0 +1,6 @@
+[submodule "scripts/scripts/pywowlib"]
+	path = scripts/scripts/pywowlib
+	url = https://github.com/wowdev/pywowlib
+[submodule "tools/gp"]
+	path = tools/gp
+	url = https://github.com/mjollna-wow/gillijimproject
