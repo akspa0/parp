@@ -2,22 +2,24 @@ Welcome to the Pre-Alpha Restoration Project!
 
 We're attempting to rebuild World of Warcraft, circa 2002. Based entirely on old screenshots and a few overhead maps from 2002, we're rebuilding terrain primarily, and re-texturing any models that need to be dialed back to before they were textured. The entire project is provided for anyone to explore or edit to their hearts content - just checkout the project, point Noggit or Noggit Red at the 'project_files' sub-folder, and all should be revealed.
 
+Current Progress: 
+
+* Latest Minimap generation for prealpha_ek - https://github.com/akspa0/parp/blob/akspa-experimental/project_files/textures/minimap/preAlpha_ek_combined_minimap.png
+
 Contributors: Alonin, akspa
 
 Discord: https://discord.gg/6YdUksuKuU
 
 Tools
 
-* Noggit
-* Noggit Red
+* Noggit or Noggit Red
 * MPQEditor
 * git
-* python 3.10+
-* PureRef
+* python 3.1x
 
-Work done
+Work done:
 
-- Top half of Azeroth has been blocked out. Elwynn forest is being blocked out currently.
+- Half of Azeroth has been blocked out. 
 - Alonin provided prealpha_outland, a map based on the earliest screenshot of Outland that we have from ~ Blizzcon 2013/2014.
 
 Goals
