@@ -4,6 +4,13 @@ import json
 import numpy as np
 from PIL import Image
 from scipy.interpolate import interp1d
+import logging
+
+# Set up logging
+def setup_logging(output_directory, filename):
+    log_file = os.path.join(output_directory, f"{filename}.log")
+    logging.basicConfig(filename=log_file, level=logging.DEBUG, 
+                        format='%(asctime)s %(levelname)s:%(message)s')
 
 def ensure_folder_exists(folder_path):
     if not os.path.exists(folder_path):
@@ -28,140 +35,89 @@ def merge_vertices_and_normals(vertices, normals):
 
 def deduplicate_vertices_and_indices(vertices, indices):
     unique_vertices, inverse_indices = np.unique(vertices, axis=0, return_inverse=True)
-    deduplicated_indices = inverse_indices[indices].reshape(-1, 3)
+    deduplicated_indices = inverse_indices[indices]
     return unique_vertices, deduplicated_indices
 
-def generate_obj(vertices, indices, filename, include_normals=False):
+def generate_obj(vertices, indices, output_file):
     obj_data = []
 
     for vertex in vertices:
-        if include_normals:
-            if len(vertex) == 6:  # Ensure there are normals to include
-                obj_data.append(f"v {vertex[0]} {vertex[1]} {vertex[2]}\nvn {vertex[3]} {vertex[4]} {vertex[5]}")
-            else:
-                obj_data.append(f"v {vertex[0]} {vertex[1]} {vertex[2]}")
-        else:
+        if len(vertex) == 3:
             obj_data.append(f"v {vertex[0]} {vertex[1]} {vertex[2]}")
+        elif len(vertex) == 6:
+            obj_data.append(f"v {vertex[0]} {vertex[1]} {vertex[2]}")
+            obj_data.append(f"vn {vertex[3]} {vertex[4]} {vertex[5]}")
 
     for face in indices:
-        if include_normals:
-            obj_data.append(f"f {face[0]+1}//{face[0]+1} {face[1]+1}//{face[1]+1} {face[2]+1}//{face[2]+1}")
-        else:
-            obj_data.append(f"f {face[0]+1} {face[1]+1} {face[2]+1}")
+        obj_data.append(f"f {' '.join([str(idx + 1) for idx in face])}")
 
-    with open(filename, 'w') as f:
+    with open(output_file, 'w') as f:
         f.write("\n".join(obj_data))
-    print(f"3D object saved to {filename}")
 
 def create_texture(colors, output_file):
-    num_colors = len(colors)
-    size = int(np.ceil(np.sqrt(num_colors)))
+    color_count = len(colors)
+    texture_size = int(np.ceil(np.sqrt(color_count)))
+    texture_data = np.zeros((texture_size, texture_size, 4), dtype=np.uint8)
 
-    if size % 16 != 0:
-        size = (size // 16 + 1) * 16  # Ensure the size is a multiple of 16
+    for i in range(color_count):
+        x = i % texture_size
+        y = i // texture_size
+        texture_data[y, x] = colors[i]
 
-    image = Image.new('RGBA', (size, size))
-    pixels = image.load()
-
-    for i, color in enumerate(colors):
-        x = i % size
-        y = i // size
-        if y < size:
-            pixels[x, y] = tuple(color)
-
+    image = Image.fromarray(texture_data, 'RGBA')
     image.save(output_file)
-    print(f"Texture saved to {output_file}")
 
-def interpolate_vertices(vertices, target_length):
-    current_length = len(vertices)
-    if current_length == 0:
-        print("Warning: No vertices to interpolate.")
-        return vertices  # Return empty if no vertices are present
-    elif current_length == 1:
-        # Replicate single vertex to match target length
-        interpolated_vertices = np.tile(vertices, (target_length, 1))
-    elif current_length >= target_length:
-        return vertices
+def process_parsed_data(parsed_data, output_directory, filename_prefix):
+    vertices = np.array(parsed_data.get('vertices', []))
+    indices = np.array(parsed_data.get('indices', []))
+    normals = np.array(parsed_data.get('normals', []))
+    colors = parsed_data.get('colors', [])
+    msvt = np.array(parsed_data.get('msvt', []))
+
+    if len(vertices) > 0 and len(indices) > 0:
+        if len(normals) > 0:
+            interpolated_normals = interpolate_normals(vertices, normals)
+            merged_vertices = merge_vertices_and_normals(vertices, interpolated_normals)
+        else:
+            merged_vertices = vertices
+
+        unique_vertices, deduplicated_indices = deduplicate_vertices_and_indices(merged_vertices, indices)
+
+        output_obj_file = os.path.join(output_directory, f"{filename_prefix}_combined.obj")
+        generate_obj(unique_vertices, deduplicated_indices, output_obj_file)
+        logging.info(f"3D object saved to {output_obj_file}")
     else:
-        interp_func = interp1d(np.linspace(0, 1, current_length), vertices, axis=0, kind='linear')
-        interpolated_vertices = interp_func(np.linspace(0, 1, target_length))
-    return interpolated_vertices
+        logging.warning("Insufficient vertex or index data for 3D object generation.")
 
-def validate_chunk_data(chunk_id, vertices):
-    if vertices.size % 3 != 0:
-        print(f"Skipping chunk {chunk_id} due to incompatible vertex array size {vertices.size}")
-        return False
-    return True
+    if len(colors) > 0:
+        output_texture_file = os.path.join(output_directory, f"{filename_prefix}_texture.png")
+        create_texture(colors, output_texture_file)
+        logging.info(f"Texture saved to {output_texture_file}")
+    else:
+        logging.warning("No color data available for texture generation.")
 
-def process_additional_chunks(parsed_data, output_folder):
-    for chunk_id, chunk_data in parsed_data.items():
-        if chunk_id not in ['vertices', 'indices', 'normals', 'colors', 'msvt', 'mprl']:
-            vertices = np.array(chunk_data)
-            if not validate_chunk_data(chunk_id, vertices):
-                continue
-            vertices = vertices.reshape(-1, 3)
-            if len(vertices) < 3:
-                print(f"Interpolating vertices for chunk {chunk_id} due to insufficient data")
-                vertices = interpolate_vertices(vertices, 3)
-            if len(vertices) < 3:
-                print(f"Skipping chunk {chunk_id} due to insufficient vertices after interpolation")
-                continue
-            indices = np.arange(len(vertices))
-            if len(indices) % 3 != 0:
-                print(f"Skipping chunk {chunk_id} due to incompatible index array size {len(indices)}")
-                continue
-            indices = indices.reshape(-1, 3)
-            filename = os.path.join(output_folder, f"{chunk_id}_layer.obj")
-            generate_obj(vertices, indices, filename, include_normals=False)
+    if len(msvt) > 0:
+        output_msvt_file = os.path.join(output_directory, f"{filename_prefix}_msvt.obj")
+        generate_obj(msvt, [], output_msvt_file)
+        logging.info(f"MSVT 3D object saved to {output_msvt_file}")
 
 def main():
     parser = argparse.ArgumentParser(description="Create 3D objects and textures from parsed PM4 data.")
-    parser.add_argument("parsed_data_file", type=str, help="Path to the parsed data JSON file.")
-    parser.add_argument("output_folder", type=str, help="Folder to save the output files.")
+    parser.add_argument("input_directory", type=str, help="Path to the directory containing parsed data JSON files.")
+    parser.add_argument("output_directory", type=str, help="Folder to save the output files.")
     args = parser.parse_args()
 
-    ensure_folder_exists(args.output_folder)
+    ensure_folder_exists(args.output_directory)
 
-    with open(args.parsed_data_file, 'r') as f:
-        parsed_data = json.load(f)
+    for filename in os.listdir(args.input_directory):
+        if filename.endswith("parsed_data.json"):
+            input_file = os.path.join(args.input_directory, filename)
+            with open(input_file, 'r') as f:
+                parsed_data = json.load(f)
 
-    if 'vertices' in parsed_data and 'normals' in parsed_data and 'indices' in parsed_data:
-        vertices = np.array(parsed_data['vertices'])
-        normals = np.array(parsed_data['normals'])
-        indices = np.array(parsed_data['indices'])
-
-        normals = interpolate_normals(vertices, normals)
-        combined_vertices = merge_vertices_and_normals(vertices, normals)
-        unique_vertices, deduplicated_indices = deduplicate_vertices_and_indices(combined_vertices, indices)
-        generate_obj(unique_vertices, deduplicated_indices, os.path.join(args.output_folder, "combined_layer.obj"), include_normals=True)
-
-    if 'colors' in parsed_data:
-        create_texture(parsed_data['colors'], os.path.join(args.output_folder, "texture.png"))
-
-    if 'msvt' in parsed_data:
-        msvt_vertices = np.array(parsed_data['msvt']).reshape(-1, 3)
-        if len(msvt_vertices) < 3:
-            print("Interpolating MSVT vertices due to insufficient data")
-            msvt_vertices = interpolate_vertices(msvt_vertices, 3)
-        if len(msvt_vertices) < 3:
-            print("Skipping MSVT layer due to insufficient vertices after interpolation")
-        else:
-            msvt_indices = np.arange(len(msvt_vertices)).reshape(-1, 3)
-            generate_obj(msvt_vertices, msvt_indices, os.path.join(args.output_folder, "msvt_layer.obj"), include_normals=False)
-
-    if 'mprl' in parsed_data:
-        mprl_vertices = np.array(parsed_data['mprl']).reshape(-1, 3)
-        if len(mprl_vertices) < 3:
-            print("Interpolating MPRL vertices due to insufficient data")
-            mprl_vertices = interpolate_vertices(mprl_vertices, 3)
-        if len(mprl_vertices) < 3:
-            print("Skipping MPRL layer due to insufficient vertices after interpolation")
-        else:
-            mprl_indices = np.arange(len(mprl_vertices)).reshape(-1, 3)
-            generate_obj(mprl_vertices, mprl_indices, os.path.join(args.output_folder, "mprl_layer.obj"), include_normals=False)
-
-    # Process additional chunks and create separate OBJ files if they contain vertex data
-    process_additional_chunks(parsed_data, args.output_folder)
+            filename_prefix = os.path.splitext(filename)[0]
+            setup_logging(args.output_directory, filename_prefix)
+            process_parsed_data(parsed_data, args.output_directory, filename_prefix)
 
 if __name__ == "__main__":
     main()
