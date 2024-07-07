@@ -93,7 +93,7 @@ def validate_chunk_data(chunk_id, vertices):
         return False
     return True
 
-def process_additional_chunks(parsed_data, output_folder):
+def process_additional_chunks(parsed_data, output_folder, prefix):
     for chunk_id, chunk_data in parsed_data.items():
         if chunk_id not in ['vertices', 'indices', 'normals', 'colors', 'msvt', 'mprl']:
             vertices = np.array(chunk_data)
@@ -111,57 +111,69 @@ def process_additional_chunks(parsed_data, output_folder):
                 print(f"Skipping chunk {chunk_id} due to incompatible index array size {len(indices)}")
                 continue
             indices = indices.reshape(-1, 3)
-            filename = os.path.join(output_folder, f"{chunk_id}_layer.obj")
+            filename = os.path.join(output_folder, f"{prefix}_{chunk_id}_layer.obj")
             generate_obj(vertices, indices, filename, include_normals=False)
+
+def process_parsed_directory(input_directory, output_directory):
+    ensure_folder_exists(output_directory)
+
+    for foldername in os.listdir(input_directory):
+        folder_path = os.path.join(input_directory, foldername)
+        if os.path.isdir(folder_path):
+            parsed_data_file = os.path.join(folder_path, "parsed_data.json")
+            if os.path.exists(parsed_data_file):
+                output_subfolder = os.path.join(output_directory, foldername)
+                ensure_folder_exists(output_subfolder)
+                with open(parsed_data_file, 'r') as f:
+                    parsed_data = json.load(f)
+
+                prefix = os.path.splitext(foldername)[0]
+
+                if 'vertices' in parsed_data and 'normals' in parsed_data and 'indices' in parsed_data:
+                    vertices = np.array(parsed_data['vertices'])
+                    normals = np.array(parsed_data['normals'])
+                    indices = np.array(parsed_data['indices'])
+
+                    normals = interpolate_normals(vertices, normals)
+                    combined_vertices = merge_vertices_and_normals(vertices, normals)
+                    unique_vertices, deduplicated_indices = deduplicate_vertices_and_indices(combined_vertices, indices)
+                    generate_obj(unique_vertices, deduplicated_indices, os.path.join(output_subfolder, f"{prefix}_combined_layer.obj"), include_normals=True)
+
+                if 'colors' in parsed_data:
+                    create_texture(parsed_data['colors'], os.path.join(output_subfolder, f"{prefix}_texture.png"))
+
+                if 'msvt' in parsed_data:
+                    msvt_vertices = np.array(parsed_data['msvt']).reshape(-1, 3)
+                    if len(msvt_vertices) < 3:
+                        print("Interpolating MSVT vertices due to insufficient data")
+                        msvt_vertices = interpolate_vertices(msvt_vertices, 3)
+                    if len(msvt_vertices) < 3:
+                        print("Skipping MSVT layer due to insufficient vertices after interpolation")
+                    else:
+                        msvt_indices = np.arange(len(msvt_vertices)).reshape(-1, 3)
+                        generate_obj(msvt_vertices, msvt_indices, os.path.join(output_subfolder, f"{prefix}_msvt_layer.obj"), include_normals=False)
+
+                if 'mprl' in parsed_data:
+                    mprl_vertices = np.array(parsed_data['mprl']).reshape(-1, 3)
+                    if len(mprl_vertices) < 3:
+                        print("Interpolating MPRL vertices due to insufficient data")
+                        mprl_vertices = interpolate_vertices(mprl_vertices, 3)
+                    if len(mprl_vertices) < 3:
+                        print("Skipping MPRL layer due to insufficient vertices after interpolation")
+                    else:
+                        mprl_indices = np.arange(len(mprl_vertices)).reshape(-1, 3)
+                        generate_obj(mprl_vertices, mprl_indices, os.path.join(output_subfolder, f"{prefix}_mprl_layer.obj"), include_normals=False)
+
+                # Process additional chunks and create separate OBJ files if they contain vertex data
+                process_additional_chunks(parsed_data, output_subfolder, prefix)
 
 def main():
     parser = argparse.ArgumentParser(description="Create 3D objects and textures from parsed PM4 data.")
-    parser.add_argument("parsed_data_file", type=str, help="Path to the parsed data JSON file.")
-    parser.add_argument("output_folder", type=str, help="Folder to save the output files.")
+    parser.add_argument("input_directory", type=str, help="Path to the directory containing parsed data JSON files.")
+    parser.add_argument("output_directory", type=str, help="Folder to save the output files.")
     args = parser.parse_args()
 
-    ensure_folder_exists(args.output_folder)
-
-    with open(args.parsed_data_file, 'r') as f:
-        parsed_data = json.load(f)
-
-    if 'vertices' in parsed_data and 'normals' in parsed_data and 'indices' in parsed_data:
-        vertices = np.array(parsed_data['vertices'])
-        normals = np.array(parsed_data['normals'])
-        indices = np.array(parsed_data['indices'])
-
-        normals = interpolate_normals(vertices, normals)
-        combined_vertices = merge_vertices_and_normals(vertices, normals)
-        unique_vertices, deduplicated_indices = deduplicate_vertices_and_indices(combined_vertices, indices)
-        generate_obj(unique_vertices, deduplicated_indices, os.path.join(args.output_folder, "combined_layer.obj"), include_normals=True)
-
-    if 'colors' in parsed_data:
-        create_texture(parsed_data['colors'], os.path.join(args.output_folder, "texture.png"))
-
-    if 'msvt' in parsed_data:
-        msvt_vertices = np.array(parsed_data['msvt']).reshape(-1, 3)
-        if len(msvt_vertices) < 3:
-            print("Interpolating MSVT vertices due to insufficient data")
-            msvt_vertices = interpolate_vertices(msvt_vertices, 3)
-        if len(msvt_vertices) < 3:
-            print("Skipping MSVT layer due to insufficient vertices after interpolation")
-        else:
-            msvt_indices = np.arange(len(msvt_vertices)).reshape(-1, 3)
-            generate_obj(msvt_vertices, msvt_indices, os.path.join(args.output_folder, "msvt_layer.obj"), include_normals=False)
-
-    if 'mprl' in parsed_data:
-        mprl_vertices = np.array(parsed_data['mprl']).reshape(-1, 3)
-        if len(mprl_vertices) < 3:
-            print("Interpolating MPRL vertices due to insufficient data")
-            mprl_vertices = interpolate_vertices(mprl_vertices, 3)
-        if len(mprl_vertices) < 3:
-            print("Skipping MPRL layer due to insufficient vertices after interpolation")
-        else:
-            mprl_indices = np.arange(len(mprl_vertices)).reshape(-1, 3)
-            generate_obj(mprl_vertices, mprl_indices, os.path.join(args.output_folder, "mprl_layer.obj"), include_normals=False)
-
-    # Process additional chunks and create separate OBJ files if they contain vertex data
-    process_additional_chunks(parsed_data, args.output_folder)
+    process_parsed_directory(args.input_directory, args.output_directory)
 
 if __name__ == "__main__":
     main()

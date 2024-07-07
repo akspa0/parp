@@ -1,10 +1,23 @@
-# pm4_parser.py
 import argparse
 import os
 import struct
 import json
 import numpy as np
 
+# Define common types parsing functions based on the wowdev.wiki Common_Types page
+def parse_C3Vector(data):
+    return struct.unpack('fff', data)
+
+def parse_C3Vector_i(data):
+    return struct.unpack('iii', data)
+
+def parse_C2Vector(data):
+    return struct.unpack('ff', data)
+
+def parse_RGBA(data):
+    return struct.unpack('BBBB', data)
+
+# Other parsing functions remain the same
 def parse_pm4_file(file_path):
     chunks = []
     with open(file_path, 'rb') as file:
@@ -32,8 +45,8 @@ def parse_indices(data):
     return indices
 
 def parse_msvt(data):
-    vertices = struct.unpack(f'{len(data)//4}f', data)
-    vertices = np.array(vertices).reshape(-1, 3)
+    num_vectors = len(data) // 12  # Each C3Vector is 12 bytes (3 * 4 bytes for floats)
+    vertices = [parse_C3Vector(data[i*12:(i+1)*12]) for i in range(num_vectors)]
     world_positions = []
     for vertex in vertices:
         y, x, z = vertex
@@ -45,8 +58,7 @@ def parse_msvt(data):
 
 def parse_colors(data):
     num_colors = len(data) // 4
-    colors = struct.unpack(f'{num_colors * 4}B', data)
-    colors = np.array(colors).reshape(-1, 4)
+    colors = [parse_RGBA(data[i*4:(i+1)*4]) for i in range(num_colors)]
     return colors
 
 def parse_mprl(data):
@@ -73,45 +85,59 @@ def ensure_folder_exists(folder_path):
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
 
+def parse_pm4_directory(input_directory, output_directory):
+    ensure_folder_exists(output_directory)
+
+    for filename in os.listdir(input_directory):
+        if filename.endswith(".pm4"):
+            file_path = os.path.join(input_directory, filename)
+            output_subfolder = os.path.join(output_directory, os.path.splitext(filename)[0])
+
+            pm4_chunks = parse_pm4_file(file_path)
+            if not pm4_chunks:  # Skip files with no chunks
+                print(f"Skipping {filename} as it contains no chunks.")
+                continue
+
+            parsed_data = {}
+
+            for chunk_id, chunk_size, chunk_data in pm4_chunks:
+                if chunk_id == 'VPSM':
+                    vertices = parse_vpos(chunk_data)
+                    parsed_data['vertices'] = vertices.tolist()
+                elif chunk_id == 'IPSM':
+                    indices = parse_indices(chunk_data)
+                    parsed_data['indices'] = indices.tolist()
+                elif chunk_id == 'NCSM':
+                    normals = parse_vpos(chunk_data)
+                    parsed_data['normals'] = normals.tolist()
+                elif chunk_id == 'KLSM':
+                    colors = parse_colors(chunk_data)
+                    parsed_data['colors'] = colors
+                elif chunk_id == 'MSVT':
+                    world_positions = parse_msvt(chunk_data)
+                    parsed_data['msvt'] = world_positions
+                elif chunk_id == 'MPRL':
+                    mprl_data = parse_mprl(chunk_data)
+                    parsed_data['mprl'] = mprl_data
+                else:
+                    parsed_data[chunk_id] = parse_generic_chunk(chunk_data)
+
+            if parsed_data:  # Only create folder and save JSON if there is parsed data
+                ensure_folder_exists(output_subfolder)
+                output_json_file = os.path.join(output_subfolder, "parsed_data.json")
+                with open(output_json_file, 'w') as f:
+                    json.dump(parsed_data, f, indent=4)
+                print(f"Parsed information for {filename} saved to {output_json_file}")
+            else:
+                print(f"No valid data found in {filename}. Skipping.")
+
 def main():
-    parser = argparse.ArgumentParser(description="Parse PM4 files and save the data to a JSON file.")
-    parser.add_argument("pm4_file", type=str, help="Path to the input PM4 file.")
-    parser.add_argument("output_folder", type=str, help="Folder to save the output files.")
+    parser = argparse.ArgumentParser(description="Parse a directory of PM4 files and save the data to JSON files.")
+    parser.add_argument("input_directory", type=str, help="Path to the input directory containing PM4 files.")
+    parser.add_argument("output_directory", type=str, help="Path to the output directory to save JSON files.")
     args = parser.parse_args()
 
-    ensure_folder_exists(args.output_folder)
-
-    pm4_chunks = parse_pm4_file(args.pm4_file)
-
-    parsed_data = {}
-
-    for chunk_id, chunk_size, chunk_data in pm4_chunks:
-        if chunk_id == 'VPSM':
-            vertices = parse_vpos(chunk_data)
-            parsed_data['vertices'] = vertices.tolist()
-        elif chunk_id == 'IPSM':
-            indices = parse_indices(chunk_data)
-            parsed_data['indices'] = indices.tolist()
-        elif chunk_id == 'NCSM':
-            normals = parse_vpos(chunk_data)
-            parsed_data['normals'] = normals.tolist()
-        elif chunk_id == 'KLSM':
-            colors = parse_colors(chunk_data)
-            parsed_data['colors'] = colors.tolist()
-        elif chunk_id == 'MSVT':
-            world_positions = parse_msvt(chunk_data)
-            parsed_data['msvt'] = world_positions
-        elif chunk_id == 'MPRL':
-            mprl_data = parse_mprl(chunk_data)
-            parsed_data['mprl'] = mprl_data
-        else:
-            parsed_data[chunk_id] = parse_generic_chunk(chunk_data)
-
-    output_json_file = os.path.join(args.output_folder, "parsed_data.json")
-    with open(output_json_file, 'w') as f:
-        json.dump(parsed_data, f, indent=4)
-
-    print(f"Parsed information saved to {output_json_file}")
+    parse_pm4_directory(args.input_directory, args.output_directory)
 
 if __name__ == "__main__":
     main()
