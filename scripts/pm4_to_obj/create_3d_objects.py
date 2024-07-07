@@ -1,4 +1,3 @@
-# create_3d_obj.py
 import argparse
 import os
 import json
@@ -88,17 +87,30 @@ def interpolate_vertices(vertices, target_length):
         interpolated_vertices = interp_func(np.linspace(0, 1, target_length))
     return interpolated_vertices
 
+def validate_chunk_data(chunk_id, vertices):
+    if vertices.size % 3 != 0:
+        print(f"Skipping chunk {chunk_id} due to incompatible vertex array size {vertices.size}")
+        return False
+    return True
+
 def process_additional_chunks(parsed_data, output_folder):
     for chunk_id, chunk_data in parsed_data.items():
         if chunk_id not in ['vertices', 'indices', 'normals', 'colors', 'msvt', 'mprl']:
-            vertices = np.array(chunk_data).reshape(-1, 3)
+            vertices = np.array(chunk_data)
+            if not validate_chunk_data(chunk_id, vertices):
+                continue
+            vertices = vertices.reshape(-1, 3)
             if len(vertices) < 3:
                 print(f"Interpolating vertices for chunk {chunk_id} due to insufficient data")
                 vertices = interpolate_vertices(vertices, 3)
             if len(vertices) < 3:
                 print(f"Skipping chunk {chunk_id} due to insufficient vertices after interpolation")
                 continue
-            indices = np.arange(len(vertices)).reshape(-1, 3)
+            indices = np.arange(len(vertices))
+            if len(indices) % 3 != 0:
+                print(f"Skipping chunk {chunk_id} due to incompatible index array size {len(indices)}")
+                continue
+            indices = indices.reshape(-1, 3)
             filename = os.path.join(output_folder, f"{chunk_id}_layer.obj")
             generate_obj(vertices, indices, filename, include_normals=False)
 
