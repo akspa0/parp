@@ -2,7 +2,7 @@
 import struct
 import logging
 
-# Common type decoders from wow_common_types.py
+# Common type decoders
 def decode_uint8(data, offset):
     return struct.unpack_from('B', data, offset)[0], offset + 1
 
@@ -183,23 +183,46 @@ def decode_RRPM_chunk(data):
 def decode_HBDM_chunk(data):
     offset = 0
     decoded = {}
-    decoded['value'], offset = decode_uint32(data, offset)
+    decoded['count'], offset = decode_uint32(data, offset)
+    decoded['entries'] = []
+
+    entry = {'index': None, 'filenames': []}
+    while offset < len(data):
+        sub_chunk_id = data[offset:offset+4].decode('utf-8')
+        sub_chunk_size, sub_offset = decode_uint32(data, offset + 4)
+        sub_chunk_data = data[sub_offset:sub_offset + sub_chunk_size]
+        offset = sub_offset + sub_chunk_size
+
+        if sub_chunk_id == 'IBDM':
+            if entry['index'] is not None or entry['filenames']:  # Save the previous entry if not empty
+                decoded['entries'].append(entry)
+            entry = {'index': None, 'filenames': []}
+            entry['index'], _ = decode_uint32(sub_chunk_data, 0)
+        elif sub_chunk_id == 'FBDM':
+            sub_sub_offset = 0
+            while sub_sub_offset < len(sub_chunk_data):
+                filename, sub_sub_offset = decode_cstring(sub_chunk_data, sub_sub_offset)
+                entry['filenames'].append(filename)
+
+    if entry['index'] is not None or entry['filenames']:  # Save the last entry if not empty
+        decoded['entries'].append(entry)
+
     logging.debug(f"HBDM Chunk: {decoded}")
     return decoded
 
 def decode_IBDM_chunk(data):
     offset = 0
     decoded = {}
-    decoded['value'], offset = decode_uint32(data, offset)
+    decoded['m_destructible_building_index'], offset = decode_uint32(data, offset)
     logging.debug(f"IBDM Chunk: {decoded}")
     return decoded
 
 def decode_FBDM_chunk(data):
-    offset = 0
     decoded = []
+    offset = 0
     while offset < len(data):
-        value, offset = decode_uint8(data, offset)
-        decoded.append(value)
+        filename, offset = decode_cstring(data, offset)
+        decoded.append(filename)
     logging.debug(f"FBDM Chunk: {decoded}")
     return decoded
 
@@ -238,4 +261,5 @@ chunk_decoders = {
     'FBDM': decode_FBDM_chunk,
     'SODM': decode_SODM_chunk,
     'FSDM': decode_FSDM_chunk,
+    # Add more mappings for other chunk types as we define them...
 }
