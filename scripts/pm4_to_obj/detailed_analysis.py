@@ -4,6 +4,8 @@ import json
 import logging
 from chunk_decoders import chunk_decoders
 
+logging.basicConfig(level=logging.DEBUG)
+
 def load_json(filepath):
     with open(filepath, 'r') as f:
         return json.load(f)

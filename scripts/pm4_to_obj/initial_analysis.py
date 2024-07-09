@@ -1,11 +1,10 @@
-# initial_analysis.py
 import os
 import struct
 import json
 import logging
 import argparse
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 def read_chunks(file_path):
     with open(file_path, "rb") as f:
