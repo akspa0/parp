@@ -1,7 +1,8 @@
 import struct
 import logging
+import numpy as np
 
-# Common type decoders
+# Helper functions for decoding
 def decode_uint8(data, offset):
     return struct.unpack_from('B', data, offset)[0], offset + 1
 
@@ -40,7 +41,7 @@ def decode_RGBA(data, offset):
     a, offset = decode_uint8(data, offset)
     return {'r': r, 'g': g, 'b': b, 'a': a}, offset
 
-# Specific chunk decoders using common types
+# Decoders for specific chunks
 def decode_MVER_chunk(data):
     offset = 0
     decoded = {}
@@ -128,7 +129,7 @@ def decode_MSVI_chunk(data):
     logging.debug(f"MSVI Chunk: {decoded}")
     return decoded
 
-def decode_MSUR_chunk(data, context=None):
+def decode_MSUR_chunk(data):
     offset = 0
     decoded = []
     while offset < len(data):
@@ -144,12 +145,6 @@ def decode_MSUR_chunk(data, context=None):
         entry['MSVI_first_index'], offset = decode_uint32(data, offset)
         entry['_0x18'], offset = decode_uint32(data, offset)
         entry['_0x1c'], offset = decode_uint32(data, offset)
-        
-        # Linking to the amount of indices in IVSM
-        if context and 'IVSM' in context:
-            ivsm_indices = context['IVSM']
-            entry['IVSM_indices'] = ivsm_indices[entry['MSVI_first_index']:entry['MSVI_first_index'] + entry['_0x01']]
-
         decoded.append(entry)
     logging.debug(f"MSUR Chunk: {decoded}")
     return decoded
@@ -163,7 +158,6 @@ def decode_IVSM_chunk(data):
     logging.debug(f"IVSM Chunk: {decoded}")
     return decoded
 
-
 def decode_LRPM_chunk(data):
     offset = 0
     decoded = []
@@ -173,7 +167,10 @@ def decode_LRPM_chunk(data):
         entry['_0x02'], offset = decode_int16(data, offset)
         entry['_0x04'], offset = decode_uint16(data, offset)
         entry['_0x06'], offset = decode_uint16(data, offset)
-        entry['position'], offset = decode_C3Vector(data, offset)
+        x, offset = decode_float(data, offset)
+        z, offset = decode_float(data, offset)
+        y, offset = decode_float(data, offset)  # Swapping y and z labels
+        entry['position'] = {'x': x, 'y': y, 'z': z}
         entry['_0x14'], offset = decode_int16(data, offset)
         entry['_0x16'], offset = decode_uint16(data, offset)
         decoded.append(entry)
@@ -197,7 +194,7 @@ def decode_RRPM_chunk(data):
 def decode_KLSM_chunk(data):
     offset = 0
     decoded = []
-    while offset + 16 <= len(data):  # Adjust the buffer size check
+    while offset + 16 <= len(data):
         entry = {}
         entry['_0x00'], offset = decode_uint8(data, offset)
         entry['_0x01'], offset = decode_uint8(data, offset)
@@ -277,7 +274,6 @@ def decode_FSDM_chunk(data):
     logging.debug(f"FSDM Chunk: {decoded}")
     return decoded
 
-# Mapping chunk IDs to their decoders
 chunk_decoders = {
     'REVM': decode_MVER_chunk,
     'CRCM': decode_MCRC_chunk,
@@ -287,7 +283,7 @@ chunk_decoders = {
     'NCSM': decode_MSCN_chunk,
     'KLSM': decode_KLSM_chunk,
     'TVSM': decode_MSVT_chunk,
-    'IVSM': decode_MSVI_chunk,
+    'IVSM': decode_IVSM_chunk,
     'RUSM': decode_MSUR_chunk,
     'LRPM': decode_LRPM_chunk,
     'RRPM': decode_RRPM_chunk,
@@ -296,5 +292,4 @@ chunk_decoders = {
     'FBDM': decode_FBDM_chunk,
     'SODM': decode_SODM_chunk,
     'FSDM': decode_FSDM_chunk,
-    # Add more mappings for other chunk types as we define them...
 }
