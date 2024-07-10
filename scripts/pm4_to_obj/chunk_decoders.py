@@ -1,45 +1,6 @@
-import struct
 import logging
-import numpy as np
-
-# Helper functions for decoding
-def decode_uint8(data, offset):
-    return struct.unpack_from('B', data, offset)[0], offset + 1
-
-def decode_uint16(data, offset):
-    return struct.unpack_from('H', data, offset)[0], offset + 2
-
-def decode_int16(data, offset):
-    return struct.unpack_from('h', data, offset)[0], offset + 2
-
-def decode_uint32(data, offset):
-    return struct.unpack_from('I', data, offset)[0], offset + 4
-
-def decode_float(data, offset):
-    return struct.unpack_from('f', data, offset)[0], offset + 4
-
-def decode_cstring(data, offset):
-    end = data.find(b'\x00', offset)
-    return data[offset:end].decode('ascii'), end + 1
-
-def decode_C3Vector(data, offset):
-    x, offset = decode_float(data, offset)
-    y, offset = decode_float(data, offset)
-    z, offset = decode_float(data, offset)
-    return {'x': x, 'y': y, 'z': z}, offset
-
-def decode_C3Vector_i(data, offset):
-    x, offset = decode_uint32(data, offset)
-    y, offset = decode_uint32(data, offset)
-    z, offset = decode_uint32(data, offset)
-    return {'x': x, 'y': y, 'z': z}, offset
-
-def decode_RGBA(data, offset):
-    r, offset = decode_uint8(data, offset)
-    g, offset = decode_uint8(data, offset)
-    b, offset = decode_uint8(data, offset)
-    a, offset = decode_uint8(data, offset)
-    return {'r': r, 'g': g, 'b': b, 'a': a}, offset
+import struct  # Import the struct module
+from common_helpers import decode_uint8, decode_uint16, decode_int16, decode_uint32, decode_float, decode_cstring, decode_C3Vector, decode_C3Vector_i, decode_RGBA
 
 # Decoders for specific chunks
 def decode_MVER_chunk(data):
@@ -116,7 +77,13 @@ def decode_MSVT_chunk(data):
     decoded = []
     while offset < len(data):
         vertex, offset = decode_C3Vector_i(data, offset)
-        decoded.append(vertex)
+        # Convert to in-game coordinates
+        world_pos = {
+            'x': 17066.666 - vertex['x'],
+            'y': 17066.666 - vertex['y'],
+            'z': vertex['z'] / 36.0
+        }
+        decoded.append(world_pos)
     logging.debug(f"MSVT Chunk: {decoded}")
     return decoded
 
@@ -167,9 +134,9 @@ def decode_LRPM_chunk(data):
         entry['_0x02'], offset = decode_int16(data, offset)
         entry['_0x04'], offset = decode_uint16(data, offset)
         entry['_0x06'], offset = decode_uint16(data, offset)
-        x, offset = decode_float(data, offset)
+        y, offset = decode_float(data, offset)
         z, offset = decode_float(data, offset)
-        y, offset = decode_float(data, offset)  # Swapping y and z labels
+        x, offset = decode_float(data, offset)  # Swapping y and z labels
         entry['position'] = {'x': x, 'y': y, 'z': z}
         entry['_0x14'], offset = decode_int16(data, offset)
         entry['_0x16'], offset = decode_uint16(data, offset)
@@ -211,34 +178,33 @@ def decode_KLSM_chunk(data):
 
 def decode_HBDM_chunk(data):
     offset = 0
-    decoded = {}
-    decoded['count'], offset = decode_uint32(data, offset)
-    decoded['entries'] = []
+    decoded = {'entries': []}
 
-    for _ in range(decoded['count']):
-        entry = {}
-        entry['index'] = []
-        entry['filenames'] = []
+    count, offset = decode_uint32(data, offset)
+
+    for _ in range(count):
+        entry = {'index': None, 'filenames': []}
+
         while offset < len(data):
             if offset + 8 > len(data):
                 break
             sub_chunk_id = data[offset:offset+4].decode('utf-8')
             sub_chunk_size, offset = decode_uint32(data, offset + 4)
-            if offset + sub_chunk_size > len(data):
-                break
-            sub_chunk_data = data[offset:offset+sub_chunk_size]
+            sub_chunk_data = data[offset+8:offset+8+sub_chunk_size]
+            offset += 8 + sub_chunk_size
+
             if sub_chunk_id == 'IBDM':
-                index, _ = decode_uint32(sub_chunk_data, 0)
-                entry['index'].append(index)
+                entry['index'], _ = decode_uint32(sub_chunk_data, 0)
             elif sub_chunk_id == 'FBDM':
-                filenames = []
-                sub_offset = 0
-                while sub_offset < sub_chunk_size:
-                    filename, sub_offset = decode_cstring(sub_chunk_data, sub_offset)
-                    filenames.append(filename)
-                entry['filenames'].extend(filenames)
-            offset += sub_chunk_size
+                filename_offset = 0
+                while filename_offset < len(sub_chunk_data):
+                    filename, filename_offset = decode_cstring(sub_chunk_data, filename_offset)
+                    entry['filenames'].append(filename)
+            else:
+                logging.warning(f"Unknown sub-chunk ID in HBDM: {sub_chunk_id}")
+
         decoded['entries'].append(entry)
+
     logging.debug(f"HBDM Chunk: {decoded}")
     return decoded
 

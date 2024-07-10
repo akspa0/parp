@@ -1,5 +1,4 @@
 import os
-import struct
 import json
 import logging
 import argparse
@@ -15,12 +14,12 @@ def read_chunks(file_path):
     chunks = []
     while offset < file_size:
         chunk_id = data[offset:offset+4].decode('utf-8')
-        chunk_size = struct.unpack_from('I', data, offset+4)[0]
+        chunk_size = int.from_bytes(data[offset+4:offset+8], byteorder='little')
         chunk_data = data[offset+8:offset+8+chunk_size]
         chunks.append({
             'id': chunk_id,
             'size': chunk_size,
-            'data': chunk_data.hex()
+            'data': list(chunk_data)  # Store the chunk data as a list of bytes
         })
         logging.info(f"Read chunk: {chunk_id} (Size: {chunk_size})")
         offset += 8 + chunk_size
