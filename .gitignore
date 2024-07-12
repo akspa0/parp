@@ -7,3 +7,10 @@ textures\*.blp
 # Ignore WLW resources from 0.5.3
 *.wlw
 *.wlm
+
+# ignore pm4 pd4 data
+*.pd4
+*.pm4
+
+# ignore chunk databases
+chunk_data.db
