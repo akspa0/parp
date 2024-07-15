@@ -74,6 +74,26 @@ def cross_reference(data):
     correlation_summary = {field: {"values": vals[:10], "unique_values": len(set(vals))} for field, vals in correlations.items()}
     return correlation_summary
 
+def visualize_correlations(correlations, output_dir):
+    import matplotlib.pyplot as plt
+    ensure_folder_exists(output_dir)
+    
+    for field, data in correlations.items():
+        values = data["values"]
+        unique_values = data["unique_values"]
+
+        x = [val[0] for val in values]
+        y = [val[1] for val in values]
+
+        plt.figure(figsize=(10, 6))
+        plt.scatter(x, y, alpha=0.5)
+        plt.title(f'Correlation between {field} and RRPM')
+        plt.xlabel(f'{field} Values')
+        plt.ylabel('RRPM Values')
+        plt.grid(True)
+        plt.savefig(os.path.join(output_dir, f'{field}_correlation.png'))
+        plt.close()
+
 def save_analysis_results(analysis_results, output_file):
     output_dir = os.path.dirname(output_file)
     ensure_folder_exists(output_dir)
@@ -85,6 +105,7 @@ def main():
     parser = argparse.ArgumentParser(description="Analyze data from chunk_data.db and export analysis results to JSON files.")
     parser.add_argument("db_path", type=str, help="Path to the SQLite database file (chunk_data.db).")
     parser.add_argument("output_file", type=str, help="Path to the output JSON file.")
+    parser.add_argument("output_dir", type=str, help="Path to the output directory for visualizations.")
     args = parser.parse_args()
 
     # Define the chunks and fields we're interested in
@@ -99,6 +120,9 @@ def main():
     # Cross-reference data
     correlation_results = cross_reference(data)
     analysis_results["correlations"] = correlation_results
+
+    # Visualize correlations
+    visualize_correlations(correlation_results, args.output_dir)
 
     # Save analysis results
     save_analysis_results(analysis_results, args.output_file)
