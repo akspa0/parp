@@ -8,7 +8,7 @@ def ensure_folder_exists(folder):
 
 def decode_uint8(data, offset):
     try:
-        return data[offset], offset + 1
+        return struct.unpack_from('B', data, offset)[0], offset + 1
     except IndexError:
         logging.error("decode_uint8: Attempt to read beyond buffer size")
         return None, offset
@@ -68,3 +68,16 @@ def decode_RGBA(data, offset):
     b, offset = decode_uint8(data, offset)
     a, offset = decode_uint8(data, offset)
     return {'r': r, 'g': g, 'b': b, 'a': a}, offset
+
+def read_chunks_from_data(data, offset=0):
+    chunks = []
+    while offset < len(data):
+        chunk_id = data[offset:offset + 4].decode('latin-1')
+        chunk_size = struct.unpack_from('I', data, offset + 4)[0]
+        chunk_data = data[offset + 8:offset + 8 + chunk_size]
+        chunks.append({'id': chunk_id, 'size': chunk_size, 'data': chunk_data})
+        offset += 8 + chunk_size
+    return chunks
+
+def reverse_chunk_id(chunk_id):
+    return chunk_id[::-1]

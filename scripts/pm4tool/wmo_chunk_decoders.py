@@ -1,147 +1,141 @@
 import struct
-from common_helpers import decode_uint32, decode_float, decode_C3Vector, decode_int16, decode_cstring, decode_RGBA
+import logging
+from common_helpers import decode_uint32, decode_float, decode_cstring, decode_C3Vector, decode_C3Vector_i, decode_RGBA, read_chunks_from_data
 
-# Function to decode REVM chunk
-def decode_REVM(data):
-    version, _ = decode_uint32(data, 0)
-    return {"version": version}
+# Decoding functions for each chunk type
 
-# Function to decode DHOM chunk
-def decode_DHOM(data):
-    offset = 0
-    values = []
-    for _ in range(16):
-        value, offset = decode_uint32(data, offset)
-        values.append(value)
-    return {"values": values}
+def decode_chunk_REVM(data, offset):
+    return decode_chunk_MVER(data, offset)
 
-# Function to decode TMOM chunk
-def decode_TMOM(data):
-    offset = 0
-    values = []
-    for _ in range(64):
-        value, offset = decode_uint32(data, offset)
-        values.append(value)
-    return {"values": values}
+def decode_chunk_MVER(data, offset):
+    version, offset = decode_uint32(data, offset)
+    return {'version': version}, offset
 
-# Function to decode NGOM chunk
-def decode_NGOM(data):
-    name, _ = decode_cstring(data, 0, 12)
-    return {"name": name}
+def decode_chunk_MOGP(data, offset):
+    parsed_sub_chunks = {}
+    sub_chunks, _ = read_chunks_from_data(data[offset:])
+    
+    for sub_chunk_id, sub_chunk_data in sub_chunks.items():
+        try:
+            sub_chunk_id_str = sub_chunk_id.decode('utf-8', errors='ignore')
+            logging.info(f"Decoding sub-chunk: {sub_chunk_id_str} (or {sub_chunk_id.hex()})")
+            parsed_sub_chunk, _ = decode_chunk(sub_chunk_id_str, sub_chunk_data)
+            parsed_sub_chunks[sub_chunk_id_str] = parsed_sub_chunk
+        except UnicodeDecodeError:
+            logging.error(f"Error decoding sub-chunk ID: {sub_chunk_id}")
+            continue
+        except Exception as e:
+            logging.error(f"Error decoding sub-chunk {sub_chunk_id}: {e}")
+            continue
 
-# Function to decode IGOM chunk
-def decode_IGOM(data):
-    offset = 0
-    values = []
-    for _ in range(8):
-        value, offset = decode_uint32(data, offset)
-        values.append(value)
-    return {"values": values}
+    return parsed_sub_chunks, offset
 
-# Function to decode BSOM chunk
-def decode_BSOM(data):
-    value, _ = decode_uint32(data, 0)
-    return {"value": value}
+def decode_chunk_MOPY(data, offset):
+    flags, offset = decode_uint32(data, offset)
+    material_id, offset = decode_uint32(data, offset)
+    return {'flags': flags, 'material_id': material_id}, offset
 
-# Function to decode SDOM chunk
-def decode_SDOM(data):
-    offset = 0
-    values = []
+def decode_chunk_MOVI(data, offset):
+    indices = []
     while offset < len(data):
-        value, offset = decode_cstring(data, offset, 32)
-        values.append(value)
-    return {"values": values}
+        index, offset = decode_uint32(data, offset)
+        indices.append(index)
+    return {'indices': indices}, offset
 
-# Function to decode DDOM chunk
-def decode_DDOM(data):
-    offset = 0
-    values = []
-    for _ in range(20):
-        value, offset = decode_float(data, offset)
-        values.append(value)
-    return {"values": values}
+def decode_chunk_MOLT(data, offset):
+    lights = []
+    while offset < len(data):
+        light = {}
+        light['type'], offset = decode_uint32(data, offset)
+        light['diffuse_color'], offset = decode_RGBA(data, offset)
+        light['intensity'], offset = decode_float(data, offset)
+        light['position'], offset = decode_C3Vector(data, offset)
+        lights.append(light)
+    return {'lights': lights}, offset
 
-# Function to decode GOFM chunk
-def decode_GOFM(data):
-    offset = 0
-    values = []
-    for _ in range(12):
-        value, offset = decode_uint32(data, offset)
-        values.append(value)
-    return {"values": values}
+def decode_chunk_MOSB(data, offset):
+    sound_data = []
+    while offset < len(data):
+        sound = {}
+        sound['sound_id'], offset = decode_uint32(data, offset)
+        sound_data.append(sound)
+    return {'sounds': sound_data}, offset
 
-# Function to decode DIFG chunk
-def decode_DIFG(data):
-    value, _ = decode_uint32(data, 0)
-    return {"value": value}
+def decode_chunk_MOCV(data, offset):
+    colors = []
+    while offset < len(data):
+        color = {}
+        color['color'], offset = decode_RGBA(data, offset)
+        colors.append(color)
+    return {'colors': colors}, offset
 
-# Function to decode IDOM chunk
-def decode_IDOM(data):
-    offset = 0
-    values = []
-    for _ in range(3):
-        value, offset = decode_uint32(data, offset)
-        values.append(value)
-    return {"values": values}
+def decode_chunk_MODD(data, offset):
+    doodads = []
+    while offset < len(data):
+        doodad = {}
+        doodad['name_offset'], offset = decode_uint32(data, offset)
+        doodad['position'], offset = decode_C3Vector(data, offset)
+        doodad['rotation'], offset = decode_C3Vector(data, offset)
+        doodad['scale'], offset = decode_float(data, offset)
+        doodad['color'], offset = decode_RGBA(data, offset)
+        doodads.append(doodad)
+    return {'doodads': doodads}, offset
 
-# Function to decode PGOM chunk
-def decode_PGOM(data):
-    offset = 0
-    values = []
-    for _ in range(7740):
-        value, offset = decode_uint32(data, offset)
-        values.append(value)
-    return {"values": values}
+def decode_chunk_MODR(data, offset):
+    references = []
+    while offset < len(data):
+        reference = {}
+        reference['doodad_id'], offset = decode_uint32(data, offset)
+        references.append(reference)
+    return {'references': references}, offset
 
-# Dictionary mapping chunk IDs to their decoder functions
+def decode_chunk_MOTV(data, offset):
+    textures = []
+    while offset < len(data):
+        texture = {}
+        texture['u'], offset = decode_float(data, offset)
+        texture['v'], offset = decode_float(data, offset)
+        textures.append(texture)
+    return {'textures': textures}, offset
+
+def decode_chunk_MOVT(data, offset):
+    vertices = []
+    while offset < len(data):
+        vertex, offset = decode_C3Vector(data, offset)
+        vertices.append(vertex)
+    return {'vertices': vertices}, offset
+
+def decode_chunk_MOIN(data, offset):
+    indices = []
+    while offset < len(data):
+        index, offset = decode_uint32(data, offset)
+        indices.append(index)
+    return {'indices': indices}, offset
+
+def decode_unknown(data, offset):
+    return {"data": data[offset:].hex()}, len(data)
+
 chunk_decoders = {
-    'REVM': decode_REVM,
-    'MVER': decode_REVM,
-    'DHOM': decode_DHOM,
-    'MHOD': decode_DHOM,
-    'TMOM': decode_TMOM,
-    'MOTM': decode_TMOM,
-    'NGOM': decode_NGOM,
-    'MOGN': decode_NGOM,
-    'IGOM': decode_IGOM,
-    'MOGI': decode_IGOM,
-    'BSOM': decode_BSOM,
-    'MOSB': decode_BSOM,
-    'SDOM': decode_SDOM,
-    'MODS': decode_SDOM,
-    'DDOM': decode_DDOM,
-    'MODD': decode_DDOM,
-    'GOFM': decode_GOFM,
-    'MFOG': decode_GOFM,
-    'DIFG': decode_DIFG,
-    'GFID': decode_DIFG,
-    'IDOM': decode_IDOM,
-    'MODI': decode_IDOM,
-    'PGOM': decode_PGOM,
-    'MOGP': decode_PGOM
+    'REVM': decode_chunk_REVM,
+    'MVER': decode_chunk_MVER,
+    'MOGP': decode_chunk_MOGP,
+    'MOPY': decode_chunk_MOPY,
+    'MOVI': decode_chunk_MOVI,
+    'MOLT': decode_chunk_MOLT,
+    'MOSB': decode_chunk_MOSB,
+    'MOCV': decode_chunk_MOCV,
+    'MODD': decode_chunk_MODD,
+    'MODR': decode_chunk_MODR,
+    'MOTV': decode_chunk_MOTV,
+    'MOVT': decode_chunk_MOVT,
+    'MOIN': decode_chunk_MOIN,
+    'default': decode_unknown
 }
 
-# Function to decode a chunk based on its ID
-def decode_chunk(chunk_id, data):
-    decoder = chunk_decoders.get(chunk_id)
-    if decoder:
-        return decoder(data)
-    else:
-        return {"unknown_chunk": data.hex()}
+def decode_chunk(chunk_id, data, offset=0):
+    chunk_id_str = chunk_id.decode('utf-8', errors='ignore') if isinstance(chunk_id, bytes) else chunk_id
+    chunk_id_str = chunk_id_str if chunk_id_str in chunk_decoders else reverse_chunk_id(chunk_id).hex()
+    return chunk_decoders.get(chunk_id_str, chunk_decoders['default'])(data, offset)
 
-# Function to process a WMO file and decode all chunks
-def process_wmo_file(file_path):
-    with open(file_path, 'rb') as f:
-        data = f.read()
-
-    offset = 0
-    chunks = []
-    while offset < len(data):
-        chunk_id = data[offset:offset + 4][::-1].decode('utf-8')  # Reverse bytes and decode
-        chunk_size = struct.unpack('I', data[offset + 4:offset + 8])[0]
-        chunk_data = data[offset + 8:offset + 8 + chunk_size]
-        decoded_chunk = decode_chunk(chunk_id, chunk_data)
-        chunks.append({chunk_id: decoded_chunk})
-        offset += 8 + chunk_size
-
-    return chunks
+def reverse_chunk_id(chunk_id):
+    return chunk_id[::-1]

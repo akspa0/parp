@@ -12,11 +12,9 @@ from common_helpers import (
     decode_RGBA
 )
 
-# Function to reverse chunk IDs
 def reverse_chunk_id(chunk_id):
     return chunk_id[::-1]
 
-# Decoders for ADT chunks
 def decode_MVER(data, offset=0):
     version, offset = decode_uint32(data, offset)
     return {'version': version}
@@ -212,7 +210,6 @@ def decode_MCLV(data, offset=0):
         lightValues.append(light)
     return {'lightValues': lightValues}
 
-# Dictionary to map ADT chunk IDs to decoder functions
 adt_chunk_decoders = {
     'MVER': decode_MVER,
     'MHDR': decode_MHDR,
@@ -238,7 +235,6 @@ adt_chunk_decoders = {
     'MCLV': decode_MCLV,
 }
 
-# Function to categorize and parse ADT chunks
 def parse_adt(file_path):
     with open(file_path, 'rb') as file:
         data = file.read()

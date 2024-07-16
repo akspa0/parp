@@ -1,8 +1,6 @@
 import struct
 import logging
-import numpy as np
 
-# Helper functions for decoding
 def decode_uint8(data, offset):
     return struct.unpack_from('B', data, offset)[0], offset + 1
 
@@ -41,7 +39,9 @@ def decode_RGBA(data, offset):
     a, offset = decode_uint8(data, offset)
     return {'r': r, 'g': g, 'b': b, 'a': a}, offset
 
-# Decoders for specific chunks
+def reverse_chunk_id(chunk_id):
+    return chunk_id[::-1]
+
 def decode_MVER_chunk(data):
     offset = 0
     decoded = {}
