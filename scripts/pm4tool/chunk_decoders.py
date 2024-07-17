@@ -44,10 +44,9 @@ def decode_RGBA(data, offset):
 def reverse_chunk_id(chunk_id):
     return chunk_id[::-1]
 
-def decode_MVER_chunk(data):
-    offset = 0
-    decoded = {}
-    decoded['version'], offset = decode_uint32(data, offset)
+def decode_MVER_chunk(data, offset=0):
+    version, offset = decode_uint32(data, offset)
+    decoded = {'version': version}
     logging.debug(f"MVER Chunk: {decoded}")
     return decoded
 

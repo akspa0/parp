@@ -14,31 +14,16 @@ from common_helpers import (
     decode_RGBA
 )
 
+# Function to reverse chunk IDs
 def reverse_chunk_id(chunk_id):
     return chunk_id[::-1]
 
-# Define the MODFFlags and MDDFFlags Enums
-class MODFFlags:
-    modf_destroyable = 0x1
-    modf_use_lod = 0x2
-    modf_unk_has_scale = 0x4
-    modf_entry_is_filedata_id = 0x8
-    modf_use_sets_from_mwds = 0x80
-
-class MDDFFlags:
-    mddf_biodome = 0x1
-    mddf_shrubbery = 0x2
-    mddf_unk_4 = 0x4
-    mddf_unk_8 = 0x8
-    mddf_unk_10 = 0x10
-    SMDoodadDef_Flag_liquidKnown = 0x20
-    mddf_entry_is_filedata_id = 0x40
-    mddf_unk_100 = 0x100
-    mddf_accept_proj_textures = 0x1000
-
+# Decoders for ADT chunks
 def decode_MVER(data, offset=0):
     version, offset = decode_uint32(data, offset)
-    return {'version': version}
+    decoded = {'version': version}
+    logging.debug(f"MVER Chunk: {decoded}")
+    return decoded
 
 def decode_MHDR(data, offset=0):
     header = {}
@@ -54,6 +39,7 @@ def decode_MHDR(data, offset=0):
     header['offsMFBO'], offset = decode_uint32(data, offset)
     header['offsMH2O'], offset = decode_uint32(data, offset)
     header['offsMTXF'], offset = decode_uint32(data, offset)
+    logging.debug(f"MHDR Chunk: {header}")
     return header
 
 def decode_MCIN(data, offset=0):
@@ -65,38 +51,49 @@ def decode_MCIN(data, offset=0):
         entry['flags'], offset = decode_uint32(data, offset)
         entry['asyncId'], offset = decode_uint32(data, offset)
         entries.append(entry)
+    logging.debug(f"MCIN Chunk: {entries}")
     return {'entries': entries}
 
 def decode_MTXF(data, offset=0):
-    return {'MTXF_data': data[offset:].hex()}
+    decoded = {'MTXF_data': data[offset:].hex()}
+    logging.debug(f"MTXF Chunk: {decoded}")
+    return decoded
 
 def decode_MMDX(data, offset=0):
     strings = []
     while offset < len(data):
         string, offset = decode_cstring(data, offset, len(data) - offset)
         strings.append(string)
-    return {'strings': strings}
+    decoded = {'strings': strings}
+    logging.debug(f"MMDX Chunk: {decoded}")
+    return decoded
 
 def decode_MMID(data, offset=0):
     offsets = []
     while offset < len(data):
         off, offset = decode_uint32(data, offset)
         offsets.append(off)
-    return {'offsets': offsets}
+    decoded = {'offsets': offsets}
+    logging.debug(f"MMID Chunk: {decoded}")
+    return decoded
 
 def decode_MWMO(data, offset=0):
     strings = []
     while offset < len(data):
         string, offset = decode_cstring(data, offset, len(data) - offset)
         strings.append(string)
-    return {'strings': strings}
+    decoded = {'strings': strings}
+    logging.debug(f"MWMO Chunk: {decoded}")
+    return decoded
 
 def decode_MWID(data, offset=0):
     offsets = []
     while offset < len(data):
         off, offset = decode_uint32(data, offset)
         offsets.append(off)
-    return {'offsets': offsets}
+    decoded = {'offsets': offsets}
+    logging.debug(f"MWID Chunk: {decoded}")
+    return decoded
 
 def decode_MDDF(data, offset=0):
     entries = []
@@ -105,12 +102,14 @@ def decode_MDDF(data, offset=0):
         entry = {}
         entry['nameId'], offset = decode_uint32(data, offset)
         entry['uniqueId'], offset = decode_uint32(data, offset)
-        entry['position'], offset = decode_C3Vector_i(data, offset)
-        entry['rotation'], offset = decode_C3Vector_i(data, offset)
+        entry['position'], offset = decode_C3Vector(data, offset)
+        entry['rotation'], offset = decode_C3Vector(data, offset)
         entry['scale'], offset = decode_uint16(data, offset)
         entry['flags'], offset = decode_uint16(data, offset)
         entries.append(entry)
-    return {'entries': entries}
+    decoded = {'entries': entries}
+    logging.debug(f"MDDF Chunk: {decoded}")
+    return decoded
 
 def decode_MODF(data, offset=0):
     entries = []
@@ -119,23 +118,28 @@ def decode_MODF(data, offset=0):
         entry = {}
         entry['nameId'], offset = decode_uint32(data, offset)
         entry['uniqueId'], offset = decode_uint32(data, offset)
-        entry['position'], offset = decode_C3Vector_i(data, offset)
-        entry['rotation'], offset = decode_C3Vector_i(data, offset)
-        entry['extents'] = {}
-        entry['extents']['lower'], offset = decode_C3Vector_i(data, offset)
-        entry['extents']['upper'], offset = decode_C3Vector_i(data, offset)
+        entry['position'], offset = decode_C3Vector(data, offset)
+        entry['rotation'], offset = decode_C3Vector(data, offset)
+        entry['lowerBounds'], offset = decode_C3Vector(data, offset)
+        entry['upperBounds'], offset = decode_C3Vector(data, offset)
         entry['flags'], offset = decode_uint16(data, offset)
         entry['doodadSet'], offset = decode_uint16(data, offset)
         entry['nameSet'], offset = decode_uint16(data, offset)
-        entry['scale'], offset = decode_uint16(data, offset)
+        entry['padding'], offset = decode_uint16(data, offset)
         entries.append(entry)
-    return {'entries': entries}
+    decoded = {'entries': entries}
+    logging.debug(f"MODF Chunk: {decoded}")
+    return decoded
 
 def decode_MFBO(data, offset=0):
-    return {'MFBO_data': data[offset:].hex()}
+    decoded = {'MFBO_data': data[offset:].hex()}
+    logging.debug(f"MFBO Chunk: {decoded}")
+    return decoded
 
 def decode_MH2O(data, offset=0):
-    return {'MH2O_data': data[offset:].hex()}
+    decoded = {'MH2O_data': data[offset:].hex()}
+    logging.debug(f"MH2O Chunk: {decoded}")
+    return decoded
 
 def decode_MCNK(data, offset=0):
     chunk = {}
@@ -166,6 +170,7 @@ def decode_MCNK(data, offset=0):
     chunk['header']['ofsMCCV'], offset = decode_uint32(data, offset)
     chunk['header']['ofsMCLV'], offset = decode_uint32(data, offset)
     chunk['header']['unused'], offset = decode_uint32(data, offset)
+    logging.debug(f"MCNK Chunk: {chunk}")
     return chunk
 
 def decode_MCVT(data, offset=0):
@@ -173,7 +178,9 @@ def decode_MCVT(data, offset=0):
     while offset < len(data):
         height, offset = decode_float(data, offset)
         heights.append(height)
-    return {'heights': heights}
+    decoded = {'heights': heights}
+    logging.debug(f"MCVT Chunk: {decoded}")
+    return decoded
 
 def decode_MCLY(data, offset=0):
     layers = []
@@ -185,34 +192,46 @@ def decode_MCLY(data, offset=0):
         layer['offsetInMCAL'], offset = decode_uint32(data, offset)
         layer['effectId'], offset = decode_uint32(data, offset)
         layers.append(layer)
-    return {'layers': layers}
+    decoded = {'layers': layers}
+    logging.debug(f"MCLY Chunk: {decoded}")
+    return decoded
 
 def decode_MCRF(data, offset=0):
     doodadRefs = []
     while offset < len(data):
         ref, offset = decode_uint32(data, offset)
         doodadRefs.append(ref)
-    return {'doodadRefs': doodadRefs}
+    decoded = {'doodadRefs': doodadRefs}
+    logging.debug(f"MCRF Chunk: {decoded}")
+    return decoded
 
 def decode_MCAL(data, offset=0):
-    return {'MCAL_data': data[offset:].hex()}
+    decoded = {'MCAL_data': data[offset:].hex()}
+    logging.debug(f"MCAL Chunk: {decoded}")
+    return decoded
 
 def decode_MCSH(data, offset=0):
     shadowMap = []
     while offset < len(data):
         shadow, offset = decode_uint8(data, offset)
         shadowMap.append(shadow)
-    return {'shadowMap': shadowMap}
+    decoded = {'shadowMap': shadowMap}
+    logging.debug(f"MCSH Chunk: {decoded}")
+    return decoded
 
 def decode_MCCV(data, offset=0):
     colors = []
     while offset < len(data):
         color, offset = decode_RGBA(data, offset)
         colors.append(color)
-    return {'colors': colors}
+    decoded = {'colors': colors}
+    logging.debug(f"MCCV Chunk: {decoded}")
+    return decoded
 
 def decode_MCLQ(data, offset=0):
-    return {'MCLQ_data': data[offset:].hex()}
+    decoded = {'MCLQ_data': data[offset:].hex()}
+    logging.debug(f"MCLQ Chunk: {decoded}")
+    return decoded
 
 def decode_MCSE(data, offset=0):
     soundEmitters = []
@@ -223,18 +242,20 @@ def decode_MCSE(data, offset=0):
         emitter['soundId'], offset = decode_uint32(data, offset)
         emitter['unk'], offset = decode_uint32(data, offset)
         soundEmitters.append(emitter)
-    return {'soundEmitters': soundEmitters}
+    decoded = {'soundEmitters': soundEmitters}
+    logging.debug(f"MCSE Chunk: {decoded}")
+    return decoded
 
 def decode_MCLV(data, offset=0):
     lightValues = []
     while offset < len(data):
         light, offset = decode_uint8(data, offset)
         lightValues.append(light)
-    return {'lightValues': lightValues}
-    
-def decode_placeholder(data, offset=0):
-    return {'raw_data': data[offset:].hex()}
+    decoded = {'lightValues': lightValues}
+    logging.debug(f"MCLV Chunk: {decoded}")
+    return decoded
 
+# Dictionary to map ADT chunk IDs to decoder functions
 adt_chunk_decoders = {
     'MVER': decode_MVER,
     'MHDR': decode_MHDR,
@@ -258,9 +279,9 @@ adt_chunk_decoders = {
     'MCLQ': decode_MCLQ,
     'MCSE': decode_MCSE,
     'MCLV': decode_MCLV,
-    'XETM': decode_placeholder, 
 }
 
+# Function to categorize and parse ADT chunks
 def parse_adt(file_path):
     with open(file_path, 'rb') as file:
         data = file.read()
