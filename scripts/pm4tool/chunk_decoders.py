@@ -1,3 +1,5 @@
+# chunk_decoders.py
+
 import struct
 import logging
 
@@ -180,34 +182,26 @@ def decode_LRPM_chunk(data):
 def decode_RRPM_chunk(data):
     offset = 0
     decoded = []
-    entry_size = 24
-    num_entries = len(data) // entry_size
-
-    for i in range(num_entries):
-        entry_data = struct.unpack_from('6f', data, offset)
-        offset += entry_size
-        position_data = [coord * 36 for coord in entry_data]
-        decoded.append(position_data)
+    while offset < len(data):
+        entry = {}
+        entry['_0x00'], offset = decode_uint16(data, offset)
+        entry['_0x02'], offset = decode_uint16(data, offset)
+        decoded.append(entry)
     logging.debug(f"RRPM Chunk: {decoded}")
     return decoded
 
 def decode_KLSM_chunk(data):
-    offset = 0
-    decoded = []
-    while offset + 16 <= len(data):
-        entry = {}
-        entry['_0x00'], offset = decode_uint8(data, offset)
-        entry['_0x01'], offset = decode_uint8(data, offset)
-        entry['_0x02'], offset = decode_uint16(data, offset)
-        entry['_0x04'], offset = decode_uint32(data, offset)
-        entry['MSPI_first_index'], offset = decode_uint32(data, offset)
-        entry['MSPI_index_count'], offset = decode_uint8(data, offset)
-        entry['_0x0c'], offset = decode_uint32(data, offset)
-        entry['_0x10'], offset = decode_uint16(data, offset)
-        entry['_0x12'], offset = decode_uint16(data, offset)
-        decoded.append(entry)
-    logging.debug(f"KLSM Chunk: {decoded}")
-    return decoded
+    try:
+        offset = 0
+        decoded = []
+        while offset + 4 <= len(data):
+            value, offset = decode_uint32(data, offset)
+            decoded.append(value)
+        logging.debug(f"KLSM Chunk: {decoded}")
+        return decoded
+    except struct.error as e:
+        logging.error(f"Error decoding KLSM chunk: {e}")
+        return {"error": str(e)}
 
 def decode_HBDM_chunk(data):
     offset = 0

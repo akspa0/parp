@@ -1,3 +1,5 @@
+# adt_chunk_decoders.py
+
 import logging
 import struct
 from common_helpers import (
@@ -14,6 +16,25 @@ from common_helpers import (
 
 def reverse_chunk_id(chunk_id):
     return chunk_id[::-1]
+
+# Define the MODFFlags and MDDFFlags Enums
+class MODFFlags:
+    modf_destroyable = 0x1
+    modf_use_lod = 0x2
+    modf_unk_has_scale = 0x4
+    modf_entry_is_filedata_id = 0x8
+    modf_use_sets_from_mwds = 0x80
+
+class MDDFFlags:
+    mddf_biodome = 0x1
+    mddf_shrubbery = 0x2
+    mddf_unk_4 = 0x4
+    mddf_unk_8 = 0x8
+    mddf_unk_10 = 0x10
+    SMDoodadDef_Flag_liquidKnown = 0x20
+    mddf_entry_is_filedata_id = 0x40
+    mddf_unk_100 = 0x100
+    mddf_accept_proj_textures = 0x1000
 
 def decode_MVER(data, offset=0):
     version, offset = decode_uint32(data, offset)
@@ -84,8 +105,8 @@ def decode_MDDF(data, offset=0):
         entry = {}
         entry['nameId'], offset = decode_uint32(data, offset)
         entry['uniqueId'], offset = decode_uint32(data, offset)
-        entry['position'], offset = decode_C3Vector(data, offset)
-        entry['rotation'], offset = decode_C3Vector(data, offset)
+        entry['position'], offset = decode_C3Vector_i(data, offset)
+        entry['rotation'], offset = decode_C3Vector_i(data, offset)
         entry['scale'], offset = decode_uint16(data, offset)
         entry['flags'], offset = decode_uint16(data, offset)
         entries.append(entry)
@@ -98,14 +119,15 @@ def decode_MODF(data, offset=0):
         entry = {}
         entry['nameId'], offset = decode_uint32(data, offset)
         entry['uniqueId'], offset = decode_uint32(data, offset)
-        entry['position'], offset = decode_C3Vector(data, offset)
-        entry['rotation'], offset = decode_C3Vector(data, offset)
-        entry['lowerBounds'], offset = decode_C3Vector(data, offset)
-        entry['upperBounds'], offset = decode_C3Vector(data, offset)
+        entry['position'], offset = decode_C3Vector_i(data, offset)
+        entry['rotation'], offset = decode_C3Vector_i(data, offset)
+        entry['extents'] = {}
+        entry['extents']['lower'], offset = decode_C3Vector_i(data, offset)
+        entry['extents']['upper'], offset = decode_C3Vector_i(data, offset)
         entry['flags'], offset = decode_uint16(data, offset)
         entry['doodadSet'], offset = decode_uint16(data, offset)
         entry['nameSet'], offset = decode_uint16(data, offset)
-        entry['padding'], offset = decode_uint16(data, offset)
+        entry['scale'], offset = decode_uint16(data, offset)
         entries.append(entry)
     return {'entries': entries}
 
@@ -209,6 +231,9 @@ def decode_MCLV(data, offset=0):
         light, offset = decode_uint8(data, offset)
         lightValues.append(light)
     return {'lightValues': lightValues}
+    
+def decode_placeholder(data, offset=0):
+    return {'raw_data': data[offset:].hex()}
 
 adt_chunk_decoders = {
     'MVER': decode_MVER,
@@ -233,6 +258,7 @@ adt_chunk_decoders = {
     'MCLQ': decode_MCLQ,
     'MCSE': decode_MCSE,
     'MCLV': decode_MCLV,
+    'XETM': decode_placeholder, 
 }
 
 def parse_adt(file_path):
