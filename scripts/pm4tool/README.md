@@ -19,6 +19,28 @@ This project contains scripts for parsing PM4, ADT, and WMO files from World of 
 
 This project aims to parse and decode data from PM4, ADT, and WMO files used in World of Warcraft. The decoded data is stored in an SQLite database and used to generate 3D models in OBJ format. The position data in the `LRPM` chunks is considered the origin point for each 3D model.
 
+## Useful tools and links to reference material used in development of this tool:
+https://wowdev.wiki/Alpha
+https://wowdev.wiki/M2
+https://wowdev.wiki/MDX
+https://wowdev.wiki/WMO
+https://wowdev.wiki/WDT
+https://wowdev.wiki/ADT/v18
+https://wowdev.wiki/WDL/v18
+https://wowdev.wiki/WLQ
+https://wowdev.wiki/Common_Types
+
+https://wowdev.wiki/PD4
+https://wowdev.wiki/PM4
+
+## Converters and libraries ##
+https://github.com/MaxtorCoder/MultiConverter/
+https://github.com/wowdev/pywowlib (The basis of all our chunk decoders is based on pywowlib's implementation)
+
+## MDX/MDL reference ##
+https://www.hiveworkshop.com/threads/mdx-specifications.240487/
+https://forum.wc3edit.net/viewtopic.php?t=10568
+
 ## Scripts
 
 ### pm4-tool_0x21.py
