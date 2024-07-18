@@ -6,13 +6,10 @@ This project contains scripts for parsing PM4, ADT, and WMO files from World of 
 
 - [Overview](#overview)
 - [Scripts](#scripts)
-  - [pm4-tool_0x05a.py](#pm4-tool_0x05apy)
+  - [pm4-tool_0x21.py](#pm4-tool_0x21py)
   - [common_helpers.py](#common_helperspy)
   - [adt_chunk_decoders.py](#adt_chunk_decoderspy)
   - [chunk_decoders.py](#chunk_decoderspy)
-  - [wmo_parse.py](#wmo_parsepy)
-  - [wmo_chunk_decoders.py](#wmo_chunk_decoderspy)
-  - [generate_objs.py](#generate_objspy)
 - [Usage](#usage)
 - [3D Model Generation](#3d-model-generation)
 - [Contributing](#contributing)
@@ -24,18 +21,73 @@ This project aims to parse and decode data from PM4, ADT, and WMO files used in 
 
 ## Scripts
 
-### pm4-tool_0x05a.py
+### pm4-tool_0x21.py
 
-This script processes PM4, PD4, and ADT files, stores decoded chunk data in an SQLite database, and optionally exports the data to JSON files.
 
-**Functions:**
-- `read_chunks(file_path)`: Reads chunks from the specified file.
-- `create_database(db_path)`: Creates an SQLite database.
-- `insert_chunk_field(cursor, file_name, chunk_id, record_index, field_name, field_value, field_type)`: Inserts chunk field data into the database.
-- `decode_chunks(data, chunk_decoders)`: Decodes chunks using the provided decoders.
-- `save_json(data, filepath)`: Saves data to a JSON file.
-- `process_file(input_file, cursor, file_type, output_json)`: Processes an input file and stores the data in the database.
-- `export_to_json(db_path, output_dir)`: Exports data from the database to JSON files.
+# PM4-Tool
+
+The `pm4-tool` is a Python script designed to process PM4, PD4, and ADT files, decode their chunks, store the data in SQLite databases, and optionally export the data to JSON files for further analysis.
+
+## Table of Contents
+
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Usage](#usage)
+- [File Structure](#file-structure)
+- [Logging](#logging)
+
+## Requirements
+
+- Python 3.6 or higher
+- SQLite
+
+## Installation
+
+1. Clone the repository or download the script files.
+2. Ensure you have Python installed. If not, download and install it from [python.org](https://www.python.org/downloads/).
+
+## Usage
+
+To use the `pm4-tool` script, run the following command in your terminal or command prompt:
+
+```bash
+python pm4-tool_0x21.py <input_path> <output_dir> [--output_json <output_json_dir>] [--export_json <export_json_dir>]
+```
+
+- `<input_path>`: Path to the input file or directory containing PM4, PD4, or ADT files.
+- `<output_dir>`: Path to the output directory where SQLite databases will be stored.
+- `--output_json <output_json_dir>`: (Optional) Directory to save JSON analysis files.
+- `--export_json <export_json_dir>`: (Optional) Directory to export data from the database to JSON files.
+
+### Example
+
+```bash
+python pm4-tool_0x21.py ./input ./output --output_json ./json_analysis --export_json ./json_export
+```
+
+This command will process all files in the `./input` directory, store the decoded data in the `./output` directory, save JSON analysis files in the `./json_analysis` directory, and export data from the SQLite database to JSON files in the `./json_export` directory.
+
+## File Structure
+
+### pm4-tool_0x21.py
+
+The main script that processes PM4, PD4, and ADT files.
+
+### chunk_decoders.py
+
+Contains decoder functions for PM4 and PD4 chunk types.
+
+### adt_chunk_decoders.py
+
+Contains decoder functions for ADT chunk types.
+
+### common_helpers.py
+
+Contains helper functions used across the scripts.
+
+## Logging
+
+The script generates a log file with a timestamped filename (e.g., `processing_YYYYMMDD_HHMMSS.log`) in the current directory. The log file contains detailed information about the processing steps, including any errors or warnings encountered during the execution.
 
 ### common_helpers.py
 
@@ -87,39 +139,6 @@ Contains decoding functions for WMO chunk types.
 **Global Variables:**
 - `chunk_decoders`: Dictionary mapping WMO chunk IDs to their respective decoding functions.
 
-### generate_objs.py
-
-Generates 3D OBJ files from `LRPM` chunk data stored in the SQLite database.
-
-**Functions:**
-- `ensure_folder_exists(folder)`: Ensures the specified folder exists.
-- `fetch_lrpm_data(cursor)`: Fetches `LRPM` chunk data from the database.
-- `parse_field_value(field_value)`: Parses a JSON field value.
-- `generate_obj(vertices, obj_path)`: Generates an OBJ file from the given vertices.
-- `main(db_path, output_dir)`: Main function to fetch data, generate individual and combined OBJ files.
-
-## Usage
-
-1. **Process Files:**
-   ```bash
-   python pm4-tool_0x05a.py /path/to/input_file_or_directory /path/to/output_directory --output_json /path/to/json_output_directory --export_json /path/to/export_json_directory
-   ```
-
-2. **Analyze WMO Files:**
-   ```bash
-   python wmo_parse.py /path/to/input_wmo_file /path/to/output_directory
-   ```
-
-3. **Generate 3D OBJ Files:**
-   ```bash
-   python generate_objs.py /path/to/chunk_data.db /path/to/output_directory
-   ```
-
-## 3D Model Generation
-
-- **Origin Point Notation:** The `position` data in the `LRPM` chunk represents the origin point for each 3D model.
-- **Vertices:** Extracted from the `position` field in the `LRPM` chunk and converted into points in 3D space in the OBJ files.
-
 ## Contributing
 
 1. Fork the repository.
@@ -128,6 +147,3 @@ Generates 3D OBJ files from `LRPM` chunk data stored in the SQLite database.
 4. Push to the branch (`git push origin feature-branch`).
 5. Create a new Pull Request.
 
-## License
-
-This project is licensed under the MIT License. See the LICENSE file for details.
