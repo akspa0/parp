@@ -10,6 +10,7 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from chunk_decoders import chunk_decoders
 from adt_chunk_decoders import parse_adt, adt_chunk_decoders
+from pd4_chunk_decoders import parse_pd4, pd4_chunk_decoders
 from common_helpers import ensure_folder_exists, convert_to_json, analyze_data_type, parse_and_split_fields, save_json
 import struct
 
@@ -192,7 +193,9 @@ def process_file(input_file, output_dir, output_json):
             parsed_data = parse_adt(input_file)
             detailed_data = decode_chunks(parsed_data, adt_chunk_decoders)
         elif file_name.lower().endswith(('pm4', 'pd4')):
-            detailed_data = decode_chunks(chunks, chunk_decoders)
+            if file_name.lower().endswith('pd4'):
+                parsed_data = parse_pd4(input_file)
+            detailed_data = decode_chunks(chunks, pd4_chunk_decoders if file_name.lower().endswith('pd4') else chunk_decoders)
 
         # Insert parsed chunks into the database in batches
         batch = []
