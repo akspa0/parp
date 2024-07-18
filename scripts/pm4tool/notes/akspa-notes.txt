@@ -1,0 +1,73 @@
+TODO
+
+more or less the todo sheet for this project
+
+Currently: (+'s or -'s denote current priorities)
+
+PRIMARY GOALS:
++ Implement decoders for WMO, ADT, PM4, PD4 files
+++ Implement encoder for ADT data from PM4 inputs
+
+Secondary:
+---- Implement comparator for WMO vertex data and data stored in the PM4 chunks
+	- Idea being: perhaps there's other vertex data that doesn't belong to WMO resources
+	- Cons: This idea will require lots of processing to pre-process all WMO resources from the 4.0 client.
+	- Cons: Extra time spent on elimination of data just to find a needle in the haystack. It's best to leave this for later, if ever.
+	+ Positives: If there's anything there that we don't have shipped models/resources for, we might uncover lost data.
+
+~ Until some method is found to identify model data with the stored model data, the above is kinda necessary to ID existing resources with the data in the PM4.
+	- There's not a complete set of m2 or wmo references in any of the pm4 files. Only tiles with phased buildings have any links to existing assets.
+	- I have yet to identify a model ID that correlates with ADT model data.
+
+++++ Implement the WMO and M2 formats in order to interpret what values tie together to the PM4 chunk data.
+	* Most of the chunk data is pretty self-explanatory, but there are still many bits of data that don't have direct 1:1 corresponding values.
+		- I've written test scripts to see if there was any correlation between some chunks, but there was none.
+	+ WMO data parsing is about 75% complete, it just needs the data extracted to be formatted better, much like the adt data... (ongoing issue)
+
+++ Implement unit testing
+	* This seems obvious.
+	+ The common_helpers.py library has been overhauled and is the primary import in all scripts.
+	+ We based our types and units off pywowlib initially, then did analysis of the file data itself with chatGPT to determine if the data was accurate or not. It is.
+	
+----------------------------------------------------------------------
+
+Completed:
+1st pass for ADT and PM4/PD4 decoders
+	- Parses inputs and saves a copy to a SQLite database. 
+		- Decodes the input data and stores the decoded data in a separate table in the same database. 
+		- Each database is named after the input file (i.e.: development_0_0.adt -> development_0_0.adt.db (pm4, pd4, wmo can be inputs as well)).
+	- Data can be further queried or analyzed from this point forwards without touching the original files.
+		- All testing has shown that this helps speed up further data analysis, since a lot of the decoding work is done already.
+
+----------------------------------------------------------------------
+
+Goals/Future:
+
+We could apply this to all WoW assets to build a universal patch format that is simply SQL based...
+
+A universal interchange format for WoW assets, which can have encoders for each version of game engine you want to target.
+
+That's the idea - it started with PM4 files, but as things get more and more necessary to implement other filetypes, I feel like I have to try to build the rest.
+
+I was attempting earlier on, to build a WDT parser for 0.5.3 terrain, so I could build a converter tool, for both directions.
+
+From that earlier research, I came to the conclusion that not only was it probably going to be impossible, but too far-fetched.
+And yet, here we are. Half-way there, really.
+
+Implementing different filetypes was always supposed to be relatively easy, given the modular nature of the script.
+
+I based a lot of it around pywowlib, in the hopes that it could be refactored and submitted as a pull request, once all the code is completed and doesn't re-invent the wheel too much.
+The hope is that all my research doesn't just get lost in the void. I spent a lot of years staring and obsessing over the data in these files...
+
+
+------------------------------------------------------------------------
+
+Explanation of why I'm doing this project:
+
+There's data in the PM4 files that might be enough to rebuild missing model assets on the development map.
+
+Why I'm implementing more than just PM4 parsing:
+PM4 files contain other assets. WMO data, in a different format, mostly. Metadata like other ADT chunks too, like positioning data.
+
+Understanding the relationships between the different formats and chunks can help to identify what data we can pull from the PM4 to reconstruct model data on the development map.
+
