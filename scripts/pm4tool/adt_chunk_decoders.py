@@ -23,7 +23,7 @@ def decode_MVER(data, offset=0):
     version, offset = decode_uint32(data, offset)
     decoded = {'version': version}
     logging.debug(f"MVER Chunk: {decoded}")
-    return decoded
+    return decoded, offset
 
 def decode_MHDR(data, offset=0):
     header = {}
@@ -40,7 +40,7 @@ def decode_MHDR(data, offset=0):
     header['offsMH2O'], offset = decode_uint32(data, offset)
     header['offsMTXF'], offset = decode_uint32(data, offset)
     logging.debug(f"MHDR Chunk: {header}")
-    return header
+    return header, offset
 
 def decode_MCIN(data, offset=0):
     entries = []
@@ -52,12 +52,12 @@ def decode_MCIN(data, offset=0):
         entry['asyncId'], offset = decode_uint32(data, offset)
         entries.append(entry)
     logging.debug(f"MCIN Chunk: {entries}")
-    return {'entries': entries}
+    return {'entries': entries}, offset
 
 def decode_MTXF(data, offset=0):
     decoded = {'MTXF_data': data[offset:].hex()}
     logging.debug(f"MTXF Chunk: {decoded}")
-    return decoded
+    return decoded, len(data)
 
 def decode_MMDX(data, offset=0):
     strings = []
@@ -66,7 +66,7 @@ def decode_MMDX(data, offset=0):
         strings.append(string)
     decoded = {'strings': strings}
     logging.debug(f"MMDX Chunk: {decoded}")
-    return decoded
+    return decoded, offset
 
 def decode_MMID(data, offset=0):
     offsets = []
@@ -75,7 +75,7 @@ def decode_MMID(data, offset=0):
         offsets.append(off)
     decoded = {'offsets': offsets}
     logging.debug(f"MMID Chunk: {decoded}")
-    return decoded
+    return decoded, offset
 
 def decode_MWMO(data, offset=0):
     strings = []
@@ -84,7 +84,7 @@ def decode_MWMO(data, offset=0):
         strings.append(string)
     decoded = {'strings': strings}
     logging.debug(f"MWMO Chunk: {decoded}")
-    return decoded
+    return decoded, offset
 
 def decode_MWID(data, offset=0):
     offsets = []
@@ -93,7 +93,7 @@ def decode_MWID(data, offset=0):
         offsets.append(off)
     decoded = {'offsets': offsets}
     logging.debug(f"MWID Chunk: {decoded}")
-    return decoded
+    return decoded, offset
 
 def decode_MDDF(data, offset=0):
     entries = []
@@ -109,7 +109,7 @@ def decode_MDDF(data, offset=0):
         entries.append(entry)
     decoded = {'entries': entries}
     logging.debug(f"MDDF Chunk: {decoded}")
-    return decoded
+    return decoded, offset
 
 def decode_MODF(data, offset=0):
     entries = []
@@ -129,17 +129,17 @@ def decode_MODF(data, offset=0):
         entries.append(entry)
     decoded = {'entries': entries}
     logging.debug(f"MODF Chunk: {decoded}")
-    return decoded
+    return decoded, offset
 
 def decode_MFBO(data, offset=0):
     decoded = {'MFBO_data': data[offset:].hex()}
     logging.debug(f"MFBO Chunk: {decoded}")
-    return decoded
+    return decoded, len(data)
 
 def decode_MH2O(data, offset=0):
     decoded = {'MH2O_data': data[offset:].hex()}
     logging.debug(f"MH2O Chunk: {decoded}")
-    return decoded
+    return decoded, len(data)
 
 def decode_MCNK(data, offset=0):
     chunk = {}
@@ -171,7 +171,7 @@ def decode_MCNK(data, offset=0):
     chunk['header']['ofsMCLV'], offset = decode_uint32(data, offset)
     chunk['header']['unused'], offset = decode_uint32(data, offset)
     logging.debug(f"MCNK Chunk: {chunk}")
-    return chunk
+    return chunk, offset
 
 def decode_MCVT(data, offset=0):
     heights = []
@@ -180,7 +180,7 @@ def decode_MCVT(data, offset=0):
         heights.append(height)
     decoded = {'heights': heights}
     logging.debug(f"MCVT Chunk: {decoded}")
-    return decoded
+    return decoded, offset
 
 def decode_MCLY(data, offset=0):
     layers = []
@@ -194,7 +194,7 @@ def decode_MCLY(data, offset=0):
         layers.append(layer)
     decoded = {'layers': layers}
     logging.debug(f"MCLY Chunk: {decoded}")
-    return decoded
+    return decoded, offset
 
 def decode_MCRF(data, offset=0):
     doodadRefs = []
@@ -203,12 +203,12 @@ def decode_MCRF(data, offset=0):
         doodadRefs.append(ref)
     decoded = {'doodadRefs': doodadRefs}
     logging.debug(f"MCRF Chunk: {decoded}")
-    return decoded
+    return decoded, offset
 
 def decode_MCAL(data, offset=0):
     decoded = {'MCAL_data': data[offset:].hex()}
     logging.debug(f"MCAL Chunk: {decoded}")
-    return decoded
+    return decoded, len(data)
 
 def decode_MCSH(data, offset=0):
     shadowMap = []
@@ -217,7 +217,7 @@ def decode_MCSH(data, offset=0):
         shadowMap.append(shadow)
     decoded = {'shadowMap': shadowMap}
     logging.debug(f"MCSH Chunk: {decoded}")
-    return decoded
+    return decoded, offset
 
 def decode_MCCV(data, offset=0):
     colors = []
@@ -226,12 +226,12 @@ def decode_MCCV(data, offset=0):
         colors.append(color)
     decoded = {'colors': colors}
     logging.debug(f"MCCV Chunk: {decoded}")
-    return decoded
+    return decoded, offset
 
 def decode_MCLQ(data, offset=0):
     decoded = {'MCLQ_data': data[offset:].hex()}
     logging.debug(f"MCLQ Chunk: {decoded}")
-    return decoded
+    return decoded, len(data)
 
 def decode_MCSE(data, offset=0):
     soundEmitters = []
@@ -244,7 +244,7 @@ def decode_MCSE(data, offset=0):
         soundEmitters.append(emitter)
     decoded = {'soundEmitters': soundEmitters}
     logging.debug(f"MCSE Chunk: {decoded}")
-    return decoded
+    return decoded, offset
 
 def decode_MCLV(data, offset=0):
     lightValues = []
@@ -253,7 +253,7 @@ def decode_MCLV(data, offset=0):
         lightValues.append(light)
     decoded = {'lightValues': lightValues}
     logging.debug(f"MCLV Chunk: {decoded}")
-    return decoded
+    return decoded, offset
 
 # Dictionary to map ADT chunk IDs to decoder functions
 adt_chunk_decoders = {
@@ -302,7 +302,7 @@ def parse_adt(file_path):
 
         decoder = adt_chunk_decoders.get(chunk_id) or adt_chunk_decoders.get(reverse_chunk_id(chunk_id))
         if decoder:
-            decoded_data = decoder(chunk_data)
+            decoded_data, _ = decoder(chunk_data)
             if chunk_id.startswith('MC'):
                 parsed_data['terrain'][chunk_id] = decoded_data
             elif chunk_id.startswith('MT') or chunk_id.startswith('MW'):
