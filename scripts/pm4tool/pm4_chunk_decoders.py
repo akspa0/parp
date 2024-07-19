@@ -220,7 +220,7 @@ def decode_FSDM_chunk(data, offset=0):
     logging.debug(f"FSDM Chunk: {decoded}")
     return decoded, offset
 
-chunk_decoders = {
+pm4_chunk_decoders = {
     'REVM': decode_MVER_chunk,
     'CRCM': decode_MCRC_chunk,
     'DHSM': decode_MSHD_chunk,
@@ -239,3 +239,37 @@ chunk_decoders = {
     'SODM': decode_SODM_chunk,
     'FSDM': decode_FSDM_chunk,
 }
+
+def decode_chunk(data, offset=0):
+    chunk_id = data[offset:offset + 4].decode('utf-8')
+    chunk_size = int.from_bytes(data[offset + 4:offset + 8], byteorder='little')
+    chunk_data = data[offset + 8:offset + 8 + chunk_size]
+    offset += 8 + chunk_size
+
+    decoder = chunk_decoders.get(chunk_id) or chunk_decoders.get(reverse_chunk_id(chunk_id))
+    if decoder:
+        decoded_data, _ = decoder(chunk_data, 0)
+        return decoded_data, offset
+    else:
+        logging.warning(f"No decoder for chunk: {chunk_id}")
+        return {'raw_data': chunk_data.hex()}, offset
+
+def parse_chunks(file_path):
+    with open(file_path, 'rb') as file:
+        data = file.read()
+
+    offset = 0
+    parsed_data = []
+
+    while offset < len(data):
+        chunk_id = data[offset:offset + 4].decode('utf-8')
+        chunk_size = int.from_bytes(data[offset + 4:offset + 8], byteorder='little')
+        chunk_data = data[offset + 8:offset + 8 + chunk_size]
+        offset += 8 + chunk_size
+
+        parsed_chunk, _ = decode_chunk(data, offset)
+        parsed_data.append({
+            'id': chunk_id,
+            'size': chunk_size,
+            'data': parsed_chunk
+        })
