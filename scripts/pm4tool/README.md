@@ -31,7 +31,7 @@ This tool processes game data files (PM4, PD4, ADT, WMO), extracts chunk data, a
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/yourusername/pm4-processing-tool.git
+    git clone https://github.com/akspa0/parp/scripts/pm4tool/
     cd pm4-processing-tool
     ```
 
