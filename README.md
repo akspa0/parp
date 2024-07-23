@@ -1,5 +1,8 @@
 Welcome to the Pre-Alpha Restoration Project!
 
+![elwynn-parp-july2024](https://github.com/user-attachments/assets/737ed505-1161-4319-8216-5577142be1e1)
+
+
 We're attempting to rebuild World of Warcraft, circa 2002. Based entirely on old screenshots and a few overhead maps from 2002, we're rebuilding terrain primarily, and re-texturing any models that need to be dialed back to before they were textured. The entire project is provided for anyone to explore or edit to their hearts content - just checkout the project, point Noggit or Noggit Red at the 'project_files' sub-folder, and all should be revealed.
 
 Current Progress: 
