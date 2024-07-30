@@ -42,19 +42,6 @@ def export_to_txt(data, output_filename):
                     txt_file.write(f"{light_name},{position['x']},{position['y']},{position['z']},{color[0]},{color[1]},{color[2]},{color[3]},{light['light_radius']},{light['light_dropoff']}\n")
                 except KeyError as e:
                     logger.error(f"Error writing light: {light} (KeyError: {e})")
-            txt_file.write("\nInvalid Lights:\n")
-            for light in data["bad_lights"]:
-                try:
-                    if 'raw_data' in light:
-                        txt_file.write(f"Raw Data: {light['raw_data']}\n")
-                    else:
-                        position = light["position"]
-                        color = light["color"]
-                        light_name = f"Invalid Light {position[0]}_{position[1]}_{position[2]}"
-                        logger.debug(f"Writing invalid light: {light_name} at position: {position}")
-                        txt_file.write(f"{light_name},{position[0]},{position[1]},{position[2]},{color[0]},{color[1]},{color[2]},{color[3]},{light['light_radius']},{light['light_dropoff']}\n")
-                except KeyError as e:
-                    logger.error(f"Error writing invalid light: {light} (KeyError: {e})")
     except Exception as e:
         logger.error(f"Error writing TXT file {output_filename}: {e} ({type(e).__name__})")
 
@@ -108,17 +95,26 @@ def create_image_from_lights(lights, output_filename, map_size=4096, show_radius
             draw.rectangle((x - 2, y - 2, x + 2, y + 2), fill=adjusted_color)
             draw.text((x + 5, y), light["light_name"], fill=text_color, font=font)
 
+        # Calculate dynamic swatch size and positions
+        max_swatch_height = map_size // 3
         legend_start_x = 10
         legend_start_y = 10
-        legend_spacing = 72  # Increase spacing for larger swatches
+        legend_height = len(lights) * 80  # Approximate space needed
+        if legend_height > max_swatch_height:
+            swatch_size = max_swatch_height // len(lights)
+            legend_spacing = swatch_size + 10
+        else:
+            swatch_size = 64
+            legend_spacing = 74
+
         draw.rectangle([legend_start_x, legend_start_y, legend_start_x + 600, legend_start_y + (len(lights) + 2) * legend_spacing], fill=(255, 255, 255, 200))
         draw.text((legend_start_x + 10, legend_start_y + 5), "Legend:", fill=text_color, font=legend_font)
         for i, light in enumerate(lights):
             color = (light['color'][0], light['color'][1], light['color'][2], base_opacity)
             swatch_x = legend_start_x + 10
             swatch_y = legend_start_y + (i + 1) * legend_spacing
-            draw.rectangle([swatch_x, swatch_y, swatch_x + 64, swatch_y + 64], fill=color)  # Swatch size 64x64
-            draw.text((swatch_x + 74, swatch_y + 16), f"{light['light_name']}", fill=text_color, font=legend_font)
+            draw.rectangle([swatch_x, swatch_y, swatch_x + swatch_size, swatch_y + swatch_size], fill=color)  # Dynamic swatch size
+            draw.text((swatch_x + swatch_size + 10, swatch_y + 16), f"{light['light_name']}", fill=text_color, font=legend_font)
 
         os.makedirs(os.path.dirname(output_filename), exist_ok=True)
         image.save(output_filename)
@@ -135,8 +131,13 @@ def is_valid_name(name):
 def has_valid_coordinates(position):
     return all(len(str(abs(coord)).split('.')[-1]) <= 12 for coord in position)
 
+def analyze_unknown_data(unknown_data):
+    # Analyze the unknown data chunk here
+    # This is a placeholder function, implement the actual analysis logic as needed
+    logger.info(f"Analyzing unknown data: {unknown_data}")
+
 def read_lit_file(file_path, max_lights, track_empty_named_lights=True):
-    bad_lights = []
+    unknown_data_chunks = []
     try:
         with open(file_path, 'rb') as file:
             header = file.read(4)
@@ -172,7 +173,6 @@ def read_lit_file(file_path, max_lights, track_empty_named_lights=True):
             logger.debug(f"Calculated Actual Light Count: {actual_light_count}")
             
             lights = []
-            unnamed_light_count = 0
             for i in range(actual_light_count):
                 light_data = file.read(entry_size)
                 try:
@@ -215,28 +215,19 @@ def read_lit_file(file_path, max_lights, track_empty_named_lights=True):
                             "color": color
                         })
                     else:
-                        unnamed_light_count += 1
-                        bad_lights.append({
-                            "chunk": chunk,
-                            "chunk_radius": chunk_radius,
-                            "position": position,
-                            "light_radius": light_radius,
-                            "light_dropoff": light_dropoff,
-                            "light_name": light_name,
-                            "color": color
-                        })
+                        unknown_data_chunks.append(light_data.hex())
                 except struct.error as e:
                     logger.error(f"Struct error reading light {i}: {e}")
-                    bad_lights.append({
-                        "raw_data": light_data.hex()
-                    })
+                    unknown_data_chunks.append(light_data.hex())
             
+            for unknown_data in unknown_data_chunks:
+                analyze_unknown_data(unknown_data)
+
             return {
                 "version": version,
                 "light_count": actual_light_count,
                 "lights": lights,
-                "unnamed_light_count": unnamed_light_count,
-                "bad_lights": bad_lights
+                "unknown_data_chunks": unknown_data_chunks
             }
     except Exception as e:
         logger.error(f"Error reading file {file_path}: {e}")
@@ -252,44 +243,27 @@ def process_lit_files(input_dir, output_dir, map_size=4096, show_radius=True, tr
                 output_json_file = os.path.join(output_dir, relative_path, f"{os.path.splitext(file)[0]}.json")
                 output_image_file = os.path.join(output_dir, relative_path, f"{os.path.splitext(file)[0]}.png")
                 output_txt_file = os.path.join(output_dir, relative_path, f"{os.path.splitext(file)[0]}.txt")
-                output_invalid_lights_file = os.path.join(output_dir, relative_path, f"{os.path.splitext(file)[0]}_invalid.txt")
-                output_invalid_lights_image = os.path.join(output_dir, relative_path, f"{os.path.splitext(file)[0]}_invalid.png")
-                output_obj_file = os.path.join(output_dir, relative_path, f"{os.path.splitext(file)[0]}.obj")
+                output_invalid_data_file = os.path.join(output_dir, relative_path, f"{os.path.splitext(file)[0]}_unknown_data.txt")
 
                 os.makedirs(os.path.dirname(output_json_file), exist_ok=True)
                 os.makedirs(os.path.dirname(output_image_file), exist_ok=True)
                 os.makedirs(os.path.dirname(output_txt_file), exist_ok=True)
-                os.makedirs(os.path.dirname(output_invalid_lights_file), exist_ok=True)
-                os.makedirs(os.path.dirname(output_invalid_lights_image), exist_ok=True)
+                os.makedirs(os.path.dirname(output_invalid_data_file), exist_ok=True)
 
                 try:
                     data = read_lit_file(input_file, max_lights, track_empty_named_lights)
                     if data:
                         valid_lights = data["lights"]
-                        invalid_lights = [light for light in data["bad_lights"] if is_valid_light(light["position"], light["color"])]
-
-                        # Assign new names to invalid lights
-                        for idx, light in enumerate(invalid_lights):
-                            position = light["position"]
-                            if any(math.isnan(coord) or abs(coord) > MAX_COORD for coord in position):
-                                light["light_name"] = f"Invalid Light {idx+1}"
-                            else:
-                                light["light_name"] = f"Invalid Light {position[0]}_{position[1]}_{position[2]}"
-                            # Convert position to dictionary for consistent processing
-                            light["position"] = {
-                                "x": light["position"][0] / 36,
-                                "y": light["position"][2] / 36,
-                                "z": light["position"][1] / 36
-                            }
-
                         export_to_json(data, output_json_file)
                         export_to_txt(data, output_txt_file)
-                        export_to_txt({"lights": invalid_lights, "bad_lights": []}, output_invalid_lights_file)
                         create_image_from_lights(valid_lights, output_image_file, map_size, show_radius, opacity, background_color)
-                        create_image_from_lights(invalid_lights, output_invalid_lights_image, map_size, show_radius, opacity, background_color)
                         if generate_3d_objects:
-                            export_to_obj(valid_lights, output_obj_file)
-                        logger.info(f"Processed {input_file} to {output_json_file}, {output_image_file}, {output_txt_file}, {output_invalid_lights_file}, and {output_invalid_lights_image}")
+                            export_to_obj(valid_lights, output_invalid_data_file)
+                        # Export unknown data chunks
+                        with open(output_invalid_data_file, 'w') as file:
+                            for unknown_data in data["unknown_data_chunks"]:
+                                file.write(f"{unknown_data}\n")
+                        logger.info(f"Processed {input_file} to {output_json_file}, {output_image_file}, {output_txt_file}")
                     else:
                         logger.warning(f"Skipped file {input_file} due to errors")
                 except Exception as e:
@@ -311,5 +285,5 @@ def main():
     
     process_lit_files(args.input_dir, args.output_dir, args.map_size, args.show_radius, args.track_empty_named_lights, args.opacity, args.background_color, args.generate_3d_objects, args.max_lights)
 
-if __name__ == "__main__":
+if __name__ == "__main__":  
     main()
