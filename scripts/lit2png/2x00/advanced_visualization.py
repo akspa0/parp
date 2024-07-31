@@ -22,11 +22,21 @@ def draw_circle_outline(draw, x, y, radius, color):
 
 def create_gas_giant_style_image(lights, output_filename, map_size=4096, opacity=20, background_color='white'):
     try:
+        logger.debug(f"Creating image with size {map_size}x{map_size}, opacity {opacity}, background color {background_color}")
         bg_color = (0, 0, 0, 255) if background_color.lower() == 'black' else (255, 255, 255, 255)
+        text_color = (255, 255, 255) if background_color.lower() == 'black' else (0, 0, 0)
         image = Image.new('RGBA', (map_size, map_size), bg_color)
         draw = ImageDraw.Draw(image)
-        
-        for light in lights:
+        try:
+            font = ImageFont.truetype("arial.ttf", MIN_TEXT_SIZE)
+            legend_font = ImageFont.truetype("arial.ttf", MIN_TEXT_SIZE)
+        except IOError:
+            font = ImageFont.load_default()
+            legend_font = ImageFont.load_default()
+
+        valid_lights = [light for light in lights if light['light_name'].strip('-') and any(light['position'].values()) and light['position']['x'] >= 0 and light['position']['y'] >= 0]
+
+        for light in valid_lights:
             position = light["position"]
             x = int((position["x"] + MAX_COORD) / (2 * MAX_COORD) * (map_size - 1))
             y = int((position["y"] + MAX_COORD) / (2 * MAX_COORD) * (map_size - 1))
@@ -34,13 +44,42 @@ def create_gas_giant_style_image(lights, output_filename, map_size=4096, opacity
             color = light["color"]
             base_opacity = int((opacity / 100) * 255)
 
+            logger.debug(f"Drawing light '{light['light_name']}' at ({x}, {y}) with radius {radius} and color {color}")
+
             # Create a gradient effect for the light falloff
             for i in range(radius, 0, -1):
                 alpha = int((base_opacity * (i / radius)))
                 falloff_color = (color[0], color[1], color[2], alpha)
                 draw.ellipse((x - i, y - i, x + i, y + i), fill=falloff_color)
 
+            draw.text((x + 5, y), light["light_name"], fill=text_color, font=font)
+
+        # Calculate dynamic swatch size and positions
+        max_swatch_height = map_size // 3
+        legend_start_x = 10
+        legend_start_y = 10
+        legend_height = len(valid_lights) * 80  # Approximate space needed
+        if legend_height > max_swatch_height:
+            swatch_size = max(max_swatch_height // len(valid_lights), MIN_TEXT_SIZE)
+            legend_spacing = swatch_size + 10
+        else:
+            swatch_size = 64
+            legend_spacing = 74
+
+        legend_font = ImageFont.truetype("arial.ttf", MIN_TEXT_SIZE) if MIN_TEXT_SIZE >= 10 else ImageFont.load_default()
+
+        # Draw the legend on the left side of the image
+        draw.rectangle([legend_start_x, legend_start_y, legend_start_x + 300, legend_start_y + (len(valid_lights) + 1) * legend_spacing], fill=(255, 255, 255, 200), outline="black")
+        draw.text((legend_start_x + 10, legend_start_y + 5), "Legend:", fill=text_color, font=legend_font)
+
+        for i, light in enumerate(valid_lights):
+            color = (light['color'][0], light['color'][1], light['color'][2], base_opacity)
+            swatch_y = legend_start_y + (i + 1) * legend_spacing
+            draw.rectangle([legend_start_x + 10, swatch_y, legend_start_x + 10 + swatch_size, swatch_y + swatch_size], fill=color, outline="black")  # Dynamic swatch size
+            draw.text((legend_start_x + 10 + swatch_size + 10, swatch_y + (swatch_size // 4)), f"{light['light_name']}", fill=text_color, font=legend_font)
+
         os.makedirs(os.path.dirname(output_filename), exist_ok=True)
+        image = image.convert('RGB')  # Convert to RGB to remove alpha channel
         image.save(output_filename)
         logger.info(f"Generated PNG image for {output_filename}")
 
@@ -48,6 +87,7 @@ def create_gas_giant_style_image(lights, output_filename, map_size=4096, opacity
         logger.error(f"Error creating PNG image for {output_filename}: {e}")
 
 def process_json_files(input_dir, output_dir, map_size=4096, opacity=20, background_color='white'):
+    logger.info(f"Processing directory {input_dir}")
     for root, _, files in os.walk(input_dir):
         for file in files:
             if file.endswith('.json'):
