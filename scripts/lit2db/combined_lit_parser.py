@@ -175,17 +175,28 @@ def process_lit_file(file_path, folder_name, conn):
     
     for i in range(count):
         if version == 2:
-            chunk_x, chunk_y, chunk_radius, loc_x, loc_y, loc_z, radius, dropoff, name = struct.unpack(
+            chunk_x, chunk_y, chunk_radius, loc_x, loc_z, loc_y, radius, dropoff, name = struct.unpack(
                 '2i i 3f 2f 32s', content[offset:offset + 60])
             offset += 60
         else:
-            chunk_x, chunk_y, chunk_radius, loc_x, loc_y, loc_z, radius, dropoff, name = struct.unpack(
+            chunk_x, chunk_y, chunk_radius, loc_x, loc_z, loc_y, radius, dropoff, name = struct.unpack(
                 '2i i 3f 2f 32s', content[offset:offset + 64])
             offset += 64
         
-        loc_x = (17066.666 - loc_x / 36) if loc_x != -1 else loc_x
-        loc_y = (17066.666 - loc_y / 36) if loc_y != -1 else loc_y
-        loc_z /= 36
+        # Adjust values if not Global Light (-1,-1 chunk)
+        if chunk_x != -1 and chunk_y != -1:
+            if loc_x != 0: 
+                loc_x = (17066.666 - (loc_x / 36))
+            if loc_y != 0:    
+                loc_y = (17066.666 - (loc_y / 36))
+            if loc_z != 0:
+                loc_z = loc_z / 36
+        else:
+            loc_x = loc_x / 36 
+            loc_y = loc_y / 36 
+            loc_z = loc_z / 36          
+      
+        # Radius and Dropoff seem to be encoded in inches as well.
         radius /= 36
         dropoff /= 36
         name = name.decode('ascii', errors='ignore').strip('\x00')
