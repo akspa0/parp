@@ -44,14 +44,15 @@ def initialize_tables(conn):
         CREATE TABLE IF NOT EXISTS highlight_data (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             light_id INTEGER,
-            highlight_counts TEXT,
-            highlight_markers TEXT,
-            fog_end TEXT,
-            fog_start_scaler TEXT,
+            highlight_count INTEGER,
+            time INTEGER,
+            color INTEGER,
+            fog_end REAL,
+            fog_start_scaler REAL,
             highlight_sky INTEGER,
-            sky_data TEXT,
+            sky_data REAL,
             cloud_mask INTEGER,
-            param_data TEXT,
+            param_data REAL,
             FOREIGN KEY(light_id) REFERENCES lights_data(id)
         )
     ''')
@@ -143,16 +144,21 @@ def parse_additional_lit_data(raw_data, version):
 def insert_additional_data(conn, light_id, additional_data):
     cursor = conn.cursor()
     for data in additional_data:
-        cursor.execute('''
-            INSERT INTO highlight_data (
-                light_id, highlight_counts, highlight_markers, fog_end, fog_start_scaler,
-                highlight_sky, sky_data, cloud_mask, param_data
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            light_id, str(data['highlight_counts']), str(data['highlight_markers']),
-            str(data['fog_end']), str(data['fog_start_scaler']), data['highlight_sky'],
-            str(data['sky_data']), data['cloud_mask'], str(data['param_data'])
-        ))
+        for count, markers in zip(data['highlight_counts'], data['highlight_markers']):
+            for marker in markers:
+                for sky in data['sky_data']:
+                    for param in data['param_data']:
+                        cursor.execute('''
+                            INSERT INTO highlight_data (
+                                light_id, highlight_count, time, color, fog_end, fog_start_scaler,
+                                highlight_sky, sky_data, cloud_mask, param_data
+                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ''', (
+                            light_id, count, marker[0], marker[1], 
+                            data['fog_end'][markers.index(marker)], data['fog_start_scaler'][markers.index(marker)], 
+                            data['highlight_sky'], sky[markers.index(marker)], 
+                            data['cloud_mask'], param[markers.index(marker)] if param is not None else None
+                        ))
     conn.commit()
 
 def process_lit_file(file_path, folder_name, conn):
