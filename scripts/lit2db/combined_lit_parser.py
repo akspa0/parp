@@ -41,11 +41,9 @@ def initialize_tables(conn):
         )
     ''')
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS additional_light_data (
+        CREATE TABLE IF NOT EXISTS highlight_data (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            file_name TEXT,
-            folder_name TEXT,
-            light_index INTEGER,
+            light_id INTEGER,
             highlight_counts TEXT,
             highlight_markers TEXT,
             fog_end TEXT,
@@ -53,7 +51,8 @@ def initialize_tables(conn):
             highlight_sky INTEGER,
             sky_data TEXT,
             cloud_mask INTEGER,
-            param_data TEXT
+            param_data TEXT,
+            FOREIGN KEY(light_id) REFERENCES lights_data(id)
         )
     ''')
     conn.commit()
@@ -66,7 +65,9 @@ def insert_lights_data(conn, data):
             m_lightLocation_x, m_lightLocation_y, m_lightLocation_z, m_lightRadius, m_lightDropoff, m_lightName
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', data)
+    light_id = cursor.lastrowid
     conn.commit()
+    return light_id
 
 def insert_raw_file(conn, file_name, folder_name, file_content):
     cursor = conn.cursor()
@@ -122,7 +123,7 @@ def parse_additional_lit_data(raw_data, version):
                     param_data.append(param_values)
                     offset += 4 * 10
             else:
-                param_data = []
+                param_data = [None] * 4  # Add default empty param_data for versions less than 5
 
             additional_data.append({
                 'highlight_counts': highlight_counts,
@@ -139,18 +140,18 @@ def parse_additional_lit_data(raw_data, version):
 
     return additional_data
 
-def insert_additional_data(conn, file_name, folder_name, additional_data):
+def insert_additional_data(conn, light_id, additional_data):
     cursor = conn.cursor()
-    for light_index, data in enumerate(additional_data):
+    for data in additional_data:
         cursor.execute('''
-            INSERT INTO additional_light_data (
-                file_name, folder_name, light_index, highlight_counts, highlight_markers, fog_end, fog_start_scaler,
+            INSERT INTO highlight_data (
+                light_id, highlight_counts, highlight_markers, fog_end, fog_start_scaler,
                 highlight_sky, sky_data, cloud_mask, param_data
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
-            file_name, folder_name, light_index, str(data['highlight_counts']), str(data['highlight_markers']),
-            str(data['fog_end']), str(data['fog_start_scaler']), data['highlight_sky'], str(data['sky_data']),
-            data['cloud_mask'], str(data['param_data'])
+            light_id, str(data['highlight_counts']), str(data['highlight_markers']),
+            str(data['fog_end']), str(data['fog_start_scaler']), data['highlight_sky'],
+            str(data['sky_data']), data['cloud_mask'], str(data['param_data'])
         ))
     conn.commit()
 
@@ -194,18 +195,18 @@ def process_lit_file(file_path, folder_name, conn):
         else:
             loc_x = loc_x / 36 
             loc_y = loc_y / 36 
-            loc_z = loc_z / 36          
-      
+            loc_z = loc_z / 36
+        
         # Radius and Dropoff seem to be encoded in inches as well.
         radius /= 36
         dropoff /= 36
         name = name.decode('ascii', errors='ignore').strip('\x00')
         
         data = (file_name, folder_name, version, has_count, count, chunk_x, chunk_y, chunk_radius, loc_x, loc_y, loc_z, radius, dropoff, name)
-        insert_lights_data(conn, data)
+        light_id = insert_lights_data(conn, data)
     
     additional_data = parse_additional_lit_data(content[offset:], version)
-    insert_additional_data(conn, file_name, folder_name, additional_data)
+    insert_additional_data(conn, light_id, additional_data)
 
 def main():
     parser = argparse.ArgumentParser(description="Parse LIT files and store in SQLite database.")
