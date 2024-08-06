@@ -5,9 +5,11 @@ Welcome to the Pre-Alpha Restoration Project!
 
 We're attempting to rebuild World of Warcraft, circa 2002. Based entirely on old screenshots and a few overhead maps from 2002, we're rebuilding terrain primarily, and re-texturing any models that need to be dialed back to before they were textured. The entire project is provided for anyone to explore or edit to their hearts content - just checkout the project, point Noggit or Noggit Red at the 'project_files' sub-folder, and all should be revealed.
 
-Current Progress: 
-
-* Latest Minimap generation for prealpha_ek - https://github.com/akspa0/parp/blob/akspa-experimental/project_files/textures/minimap/preAlpha_ek_combined_minimap.png
+Latest news:
+* Switching things up - We'll take some parts of what we did from June thru August, and the original 0.5.3 maps as a base for future progress.
+* Adopting the new modernwow approach to editing
+* Map will be available to play on 3.3.5a and Epsilon clients
+* Last example of work done on prealpha_ek - https://github.com/akspa0/parp/blob/akspa-experimental/project_files/textures/minimap/preAlpha_ek_combined_minimap.png
 
 Contributors: Alonin, akspa
 
@@ -15,10 +17,10 @@ Discord: https://discord.gg/6YdUksuKuU
 
 Tools
 
-* Noggit or Noggit Red
-* MPQEditor
-* git
-* python 3.1x
+* Modern wow toolchain including Noggit Red (https://marlamin.github.io/modern-map-making/category/basic)
+* MPQEditor (http://www.zezula.net/en/mpq/download.html)
+* python 3.10+
+
 
 Work done:
 
