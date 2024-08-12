@@ -1,0 +1,79 @@
+Script Specification: 3D Mesh Generation to glTF Format
+
+1. Purpose:
+
+    The script generates 3D mesh models from overhead mini-map images and exports them in glTF format.
+    Each generated mesh is textured with the original input image.
+
+2. Input:
+
+    Directory containing overhead mini-map images in PNG format, with filenames that follow a 'tile_XX_YY.png' naming scheme, from a 64x64 tile grid, where the XX and YY in the filename corresponds to the X and Y coordinate of the original tiles in the 64x64 tile grid.
+
+3. Output:
+
+    Directory to save output glTF 3D mesh files.
+
+4. Functionalities:
+
+    Image Preprocessing:
+        Convert input image to grayscale.
+        Apply thresholding to generate a binary image.
+        Convert binary image to float values and scale Z-axis.
+        Generate points from the thresholded image for mesh generation.
+
+    Mesh Generation:
+        Convert points to Open3D PointCloud.
+        Estimate normals for the PointCloud.
+        Generate mesh using Poisson surface reconstruction.
+        Ensure the mesh is properly filled and smooth.
+        Associate the original input image as a texture with the generated mesh.
+
+    glTF Export:
+        Convert the generated mesh to glTF format.
+        Create glTF objects such as buffers, buffer views, accessors, meshes, images, textures, and samplers.
+        Associate the texture with the mesh in the glTF structure.
+        Write the glTF data to a binary glTF (.glb) file.
+
+    Optional Functionality:
+        Downsample input images.
+        Scale the Z-axis of generated meshes.
+        Enable debug mode for verbose output.
+        Process multiple input images simultaneously with batch processing.
+		Ability to skip glTF file generation entirely.
+		
+
+5. Usage:
+
+    Command-line arguments:
+        input_dir: Directory containing input overhead mini-map images.
+        output_dir: Directory to save output glTF 3D mesh files.
+        --downsample: Optional flag to downsample input images.
+        --z_scale: Optional parameter to scale the Z-axis of the generated meshes.
+        --debug: Optional flag to enable debug mode with verbose output.
+        --batch_size: Batch size for processing multiple tiles simultaneously.
+		--skip_glTF: Disables glTF generation
+
+6. Dependencies:
+
+    OpenCV (cv2) for image processing.
+    Open3D (o3d) for mesh generation.
+    tqdm for progress tracking.
+    pygltflib for glTF file generation.
+
+7. Error Handling:
+
+    Gracefully handle errors during image processing, mesh generation, and glTF export.
+    Provide informative error messages to assist debugging.
+
+8. Assumptions:
+
+    Input images are in PNG format.
+    The input images are overhead mini-map images suitable for mesh generation.
+    Each input image corresponds to a single mesh model.
+    The script is executed in an environment with Python 3.x installed along with the required dependencies.
+
+9. Further Enhancements:
+
+    Implement optimization techniques for mesh generation and glTF export to improve performance.
+    Implement a graphical view of the 3d mesh and textures applied that can be manipulated with the mouse.
+	Implement higher-resolution mesh generation based on higher-resolution inputs or methods to extrapolate additional vertices from the generated mesh.
