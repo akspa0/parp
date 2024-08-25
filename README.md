@@ -6,9 +6,14 @@ Welcome to the Pre-Alpha Restoration Project!
 We're attempting to rebuild World of Warcraft, circa 2002. Based entirely on old screenshots and a few overhead maps from 2002, we're rebuilding terrain primarily, and re-texturing any models that need to be dialed back to before they were textured. The entire project is provided for anyone to explore or edit to their hearts content - just checkout the project, point Noggit or Noggit Red at the 'project_files' sub-folder, and all should be revealed.
 
 Latest news:
+* A FLUX dev LoRA model now exists and is amazing - ![PARP:FLUX]:(https://civitai.com/models/679120/parpflux)
+   - This is able to re-create fake WoW pre-alpha screenshots perfectly. Just add 'world of warcraft' to your prompts and it will convert whatever it is, into WoW.
+Example output:
+![FLUX example output](https://github.com/akspa0/parp/blob/main/documentation/FLUX/FLUX-Example-1.png)
+
+
 * An SDXL model now exists, trained entirely on 2001-2002 screenshots, to help dream up places to build in the vast nothingness that the prealpha map has to offer.
 ![Download]:(https://civitai.com/models/675248?modelVersionId=755860)
-
 * Switching things up - We'll take some parts of what we did from June thru August, and the original 0.5.3 maps as a base for future progress.
 * Adopting the new modernwow approach to editing
 * Map will be available to play on 3.3.5a and Epsilon clients
