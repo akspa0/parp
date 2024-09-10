@@ -51,7 +51,7 @@ We need to rename the following tiles from original ek heightmaps to replacement
 				   
 NOTHING     , 0_0 -> 38_25, 1_0 -> 39_25, 2_0 -> 40_25
 NOTHING     , 0_1 -> 38_26, 1_1 -> 39_26, 2_1 -> 40_26
-0_2 -> 37_27, 1,2 -> 38_27, 2_2 -> 39_27, 2_3 -> 40_27
+0_2 -> 37_27, 1,2 -> 38_27, 2_2 -> 39_27, 2_3 -> 40_27, 3_2 -> 41_27
 
 Earlier Elwynn from dev islands...
 2_0 -> 31_49
@@ -64,3 +64,17 @@ Earlier Westfall from dev islands...
 
 Dead Man's Hole will need to be fully restored still. We can either copy what has already been done 3-6 times, or rebuild it (likely)
 
+---------------------------------
+SFK has an earlier version of the Silverpine Forest zone, I think I'll merge it in with everything else. 
+29_30 should be deleted
+Everything else should map easily to the same tiles... (+1,0) change in position. big headache, honestly...
+
+25_30 -> 26_30, 26_30 -> 27_30, 27_30 -> 28_30, 28_30 -> 29_30, 29_30 -> DELETE (30_30)
+25_31 -> 26_31, 26_31 -> 27_31, 27_31 -> 28_31, 28_31 -> 29_31, 29_31 -> 30_31
+25_32 -> 26_32, 26_32 -> 27_32, 27_32 -> 28_32, 28_32 -> 29_32, 29_32 -> 30_32
+25_33 -> 26_33, 26_33 -> 27_33, 27_33 -> 28_33, 28_33 -> 29_33, 29_33 -> 30_33
+25_34 -> 26_34, 26_34 -> 27_34, 27_34 -> 28_34, 28_34 -> 29_34, 29_34 -> 30_34
+
+heightmap min/max -24, +200
+
+---------------------------------
