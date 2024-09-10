@@ -14,3 +14,6 @@ textures\*.blp
 
 # ignore chunk databases
 chunk_data.db
+
+# (temporary) ignore krita project files
+.kra 
