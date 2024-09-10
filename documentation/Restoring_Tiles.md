@@ -75,6 +75,6 @@ Everything else should map easily to the same tiles... (+1,0) change in position
 25_33 -> 26_33, 26_33 -> 27_33, 27_33 -> 28_33, 28_33 -> 29_33, 29_33 -> 30_33
 25_34 -> 26_34, 26_34 -> 27_34, 27_34 -> 28_34, 28_34 -> 29_34, 29_34 -> 30_34
 
-heightmap min/max -24, +200
-
+heightmap min/max 
+-100, 300
 ---------------------------------
