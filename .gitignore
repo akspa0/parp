@@ -16,4 +16,7 @@ textures\*.blp
 chunk_data.db
 
 # (temporary) ignore krita project files
-.kra 
+# .kra 
+
+# ignore vcol png files
+*_vcol.png
