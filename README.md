@@ -1,27 +1,16 @@
 Welcome to the Pre-Alpha Restoration Project!
 
-![elwynn-parp-july2024](https://github.com/user-attachments/assets/737ed505-1161-4319-8216-5577142be1e1)
-
-
 We're attempting to rebuild World of Warcraft, circa 2002. Based entirely on old screenshots and a few overhead maps from 2002, we're rebuilding terrain primarily, and re-texturing any models that need to be dialed back to before they were textured. The entire project is provided for anyone to explore or edit to their hearts content - just checkout the project, point Noggit or Noggit Red at the 'project_files' sub-folder, and all should be revealed.
-
-Latest news:
-* A FLUX dev LoRA model now exists and is amazing - ![PARP:FLUX]:(https://civitai.com/models/679120/parpflux)
-   - This is able to re-create fake WoW pre-alpha screenshots perfectly. Just add 'world of warcraft' to your prompts and it will convert whatever it is, into WoW.
-Example output:
-![FLUX example output](https://github.com/akspa0/parp/blob/main/documentation/FLUX/FLUX-Example-1.png)
-
-
-* An SDXL model now exists, trained entirely on 2001-2002 screenshots, to help dream up places to build in the vast nothingness that the prealpha map has to offer.
-![Download]:(https://civitai.com/models/675248?modelVersionId=755860)
-* Switching things up - We'll take some parts of what we did from June thru August, and the original 0.5.3 maps as a base for future progress.
-* Adopting the new modernwow approach to editing
-* Map will be available to play on 3.3.5a and Epsilon clients
-* Last example of work done on prealpha_ek - https://github.com/akspa0/parp/blob/akspa-experimental/project_files/textures/minimap/preAlpha_ek_combined_minimap.png
 
 Contributors: Alonin, akspa
 
 Discord: https://discord.gg/6YdUksuKuU
+
+Latest news:
+* Kalimdor 2001 and 2002 maps with vertex shaders applied are available to be claimed
+* Azeroth map is starting to shape up and look more like the 2002 screenshot!
+* We trained a bunch of models off old screenshots, available here - ![immoralhole0 on CivitAI]:(https://civitai.com/user/immoralhole0)
+* Wrote a few good scripts for building minimaps or vcol tiles for NoggitRed importing!
 
 Tools
 
@@ -29,11 +18,6 @@ Tools
 * MPQEditor (http://www.zezula.net/en/mpq/download.html)
 * python 3.10+
 
-
-Work done:
-
-- Half of Azeroth has been blocked out. 
-- Alonin provided prealpha_outland, a map based on the earliest screenshot of Outland that we have from ~ Blizzcon 2013/2014.
 
 Goals
 
@@ -55,4 +39,6 @@ Scripts
   - LIT file parser For atmospheric lighting information
   - WLW/WLM file parser for water/liquid level information
   - The start of a 3.3.5 to 0.5.3 map converter, which needs lots of work and is just a chatGPT-generated mess that doesn't work.
+- A script to build vcol and minimap tiles from any input image.
+- A script to decode the dnc.db values into colors and intensities information.
 
