@@ -26,7 +26,7 @@ Goals
 
 Assets
 
-- Alonin provided a gray-textured version of Scarlet Monestary, matching more closely the outline seen on the 2002 map. (2 June 2024, provided in commit 62c4ea7bdea3c4cd46ceb6f1f21a8c4939834b01)
+- Alonin provided a gray-textured version of Scarlet Monastery, matching more closely the outline seen on the 2002 map. (2 June 2024, provided in commit 62c4ea7bdea3c4cd46ceb6f1f21a8c4939834b01)
 - Tilesets from 0.5.3 are provided, which may be closer to the Pre-Alpha assets.
 - Upscaled Azeroth and Kalimdor map files from the 2002 era have been provided in the images folder
 - Cataloging of z-heights from 0.5.3 terrain is being done visually with an overlay image located in the '/images/z-heights' folder.
