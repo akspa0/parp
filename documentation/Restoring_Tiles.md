@@ -78,3 +78,35 @@ Everything else should map easily to the same tiles... (+1,0) change in position
 heightmap min/max 
 -100, 300
 ---------------------------------
+
+Kalimdor 2000-2001 era tiles from 0.5.3 that need shifting :D
+
+
+ 
+
+36_16 -> 36_20
+36_17 -> 36_21
+36_18 -> 36_22
+36_19 -> 36_23
+
+37_16 -> 37_20
+37_17 -> 37_21
+37_18 -> 37_22
+37_19 -> 37_23
+
+38_16 -> 38_20
+38_17 -> 38_21
+38_18 -> 38_22
+38_19 -> 38_23
+
+Moonglade appears to have its highest z point at 828, while hyjal, which appears to be at 1043, should be raised back up. That is to say, Moonglade was part of Hyjal, and lowered when the chunks were moved north.
+
+828 to 1043
+
+raising moonglade by 215 z should restore the original zone placement.
+
+
+----------
+PVPZone01 -- z heights: low: -51, high: 249
+PVPZone02 -- z heights: low: 0, high: 553
+
