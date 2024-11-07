@@ -1,6 +1,7 @@
 from PIL import Image
 import os
 import zipfile
+Image.MAX_IMAGE_PIXELS = None
 
 def crop_into_tiles(image, tile_size, output_folder, prefix, vcol=False):
     if not os.path.exists(output_folder):
