@@ -108,5 +108,29 @@ raising moonglade by 215 z should restore the original zone placement.
 
 ----------
 PVPZone01 -- z heights: low: -51, high: 249
+
+azeroth tiles: 36_52, 37_52 - for blasted lands
+azeroth tiles: 36_53, 35_53, 35_52 - for Kharazhan
+exported parp_ek2002 heights: -500, 850
+
+37_52 heightmap: -2000, 3000
+
+28.38, 212.52
+23.88, 213.87
+
+re-export:
+-50, 220
+--------
+
+PVPZone01 to parp_ek2002 temporary island (For cloning chunks)
+
+30_30, 31_30, 32_30, 33_30, 34_30 -> 49_55 thru 54_55
+30_31, 31_31, 32_31, 33_31, 34_31 -> 49_56 thru 54_56
+30_32, 31_32, 32_32, 33_32, 34_32 -> 49_57 thru 54_57
+30_33, 31_33, 32_33, 33_33, 34_33 -> 49_58 thru 54_58
+30_34, 31_34, 32_34, 33_34, 34_34 -> 49_63 thru 54_63
+
+
+
 PVPZone02 -- z heights: low: 0, high: 553
 
