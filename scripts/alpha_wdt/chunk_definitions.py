@@ -2,7 +2,19 @@
 import os
 import struct
 import logging
-from datetime import datetime
+import numpy as np
+
+def text_based_visualization(grid):
+    """
+    Generates a simple text-based visualization of the 64x64 grid.
+    """
+    visualization = "\n".join(
+        "".join("#" if cell == 1 else "." for cell in row)
+        for row in grid
+    )
+    logging.info("Text-based visualization of the ADT grid:")
+    logging.info(visualization)  # Ensure this logs correctly
+    logging.info("Text-based visualization completed.")
 
 def parse_mver(data):
     version = struct.unpack('<I', data[:4])[0]
@@ -13,12 +25,35 @@ def parse_mphd(data):
     logging.info(f"MPHD Chunk: Flags = {flags}")
 
 def parse_main(data):
-    entry_count = len(data) // 8
+    """
+    Parses the MAIN chunk and logs tile data. Generates text-based visualization.
+    """
+    entry_size = 12  # Size of offset, size, and flags
+    full_entry_size = 16  # Total size of SMAreaInfo entry
+    entry_count = len(data) // full_entry_size
+    grid = [[0] * 64 for _ in range(64)]  # Initialize a 64x64 grid
+
     logging.info(f"MAIN Chunk: Contains {entry_count} entries.")
 
     for i in range(entry_count):
-        x, y = struct.unpack('<II', data[i*8:(i+1)*8])
-        logging.info(f"Tile: X = {x}, Y = {y}")
+        entry_data = data[i * full_entry_size:(i + 1) * full_entry_size]
+        offset, size, flags = struct.unpack('<III', entry_data[:12])
+
+        x = i % 64
+        y = i // 64
+
+        if offset == 0 and size == 0 and flags == 0:
+            logging.info(f"Tile {i} (X: {x}, Y: {y}): Unused")
+            grid[y][x] = 0  # Unused tile
+        else:
+            logging.info(
+                f"Tile {i} (X: {x}, Y: {y}): Offset = {offset}, Size = {size}, Flags = {flags:#010x}"
+            )
+            grid[y][x] = 1  # Present tile
+
+    # Call text-based visualization
+    logging.info("Generating text-based visualization of the grid...")
+    text_based_visualization(grid)
 
 def parse_mdnm(data):
     names = data.split(b'\x00')[:-1]
