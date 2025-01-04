@@ -252,33 +252,57 @@ def main():
     args = parser.parse_args()
 
     base_input_dir = Path(args.input_dir)
+    if not base_input_dir.exists():
+        print(f"Error: Input directory {base_input_dir} does not exist")
+        return
+
+    print(f"Scanning {base_input_dir} for map directories...")
     
-    # Process each map directory separately
-    for map_dir in base_input_dir.iterdir():
-        if not map_dir.is_dir():
-            continue
-            
+    # First, find all directories that contain a decoded_data subdirectory
+    map_dirs = []
+    for item in base_input_dir.glob("**/decoded_data"):
+        if item.is_dir():
+            map_dirs.append(item.parent)
+    
+    if not map_dirs:
+        print("No map directories with decoded_data found!")
+        print("Expected structure: input_dir/MapName/decoded_data/*.json")
+        return
+
+    print(f"Found {len(map_dirs)} map directories to process")
+    
+    # Process each map directory
+    for map_dir in map_dirs:
         decoded_data_dir = map_dir / "decoded_data"
-        if not decoded_data_dir.exists() or not decoded_data_dir.is_dir():
+        if not any(decoded_data_dir.glob("*.json")):
+            print(f"No JSON files found in {decoded_data_dir}")
             continue
 
         # Create map-specific exporter
         map_name = map_dir.name
         db_name = f"adt_data_{map_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
         
-        print(f"Processing map directory: {map_name}")
+        print(f"\nProcessing map directory: {map_name}")
+        print(f"Input: {decoded_data_dir}")
+        
+        output_dir = Path(args.output_dir) / map_name
+        print(f"Output: {output_dir}")
+        
         exporter = ADTDatabaseExporter(
-            output_dir=Path(args.output_dir) / map_name,
+            output_dir=output_dir,
             db_name=db_name
         )
         
         try:
             exporter.setup_database()
             exporter.process_directory(decoded_data_dir)
+            print(f"Completed processing {map_name}")
         except Exception as e:
             print(f"Error processing {map_name}: {e}")
         finally:
             exporter.close()
+
+    print("\nProcessing complete!")
 
 if __name__ == "__main__":
     main()
