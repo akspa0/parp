@@ -2,6 +2,7 @@ import json
 import logging
 from pathlib import Path
 from decode_chunks import decoders
+from datetime import datetime
 
 class ADTProcessor:
     def __init__(self, known_files=None, output_dir="output_files"):
@@ -13,10 +14,10 @@ class ADTProcessor:
         self.logger.setLevel(logging.DEBUG)
 
         self.known_files = known_files or set()
-        self.initial_analysis_dir = Path(output_dir) / "initial_analysis"
-        self.decoded_data_dir = Path(output_dir) / "decoded_data"
-        self.initial_analysis_dir.mkdir(parents=True, exist_ok=True)
-        self.decoded_data_dir.mkdir(parents=True, exist_ok=True)
+        self.base_output_dir = Path(output_dir)
+        self.current_map_dir = None
+        self.initial_analysis_dir = None
+        self.decoded_data_dir = None
 
     def reverse_magic(self, magic):
         """Reverse the byte order of a chunk identifier."""
@@ -88,10 +89,10 @@ class ADTProcessor:
             return [self._ensure_json_serializable(item) for item in data]
         elif isinstance(data, (int, float, str, bool, type(None))):
             return data
-        elif isinstance(data, tuple):  # Added tuple handling
+        elif isinstance(data, tuple):
             return list(self._ensure_json_serializable(item) for item in data)
         else:
-            return str(data)  # Convert any other types to string
+            return str(data)
 
     def process_file_initial(self, filepath):
         """First pass: Parse raw data and save to initial_analysis."""
@@ -160,7 +161,15 @@ class ADTProcessor:
                 self.logger.error(f"Directory does not exist: {directory_path}")
                 return
 
+            # Setup output directories based on input directory name
+            self.current_map_dir = directory.name
+            self.initial_analysis_dir = self.base_output_dir / self.current_map_dir / "initial_analysis"
+            self.decoded_data_dir = self.base_output_dir / self.current_map_dir / "decoded_data"
+            self.initial_analysis_dir.mkdir(parents=True, exist_ok=True)
+            self.decoded_data_dir.mkdir(parents=True, exist_ok=True)
+
             self.logger.info(f"Starting processing of directory: {directory_path}")
+            self.logger.info(f"Output directories set to: {self.initial_analysis_dir} and {self.decoded_data_dir}")
             
             # First Pass: Initial analysis
             adt_files = list(directory.glob("*.adt"))

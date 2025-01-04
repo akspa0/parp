@@ -10,7 +10,7 @@ class ADTDatabaseExporter:
     def __init__(self, output_dir="output", db_name=None):
         # Create timestamped output directory
         self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.output_dir = Path(output_dir) / self.timestamp
+        self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
         # Setup logging
@@ -77,11 +77,10 @@ class ADTDatabaseExporter:
     def extract_coords_from_filename(self, filename):
         """Extract map name and coordinates from ADT filename"""
         try:
-            # Example: mapname_XX_YY.adt
             parts = filename.replace('.adt', '').split('_')
             if len(parts) >= 3:
                 return {
-                    'map_name': '_'.join(parts[:-2]),  # Handle map names with underscores
+                    'map_name': '_'.join(parts[:-2]),
                     'x_coord': int(parts[-2]),
                     'y_coord': int(parts[-1])
                 }
@@ -101,7 +100,6 @@ class ADTDatabaseExporter:
                 self.logger.warning(f"No filename found in {json_path}")
                 return
 
-            # Extract coordinates and insert file record
             coords = self.extract_coords_from_filename(filename)
             if coords:
                 self.cursor.execute('''
@@ -118,14 +116,12 @@ class ADTDatabaseExporter:
                 
                 adt_id = self.cursor.lastrowid
 
-                # Process chunks
                 for i, chunk in enumerate(data.get('chunks', [])):
                     magic = chunk.get('magic')
                     size = chunk.get('size')
                     raw_data = chunk.get('data', {}).get('raw_data')
                     decoded_data = chunk.get('data', {}).get('decoded')
 
-                    # Determine chunk status and message
                     chunk_status = 'decoded'
                     status_message = None
 
@@ -143,10 +139,8 @@ class ADTDatabaseExporter:
                         chunk_status = 'empty'
                         status_message = 'Empty chunk (normal)'
 
-                    # Store the full decoded data as JSON
                     decoded_json = json.dumps(decoded_data) if decoded_data else None
 
-                    # Insert chunk record
                     self.cursor.execute('''
                         INSERT INTO chunks (
                             adt_id, magic, size, chunk_index, 
@@ -183,7 +177,6 @@ class ADTDatabaseExporter:
                     self.logger.error(f"Error processing {json_path.name}: {e}")
                     continue
 
-            # Generate summary statistics
             self.generate_summary()
 
         except Exception as e:
@@ -193,10 +186,8 @@ class ADTDatabaseExporter:
     def generate_summary(self):
         """Generate and log summary statistics"""
         try:
-            # Count total files
             file_count = self.cursor.execute('SELECT COUNT(*) FROM adt_files').fetchone()[0]
             
-            # Count chunks by type and status
             chunk_stats = self.cursor.execute('''
                 SELECT 
                     magic,
@@ -207,7 +198,6 @@ class ADTDatabaseExporter:
                 ORDER BY magic, chunk_status
             ''').fetchall()
 
-            # Write summary to log
             self.logger.info("\n=== Processing Summary ===")
             self.logger.info(f"Total ADT files processed: {file_count}")
             self.logger.info("\nChunk Statistics:")
@@ -228,11 +218,9 @@ class ADTDatabaseExporter:
                 self.logger.info(f"{magic:<10} {status:<12} {count:<8}")
                 total_by_magic += count
 
-            # Print final total
             if current_magic is not None:
                 self.logger.info(f"{'':<10} {'TOTAL':<12} {total_by_magic:<8}")
 
-            # Print overall statistics
             total_stats = self.cursor.execute('''
                 SELECT 
                     chunk_status,
@@ -259,17 +247,38 @@ class ADTDatabaseExporter:
 
 def main():
     parser = argparse.ArgumentParser(description="Convert ADT JSON files to SQLite database")
-    parser.add_argument("input_dir", help="Directory containing JSON files")
+    parser.add_argument("input_dir", help="Base directory containing map-specific decoded_data directories")
     parser.add_argument("--output-dir", default="output", help="Output directory")
-    parser.add_argument("--db-name", help="Custom database filename")
     args = parser.parse_args()
 
-    exporter = ADTDatabaseExporter(args.output_dir, args.db_name)
-    try:
-        exporter.setup_database()
-        exporter.process_directory(args.input_dir)
-    finally:
-        exporter.close()
+    base_input_dir = Path(args.input_dir)
+    
+    # Process each map directory separately
+    for map_dir in base_input_dir.iterdir():
+        if not map_dir.is_dir():
+            continue
+            
+        decoded_data_dir = map_dir / "decoded_data"
+        if not decoded_data_dir.exists() or not decoded_data_dir.is_dir():
+            continue
+
+        # Create map-specific exporter
+        map_name = map_dir.name
+        db_name = f"adt_data_{map_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
+        
+        print(f"Processing map directory: {map_name}")
+        exporter = ADTDatabaseExporter(
+            output_dir=Path(args.output_dir) / map_name,
+            db_name=db_name
+        )
+        
+        try:
+            exporter.setup_database()
+            exporter.process_directory(decoded_data_dir)
+        except Exception as e:
+            print(f"Error processing {map_name}: {e}")
+        finally:
+            exporter.close()
 
 if __name__ == "__main__":
     main()
