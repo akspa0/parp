@@ -43,3 +43,27 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# Logs
+
+*.log
+# Databases
+
+*.db
+# Output directories
+
+output_files/
+databases/
+output/
+
+# IDE
+
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+
+.DS_Store
+Thumbs.db
