@@ -1,164 +1,185 @@
 #!/usr/bin/env python3
-"""
-ADT File Parser for World of Warcraft Map Tiles
-
-Parses ADT files and generates comprehensive JSON output.
-
-Usage:
-  python adt_parser.py <adt_directory>
-"""
-
-import os
-import re
-import sys
+from pathlib import Path
 import struct
+import mmap
+from typing import Dict, Iterator, Optional, BinaryIO, List, Union, Tuple
+from dataclasses import dataclass
 import logging
-import json
-from datetime import datetime
+from enum import IntFlag
+import array
+import zlib
+from collections import defaultdict
 
-# Import decoders from decode_chunks
-from decode_chunks import decoders
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("ADTHandler")
 
-def setup_logging():
-    """Configure logging for the script."""
-    # Create logs directory if it doesn't exist
-    log_dir = "logs"
-    os.makedirs(log_dir, exist_ok=True)
+class ChunkError(Exception):
+    """Base exception for chunk processing errors"""
+    pass
 
-    # Generate a unique log filename
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_filename = os.path.join(log_dir, f"adt_parser_{timestamp}.log")
-    
-    # Configure logging
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s [%(levelname)s] %(message)s',
-        handlers=[
-            logging.FileHandler(log_filename, mode='w'),
-            logging.StreamHandler(sys.stdout)
-        ]
-    )
-    
-    logging.info(f"Logging initialized. Log file: {log_filename}")
-    return log_filename
+class MCNKFlags(IntFlag):
+    HAS_MCSH = 0x1
+    IMPASS = 0x2
+    LQ_RIVER = 0x4
+    LQ_OCEAN = 0x8
+    LQ_MAGMA = 0x10
+    LQ_SLIME = 0x20
+    HAS_MCCV = 0x40
+    UNKNOWN_0x80 = 0x80
+    DO_NOT_FIX_ALPHA_MAP = 0x8000
+    HIGH_RES_HOLES = 0x10000
 
-def reverse_chunk_id(chunk_id):
-    """Reverse the chunk ID"""
-    return chunk_id[::-1]
+@dataclass
+class ChunkHeader:
+    magic: str
+    size: int
+    offset: int  # Offset to chunk data start (after header)
 
-def extract_adt_coordinates(filename):
-    """Extract X and Y coordinates from ADT filename."""
-    match = re.match(r'(\d+)_(\d+)\.adt$', filename, re.IGNORECASE)
-    if match:
-        return int(match.group(1)), int(match.group(2))
-    return None, None
+@dataclass
+class ADTChunkRef:
+    """Reference to a chunk within the ADT file"""
+    offset: int  # Offset to chunk data
+    size: int    # Size of chunk data
+    magic: str   # Chunk magic string
+    header_offset: int  # Offset to chunk header
 
-def parse_adt_file(filepath):
-    """
-    Parse a single ADT file and extract chunk information.
-    
-    Args:
-        filepath (str): Path to the ADT file to parse
-    
-    Returns:
-        dict: Parsed ADT file information
-    """
-    base_name = os.path.basename(filepath)
-    folder_name = os.path.basename(os.path.dirname(filepath)).lower()
-    x_coord, y_coord = extract_adt_coordinates(base_name)
+    @property
+    def data_range(self) -> Tuple[int, int]:
+        """Return range of chunk data (start, end)"""
+        return (self.offset, self.offset + self.size)
 
-    # Initialize ADT data structure
-    adt_data = {
-        "name": base_name,
-        "folder": folder_name,
-        "x_coord": x_coord,
-        "y_coord": y_coord,
-        "chunks": {}
-    }
+class ADTVersion:
+    """Track ADT file version information"""
+    def __init__(self, version_data: Optional[bytes] = None):
+        self.major = 0
+        self.minor = 0
+        self.build = 0
+        self.revision = 0
+        if version_data:
+            self.parse(version_data)
 
-    try:
-        with open(filepath, "rb") as f:
-            data = f.read()
+    def parse(self, data: bytes) -> None:
+        if len(data) >= 16:
+            self.major, self.minor, self.build, self.revision = struct.unpack('4I', data[:16])
 
-        offset = 0
-        while offset < len(data):
+    def __str__(self) -> str:
+        return f"{self.major}.{self.minor}.{self.build}.{self.revision}"
+
+    def supports_feature(self, feature: str) -> bool:
+        """Check if this version supports a specific feature"""
+        # Add version-specific feature checks here
+        feature_requirements = {
+            'high_res_holes': (self.build >= 18273),  # Example version check
+            'extended_liquid': (self.build >= 20173)
+        }
+        return feature_requirements.get(feature, True)
+
+class ADTFile:
+    """Core ADT file handler with memory mapping"""
+    def __init__(self, path: Path):
+        self.path = path
+        self.file: Optional[BinaryIO] = None
+        self.mm: Optional[mmap.mmap] = None
+        self.version = ADTVersion()
+        self.chunk_index: Dict[str, List[ADTChunkRef]] = defaultdict(list)
+        self.coordinate_info: Optional[Tuple[int, int]] = None
+        
+        # Initialize
+        self._open_and_index()
+
+    def _open_and_index(self) -> None:
+        """Open file and build chunk index"""
+        try:
+            self.file = open(self.path, 'rb')
+            self.mm = mmap.mmap(self.file.fileno(), 0, access=mmap.ACCESS_READ)
+            self._parse_coordinates()
+            self._build_chunk_index()
+            self._read_version()
+        except Exception as e:
+            logger.error(f"Failed to open ADT file {self.path}: {e}")
+            self.close()
+            raise
+
+    def _parse_coordinates(self) -> None:
+        """Extract map coordinates from filename"""
+        try:
+            parts = self.path.stem.split('_')
+            if len(parts) >= 3:
+                self.coordinate_info = (int(parts[-2]), int(parts[-1]))
+        except ValueError:
+            logger.warning(f"Could not parse coordinates from filename: {self.path.name}")
+
+    def _build_chunk_index(self) -> None:
+        """Index all chunks in the file"""
+        pos = 0
+        while pos < len(self.mm):
+            if pos + 8 > len(self.mm):
+                break
+                
             try:
-                # Read chunk signature and size
-                chunk_id = data[offset:offset + 4].decode('utf-8')
-                chunk_size = struct.unpack('<I', data[offset + 4:offset + 8])[0]
-                chunk_data = data[offset + 8:offset + 8 + chunk_size]
+                magic = self.mm[pos:pos+4].decode('ascii')
+                size = struct.unpack('<I', self.mm[pos+4:pos+8])[0]
                 
-                # Reverse chunk ID for decoding
-                chunk_id_reversed = reverse_chunk_id(chunk_id)
+                chunk_ref = ADTChunkRef(
+                    offset=pos + 8,  # Start of chunk data
+                    size=size,
+                    magic=magic,
+                    header_offset=pos
+                )
                 
-                # Try to decode the chunk
-                if chunk_id_reversed in decoders:
-                    try:
-                        decoded_data, _ = decoders[chunk_id_reversed](chunk_data)
-                        adt_data['chunks'].setdefault(chunk_id_reversed, []).append(decoded_data)
-                        logging.info(f"Decoded chunk {chunk_id_reversed} successfully.")
-                    except Exception as e:
-                        logging.error(f"Error decoding chunk {chunk_id_reversed}: {e}")
-                else:
-                    logging.debug(f"No decoder found for chunk {chunk_id_reversed}")
-
+                self.chunk_index[magic].append(chunk_ref)
+                pos += 8 + size
+                
             except Exception as e:
-                logging.error(f"Error processing chunk at offset {offset}: {e}")
+                logger.error(f"Error indexing chunk at offset {pos}: {e}")
                 break
 
-            # Move to next chunk
-            offset += 8 + chunk_size
+    def _read_version(self) -> None:
+        """Read version information if available"""
+        version_chunks = self.chunk_index.get('MVER', [])
+        if version_chunks:
+            version_data = self.read_chunk_data(version_chunks[0])
+            self.version.parse(version_data)
 
-        return adt_data
+    def read_chunk_data(self, chunk_ref: ADTChunkRef) -> bytes:
+        """Read raw chunk data"""
+        return self.mm[chunk_ref.offset:chunk_ref.offset + chunk_ref.size]
 
-    except Exception as e:
-        logging.error(f"Error parsing {filepath}: {e}")
+    def get_chunks_by_type(self, chunk_type: str) -> Iterator[Tuple[ADTChunkRef, bytes]]:
+        """Get all chunks of a specific type with their data"""
+        for chunk_ref in self.chunk_index.get(chunk_type, []):
+            yield chunk_ref, self.read_chunk_data(chunk_ref)
+
+    def get_mcnk(self, x: int, y: int) -> Optional[Tuple[ADTChunkRef, bytes]]:
+        """Get specific MCNK chunk by coordinates"""
+        if not 0 <= x < 16 or not 0 <= y < 16:
+            raise ValueError("Coordinates must be 0-15")
+            
+        chunk_idx = y * 16 + x
+        mcnk_chunks = self.chunk_index.get('MCNK', [])
+        
+        if chunk_idx < len(mcnk_chunks):
+            chunk_ref = mcnk_chunks[chunk_idx]
+            return chunk_ref, self.read_chunk_data(chunk_ref)
         return None
 
-def main(directory):
-    """
-    Main processing function to parse all ADT files in a directory.
-    
-    Args:
-        directory (str): Path to directory containing ADT files
-    """
-    log_filename = setup_logging()
-    logging.info(f"Starting ADT parsing in directory: {directory}")
+    def dump_chunk_info(self) -> None:
+        """Debug: Dump information about all chunks"""
+        for magic, chunks in self.chunk_index.items():
+            print(f"\n{magic} chunks ({len(chunks)}):")
+            for idx, chunk in enumerate(chunks):
+                print(f"  {idx}: offset={chunk.offset}, size={chunk.size}")
 
-    # Create output directory
-    output_dir = "parsed_data"
-    os.makedirs(output_dir, exist_ok=True)
+    def close(self) -> None:
+        """Close file handles"""
+        if self.mm:
+            self.mm.close()
+        if self.file:
+            self.file.close()
 
-    parsed_adts = []
-    for filename in os.listdir(directory):
-        if not filename.lower().endswith('.adt'):
-            continue
+    def __enter__(self):
+        return self
 
-        filepath = os.path.join(directory, filename)
-        logging.info(f"Processing {filepath}")
-        
-        adt_data = parse_adt_file(filepath)
-        if adt_data:
-            parsed_adts.append(adt_data)
-            
-            # Save individual ADT parse results
-            output_path = os.path.join(output_dir, f"{filename}_parsed.json")
-            with open(output_path, 'w') as f:
-                json.dump(adt_data, f, indent=2)
-
-    # Write comprehensive output
-    comprehensive_output_path = os.path.join(output_dir, 'all_adts_parsed.json')
-    with open(comprehensive_output_path, 'w') as f:
-        json.dump(parsed_adts, f, indent=2)
-
-    logging.info(f"Parsed {len(parsed_adts)} ADT files.")
-    logging.info(f"Full log available at {log_filename}")
-    logging.info(f"Individual ADT outputs written to {output_dir}")
-    logging.info(f"Comprehensive output written to {comprehensive_output_path}")
-
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python adt_parser.py <directory_of_adts>")
-        sys.exit(1)
-    
-    main(sys.argv[1])
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
