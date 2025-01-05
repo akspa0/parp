@@ -12,7 +12,6 @@ import struct
 from collections import defaultdict
 
 def chunk_name_rev(name: str) -> str:
-    """Convert between normal and reversed chunk names"""
     return name[::-1]
 
 @dataclass
@@ -41,27 +40,13 @@ class MCNKChunk:
     n_ground_effects: int
     prediction_type: int
     prediction_id: int
-    
-    # MCVT - Height data
     height_map: List[float] = field(default_factory=list)
-    
-    # MCNR - Normals
     normals: List[Tuple[float, float, float]] = field(default_factory=list)
-    
-    # MCLY - Texture layers
     layers: List[TerrainLayer] = field(default_factory=list)
-    
-    # MCRF - References
     doodad_refs: List[int] = field(default_factory=list)
     object_refs: List[int] = field(default_factory=list)
-    
-    # MCSH - Shadow map
     shadow_map: Optional[bytes] = None
-    
-    # MCAL - Alpha maps
     alpha_maps: List[bytes] = field(default_factory=list)
-    
-    # MCLQ/MH2O - Liquid
     liquid_type: int = 0
     liquid_height: float = 0.0
     liquid_flags: int = 0
@@ -89,27 +74,7 @@ class WMOPlacement:
     name_set: int
     unknown: int
 
-@dataclass
-class ADTData:
-    """Complete ADT file data"""
-    version: int
-    flags: int
-    chunks: Dict[str, Dict]
-    mcnk_grid: List[List[MCNKChunk]]
-    textures: List[str]
-    models: List[str]
-    wmos: List[str]
-    model_placements: List[ModelPlacement]
-    wmo_placements: List[WMOPlacement]
-    liquid_types: List[int]
-    has_mccv: bool  # Vertex colors
-    has_big_alpha: bool
-    has_vertex_lighting: bool
-    has_height_texturing: bool
-
 class ADTDecoder:
-    """Decode ADT file format with full chunk parsing"""
-    
     CHUNK_DECODERS = {
         'MVER': '_decode_mver',
         'MHDR': '_decode_mhdr',
@@ -122,38 +87,18 @@ class ADTDecoder:
         'MDDF': '_decode_mddf',
         'MODF': '_decode_modf',
         'MCNK': '_decode_mcnk',
-        'MH2O': '_decode_mh2o',
-        'MFBO': '_decode_mfbo',
-        'MTXF': '_decode_mtxf',
-        'MCNK_MCVT': '_decode_mcnk_mcvt',
-        'MCNK_MCNR': '_decode_mcnk_mcnr',
-        'MCNK_MCLY': '_decode_mcnk_mcly',
-        'MCNK_MCRF': '_decode_mcnk_mcrf',
-        'MCNK_MCSH': '_decode_mcnk_mcsh',
-        'MCNK_MCAL': '_decode_mcnk_mcal',
-        'MCNK_MCLQ': '_decode_mcnk_mclq',
+        'MH2O': '_decode_mh2o'
     }
 
     def __init__(self, filename: str):
         self.filename = filename
-        self.data = None
         self.chunks = {}
         self.mcnk_grid = [[None for x in range(16)] for y in range(16)]
-        
-    def _read_packed_vector3(self, data: bytes, offset: int = 0) -> Tuple[float, float, float]:
-        """Read packed 3D vector"""
-        return struct.unpack_from('<3f', data, offset)
-        
-    def _read_quaternion(self, data: bytes, offset: int = 0) -> Tuple[float, float, float, float]:
-        """Read quaternion"""
-        return struct.unpack_from('<4f', data, offset)
 
     def _decode_mver(self, data: bytes) -> Dict:
-        """Decode MVER chunk"""
         return {'version': struct.unpack('<I', data)[0]}
 
     def _decode_mhdr(self, data: bytes) -> Dict:
-        """Decode MHDR chunk with all flags"""
         flags = struct.unpack('<I', data[:4])[0]
         return {
             'flags': flags,
@@ -168,7 +113,6 @@ class ADTDecoder:
         }
 
     def _decode_mcin(self, data: bytes) -> Dict:
-        """Decode MCIN chunk - indexes for MCNK chunks"""
         indexes = []
         for i in range(256):
             offset = i * 16
@@ -181,7 +125,6 @@ class ADTDecoder:
         return {'chunk_indices': indexes}
 
     def _decode_mtex(self, data: bytes) -> Dict:
-        """Decode MTEX chunk - texture filenames"""
         pos = 0
         filenames = []
         while pos < len(data):
@@ -196,25 +139,18 @@ class ADTDecoder:
         return {'filenames': filenames}
 
     def _decode_mmdx(self, data: bytes) -> Dict:
-        """Decode MMDX chunk - M2 model filenames"""
-        return self._decode_mtex(data)  # Same format as MTEX
+        return self._decode_mtex(data)
 
     def _decode_mmid(self, data: bytes) -> Dict:
-        """Decode MMID chunk - M2 model indices"""
-        return {
-            'indices': list(struct.unpack(f'<{len(data)//4}I', data))
-        }
+        return {'indices': list(struct.unpack(f'<{len(data)//4}I', data))}
 
     def _decode_mwmo(self, data: bytes) -> Dict:
-        """Decode MWMO chunk - WMO filenames"""
-        return self._decode_mtex(data)  # Same format as MTEX
+        return self._decode_mtex(data)
 
     def _decode_mwid(self, data: bytes) -> Dict:
-        """Decode MWID chunk - WMO indices"""
-        return self._decode_mmid(data)  # Same format as MMID
+        return self._decode_mmid(data)
 
     def _decode_mddf(self, data: bytes) -> Dict:
-        """Decode MDDF chunk - M2 model placements"""
         placements = []
         for i in range(0, len(data), 36):
             chunk = data[i:i+36]
@@ -230,7 +166,6 @@ class ADTDecoder:
         return {'placements': placements}
 
     def _decode_modf(self, data: bytes) -> Dict:
-        """Decode MODF chunk - WMO placements"""
         placements = []
         for i in range(0, len(data), 64):
             chunk = data[i:i+64]
@@ -249,8 +184,7 @@ class ADTDecoder:
             placements.append(asdict(placement))
         return {'placements': placements}
 
-    def _decode_mcnk(self, data: bytes, index: int) -> Dict:
-        """Decode MCNK chunk and all its subchunks"""
+    def _decode_mcnk(self, data: bytes, index: int = 0) -> Dict:
         header_size = 128
         header = data[:header_size]
         
@@ -277,9 +211,6 @@ class ADTDecoder:
         offset_mclq = struct.unpack_from('<I', header, 76)[0]
         size_mclq = struct.unpack_from('<I', header, 80)[0]
         position = struct.unpack_from('<3f', header, 84)[0:3]
-        offset_mccv = struct.unpack_from('<I', header, 96)[0]
-        offset_mclv = struct.unpack_from('<I', header, 108)[0]
-        unused = struct.unpack_from('<I', header, 112)[0]
         
         chunk = MCNKChunk(
             flags=flags,
@@ -299,90 +230,24 @@ class ADTDecoder:
             n_object_refs=n_mapobj_refs
         )
         
-        # Decode subchunks
         if offset_mcvt:
-            chunk.height_map = self._decode_mcnk_mcvt(data[offset_mcvt:])
+            chunk.height_map = list(struct.unpack('<145f', data[offset_mcvt:offset_mcvt+580]))
         if offset_mcnr:
-            chunk.normals = self._decode_mcnk_mcnr(data[offset_mcnr:])
-        if offset_mcly:
-            chunk.layers = self._decode_mcnk_mcly(data[offset_mcly:], n_layers)
-        if offset_mcrf:
-            refs = self._decode_mcnk_mcrf(data[offset_mcrf:], n_doodad_refs, n_mapobj_refs)
-            chunk.doodad_refs = refs['doodad_refs']
-            chunk.object_refs = refs['object_refs']
-        if offset_mcsh and size_mcsh:
-            chunk.shadow_map = data[offset_mcsh:offset_mcsh+size_mcsh]
-        if offset_mcal and size_mcal:
-            chunk.alpha_maps = self._decode_mcnk_mcal(data[offset_mcal:offset_mcal+size_mcal])
+            chunk.normals = [tuple(x/127.0 - 1.0 for x in struct.unpack_from('<3B', data, offset_mcnr+i)) 
+                           for i in range(0, 435, 3)]
         if offset_mclq and size_mclq:
-            liquid = self._decode_mcnk_mclq(data[offset_mclq:offset_mclq+size_mclq])
-            chunk.liquid_type = liquid['type']
-            chunk.liquid_height = liquid['height']
-            chunk.liquid_flags = liquid['flags']
-            chunk.liquid_data = liquid['data']
+            lq_data = data[offset_mclq:offset_mclq+size_mclq]
+            if len(lq_data) >= 2:
+                chunk.liquid_type = struct.unpack_from('<H', lq_data, 0)[0]
+                if len(lq_data) >= 6:
+                    chunk.liquid_height = struct.unpack_from('<f', lq_data, 2)[0]
+                if len(lq_data) >= 10:
+                    chunk.liquid_flags = struct.unpack_from('<I', lq_data, 6)[0]
+                    chunk.liquid_data = lq_data[10:]
             
         return asdict(chunk)
 
-    def _decode_mcnk_mcvt(self, data: bytes) -> List[float]:
-        """Decode MCVT subchunk - height map"""
-        return list(struct.unpack('<145f', data[:580]))
-
-    def _decode_mcnk_mcnr(self, data: bytes) -> List[Tuple[float, float, float]]:
-        """Decode MCNR subchunk - normal vectors"""
-        normals = []
-        for i in range(0, 435, 3):
-            normal = struct.unpack_from('<3B', data, i)
-            # Convert from unsigned byte to float
-            normals.append(tuple(x/127.0 - 1.0 for x in normal))
-        return normals
-
-    def _decode_mcnk_mcly(self, data: bytes, layer_count: int) -> List[TerrainLayer]:
-        """Decode MCLY subchunk - texture layers"""
-        layers = []
-        for i in range(layer_count):
-            offset = i * 16
-            layer = TerrainLayer(
-                texture_id=struct.unpack_from('<I', data, offset)[0],
-                flags=struct.unpack_from('<I', data, offset + 4)[0],
-                offset_mcal=struct.unpack_from('<I', data, offset + 8)[0],
-                effect_id=struct.unpack_from('<I', data, offset + 12)[0]
-            )
-            layers.append(layer)
-        return layers
-
-    def _decode_mcnk_mcrf(self, data: bytes, doodad_count: int, object_count: int) -> Dict:
-        """Decode MCRF subchunk - doodad and object references"""
-        pos = 0
-        doodad_refs = []
-        object_refs = []
-        
-        for i in range(doodad_count):
-            doodad_refs.append(struct.unpack_from('<I', data, pos)[0])
-            pos += 4
-            
-        for i in range(object_count):
-            object_refs.append(struct.unpack_from('<I', data, pos)[0])
-            pos += 4
-            
-        return {
-            'doodad_refs': doodad_refs,
-            'object_refs': object_refs
-        }
-
-    def _decode_mcnk_mclq(self, data: bytes) -> Dict:
-        """Decode MCLQ subchunk - liquid data"""
-        if len(data) < 2:
-            return {'type': 0, 'height': 0.0, 'flags': 0, 'data': None}
-            
-        return {
-            'type': struct.unpack_from('<H', data, 0)[0],
-            'height': struct.unpack_from('<f', data, 2)[0],
-            'flags': struct.unpack_from('<I', data, 6)[0],
-            'data': data[10:]  # Remaining liquid data
-        }
-
     def _decode_mh2o(self, data: bytes) -> Dict:
-        """Decode MH2O chunk - liquid data"""
         if len(data) < 8:
             return {'chunks': []}
             
@@ -397,24 +262,25 @@ class ADTDecoder:
             if info['offset'] and info['layer_count']:
                 pos = info['offset']
                 for j in range(info['layer_count']):
-                    layer = {
-                        'type': struct.unpack_from('<H', data, pos)[0],
-                        'flags': struct.unpack_from('<H', data, pos + 2)[0],
-                        'height_levels': struct.unpack_from('<2f', data, pos + 4),
-                        'offset_mask': struct.unpack_from('<I', data, pos + 12)[0],
-                        'offset_data': struct.unpack_from('<I', data, pos + 16)[0]
-                    }
-                    info['layers'].append(layer)
+                    if pos + 20 <= len(data):
+                        layer = {
+                            'type': struct.unpack_from('<H', data, pos)[0],
+                            'flags': struct.unpack_from('<H', data, pos + 2)[0],
+                            'height_levels': struct.unpack_from('<2f', data, pos + 4),
+                            'offset_mask': struct.unpack_from('<I', data, pos + 12)[0],
+                            'offset_data': struct.unpack_from('<I', data, pos + 16)[0]
+                        }
+                        info['layers'].append(layer)
                     pos += 20
             chunks.append(info)
         return {'chunks': chunks}
 
     def decode_file(self) -> Dict:
-        """Decode entire ADT file"""
         with open(self.filename, 'rb') as f:
             data = f.read()
             
         pos = 0
+        mcnk_index = 0
         while pos < len(data):
             if pos + 8 > len(data):
                 break
@@ -427,10 +293,13 @@ class ADTDecoder:
                 
             chunk_data = data[pos+8:pos+8+chunk_size]
             
-            # Decode chunk
             if chunk_name in self.CHUNK_DECODERS:
                 decoder = getattr(self, self.CHUNK_DECODERS[chunk_name])
-                self.chunks[chunk_name] = decoder(chunk_data)
+                if chunk_name == 'MCNK':
+                    self.chunks[f'MCNK_{mcnk_index}'] = decoder(chunk_data, mcnk_index)
+                    mcnk_index += 1
+                else:
+                    self.chunks[chunk_name] = decoder(chunk_data)
             else:
                 self.chunks[chunk_name] = {'raw_size': chunk_size}
                 
@@ -439,7 +308,6 @@ class ADTDecoder:
         return self.chunks
 
 class ADTDirectoryParser:
-    """Parse directory of ADT files and generate detailed report"""
     def __init__(self, input_dir: str, output_file: str, log_file: str, debug: bool = False):
         self.input_dir = Path(input_dir)
         self.output_file = Path(output_file)
@@ -455,7 +323,6 @@ class ADTDirectoryParser:
         self.logger = logging.getLogger(__name__)
 
     def process_file(self, adt_path: Path) -> Dict:
-        """Process single ADT file"""
         try:
             self.logger.info(f"Processing {adt_path}")
             decoder = ADTDecoder(str(adt_path))
@@ -464,7 +331,7 @@ class ADTDirectoryParser:
             self.logger.info(f"Successfully decoded {adt_path.name}")
             return {
                 'filename': adt_path.name,
-                'file_size': adt_path.stat().size,
+                'file_size': os.path.getsize(adt_path),  # Fixed: using os.path.getsize instead of stat().size
                 'chunks': data
             }
             
@@ -476,7 +343,6 @@ class ADTDirectoryParser:
             }
 
     def process_directory(self) -> List[Dict]:
-        """Process all ADT files in directory"""
         results = []
         adt_files = list(self.input_dir.glob('**/*.adt'))
         
@@ -489,7 +355,6 @@ class ADTDirectoryParser:
         return results
 
     def generate_report(self, results: List[Dict]):
-        """Generate detailed JSON report"""
         report = {
             "generated_at": datetime.now().isoformat(),
             "input_directory": str(self.input_dir),
@@ -503,46 +368,47 @@ class ADTDirectoryParser:
         self.logger.info(f"Report generated: {self.output_file}")
 
     def generate_statistics(self, results: List[Dict]):
-        """Generate statistical analysis"""
+        if not results:
+            self.logger.warning("No results to analyze")
+            return
+            
         self.logger.info("\nFile Statistics:")
         self.logger.info(f"Total ADT files processed: {len(results)}")
         
-        # Count unique chunks
-        chunk_counts = defaultdict(int)
-        texture_counts = defaultdict(int)
-        model_counts = defaultdict(int)
-        wmo_counts = defaultdict(int)
+        chunk_types = defaultdict(int)
+        texture_refs = defaultdict(int)
+        model_refs = defaultdict(int)
+        wmo_refs = defaultdict(int)
         
         for result in results:
             if 'chunks' in result:
-                for chunk_name in result['chunks']:
-                    chunk_counts[chunk_name] += 1
+                chunks = result['chunks']
+                for chunk_name in chunks:
+                    chunk_types[chunk_name] += 1
                     
-                # Count textures
-                if 'MTEX' in result['chunks']:
-                    for tex in result['chunks']['MTEX'].get('filenames', []):
-                        texture_counts[tex] += 1
-                        
-                # Count M2s
-                if 'MMDX' in result['chunks']:
-                    for m2 in result['chunks']['MMDX'].get('filenames', []):
-                        model_counts[m2] += 1
-                        
-                # Count WMOs
-                if 'MWMO' in result['chunks']:
-                    for wmo in result['chunks']['MWMO'].get('filenames', []):
-                        wmo_counts[wmo] += 1
+                    if chunk_name == 'MTEX' and 'filenames' in chunks[chunk_name]:
+                        for tex in chunks[chunk_name]['filenames']:
+                            texture_refs[tex] += 1
+                    elif chunk_name == 'MMDX' and 'filenames' in chunks[chunk_name]:
+                        for model in chunks[chunk_name]['filenames']:
+                            model_refs[model] += 1
+                    elif chunk_name == 'MWMO' and 'filenames' in chunks[chunk_name]:
+                        for wmo in chunks[chunk_name]['filenames']:
+                            wmo_refs[wmo] += 1
         
-        self.logger.info("\nChunk Statistics:")
-        for chunk, count in sorted(chunk_counts.items()):
-            self.logger.info(f"{chunk}: {count} files")
+        self.logger.info("\nChunk Types Found:")
+        for chunk_type, count in sorted(chunk_types.items()):
+            self.logger.info(f"{chunk_type}: {count} occurrences")
             
-        self.logger.info("\nTexture Statistics:")
-        self.logger.info(f"Unique textures: {len(texture_counts)}")
+        self.logger.info(f"\nUnique Assets:")
+        self.logger.info(f"Textures: {len(texture_refs)}")
+        self.logger.info(f"M2 Models: {len(model_refs)}")
+        self.logger.info(f"WMO Models: {len(wmo_refs)}")
         
-        self.logger.info("\nModel Statistics:")
-        self.logger.info(f"Unique M2 models: {len(model_counts)}")
-        self.logger.info(f"Unique WMO models: {len(wmo_counts)}")
+        if texture_refs:
+            self.logger.info("\nTop 10 Most Used Textures:")
+            for tex, count in sorted(texture_refs.items(), key=lambda x: x[1], reverse=True)[:10]:
+                self.logger.info(f"{tex}: {count} uses")
 
 def main():
     parser = argparse.ArgumentParser(description='Process directory of ADT files')
