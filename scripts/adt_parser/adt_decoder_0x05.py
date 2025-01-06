@@ -10,6 +10,7 @@ from dataclasses import dataclass, asdict, field
 import argparse
 import struct
 from collections import defaultdict
+import sqlite3
 
 def chunk_name_rev(name: str) -> str:
     return name[::-1]
@@ -54,7 +55,7 @@ class MCNKChunk:
 
 @dataclass
 class ModelPlacement:
-    name_id: int
+    id: int
     unique_id: int
     position: Tuple[float, float, float]
     rotation: Tuple[float, float, float]
@@ -63,7 +64,7 @@ class ModelPlacement:
 
 @dataclass
 class WMOPlacement:
-    name_id: int
+    id: int
     unique_id: int
     position: Tuple[float, float, float]
     rotation: Tuple[float, float, float]
@@ -72,7 +73,7 @@ class WMOPlacement:
     flags: int
     doodad_set: int
     name_set: int
-    scale: int
+    unknown: int
 
 class ADTDecoder:
     CHUNK_DECODERS = {
@@ -152,34 +153,34 @@ class ADTDecoder:
 
     def _decode_mddf(self, data: bytes) -> Dict:
         placements = []
-        for i in range(0, len(data), 36):  # Each MDDF entry is 36 bytes
+        for i in range(0, len(data), 36):
             chunk = data[i:i+36]
             placement = ModelPlacement(
-                name_id=struct.unpack_from('<I', chunk, 0)[0],      # Model ID
-                unique_id=struct.unpack_from('<I', chunk, 4)[0],    # Unique instance ID
-                position=struct.unpack_from('<3f', chunk, 8),       # X,Y,Z position
-                rotation=struct.unpack_from('<3f', chunk, 20),      # X,Y,Z rotation
-                scale=struct.unpack_from('<H', chunk, 32)[0] / 1024.0,  # Scale factor (needs to be divided by 1024)
-                flags=struct.unpack_from('<H', chunk, 34)[0]        # Flags
+                id=struct.unpack_from('<I', chunk, 0)[0],
+                unique_id=struct.unpack_from('<I', chunk, 4)[0],
+                position=struct.unpack_from('<3f', chunk, 8),
+                rotation=struct.unpack_from('<3f', chunk, 20),
+                scale=struct.unpack_from('<f', chunk, 32)[0],
+                flags=struct.unpack_from('<H', chunk, 34)[0]
             )
             placements.append(asdict(placement))
         return {'placements': placements}
 
     def _decode_modf(self, data: bytes) -> Dict:
         placements = []
-        for i in range(0, len(data), 64):  # Each MODF entry is 64 bytes
+        for i in range(0, len(data), 64):
             chunk = data[i:i+64]
             placement = WMOPlacement(
-                name_id=struct.unpack_from('<I', chunk, 0)[0],      # WMO name ID
-                unique_id=struct.unpack_from('<I', chunk, 4)[0],    # Unique instance ID
-                position=struct.unpack_from('<3f', chunk, 8),       # X,Y,Z position
-                rotation=struct.unpack_from('<3f', chunk, 20),      # X,Y,Z rotation
-                extent_min=struct.unpack_from('<3f', chunk, 32),    # Bounding box min
-                extent_max=struct.unpack_from('<3f', chunk, 44),    # Bounding box max
-                flags=struct.unpack_from('<H', chunk, 56)[0],       # Flags
-                doodad_set=struct.unpack_from('<H', chunk, 58)[0],  # Doodad set index
-                name_set=struct.unpack_from('<H', chunk, 60)[0],    # Name set index
-                scale=struct.unpack_from('<H', chunk, 62)[0]        # Scale factor
+                id=struct.unpack_from('<I', chunk, 0)[0],
+                unique_id=struct.unpack_from('<I', chunk, 4)[0],
+                position=struct.unpack_from('<3f', chunk, 8),
+                rotation=struct.unpack_from('<3f', chunk, 20),
+                extent_min=struct.unpack_from('<3f', chunk, 32),
+                extent_max=struct.unpack_from('<3f', chunk, 44),
+                flags=struct.unpack_from('<H', chunk, 56)[0],
+                doodad_set=struct.unpack_from('<H', chunk, 58)[0],
+                name_set=struct.unpack_from('<H', chunk, 60)[0],
+                unknown=struct.unpack_from('<H', chunk, 62)[0]
             )
             placements.append(asdict(placement))
         return {'placements': placements}
@@ -357,22 +358,3 @@ class ADTDirectoryParser:
         if not results:
             self.logger.warning("No results to analyze")
             return
-            
-def main():
-    parser = argparse.ArgumentParser(description='Process directory of ADT files')
-    parser.add_argument('input_dir', help='Input directory containing ADT files')
-    parser.add_argument('--output', '-o', default='adt_output',
-                      help='Output directory for JSON files (default: adt_output)')
-    parser.add_argument('--log', '-l', default='adt_processing.log',
-                      help='Log file (default: adt_processing.log)')
-    parser.add_argument('--debug', '-d', action='store_true',
-                      help='Enable debug logging')
-    
-    args = parser.parse_args()
-    
-    processor = ADTDirectoryParser(args.input_dir, args.output, args.log, args.debug)
-    results = processor.process_directory()
-    processor.generate_statistics(results)
-
-if __name__ == '__main__':
-    main()
