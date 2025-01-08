@@ -10,9 +10,16 @@ from dataclasses import dataclass, asdict, field
 import argparse
 import struct
 from collections import defaultdict
+import base64
 
 def chunk_name_rev(name: str) -> str:
     return name[::-1]
+
+class BytesEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, bytes):
+            return base64.b64encode(obj).decode('ascii')
+        return super().default(obj)
 
 @dataclass
 class TerrainLayer:
@@ -22,6 +29,12 @@ class TerrainLayer:
     effect_id: int
     layer_height: float = 0.0
     alpha_map: Optional[bytes] = None
+
+    def to_dict(self):
+        d = asdict(self)
+        if d['alpha_map'] is not None:
+            d['alpha_map'] = base64.b64encode(d['alpha_map']).decode('ascii')
+        return d
 
 @dataclass
 class MCNKChunk:
@@ -52,6 +65,17 @@ class MCNKChunk:
     liquid_flags: int = 0
     liquid_data: Optional[bytes] = None
 
+    def to_dict(self):
+        d = asdict(self)
+        if d['shadow_map'] is not None:
+            d['shadow_map'] = base64.b64encode(d['shadow_map']).decode('ascii')
+        if d['liquid_data'] is not None:
+            d['liquid_data'] = base64.b64encode(d['liquid_data']).decode('ascii')
+        d['alpha_maps'] = [base64.b64encode(am).decode('ascii') if am is not None else None 
+                          for am in d['alpha_maps']]
+        d['layers'] = [layer.to_dict() if isinstance(layer, TerrainLayer) else layer 
+                      for layer in d['layers']]
+        return d
 @dataclass
 class ModelPlacement:
     name_id: int
@@ -95,6 +119,37 @@ class ADTDecoder:
         self.chunks = {}
         self.mcnk_grid = [[None for x in range(16)] for y in range(16)]
 
+    def decode_file(self) -> Dict:
+        with open(self.filename, 'rb') as f:
+            data = f.read()
+            
+        pos = 0
+        mcnk_index = 0
+        while pos < len(data):
+            if pos + 8 > len(data):
+                break
+                
+            chunk_name = chunk_name_rev(data[pos:pos+4].decode('ascii'))
+            chunk_size = struct.unpack('<I', data[pos+4:pos+8])[0]
+            
+            if chunk_size > len(data) - (pos + 8):
+                break
+                
+            chunk_data = data[pos+8:pos+8+chunk_size]
+            
+            if chunk_name in self.CHUNK_DECODERS:
+                decoder = getattr(self, self.CHUNK_DECODERS[chunk_name])
+                if chunk_name == 'MCNK':
+                    self.chunks[f'MCNK_{mcnk_index}'] = decoder(chunk_data, mcnk_index)
+                    mcnk_index += 1
+                else:
+                    self.chunks[chunk_name] = decoder(chunk_data)
+            else:
+                self.chunks[chunk_name] = {'raw_size': chunk_size}
+                
+            pos += 8 + chunk_size
+            
+        return self.chunks
     def _decode_mver(self, data: bytes) -> Dict:
         return {'version': struct.unpack('<I', data)[0]}
 
@@ -152,36 +207,37 @@ class ADTDecoder:
 
     def _decode_mddf(self, data: bytes) -> Dict:
         placements = []
-        for i in range(0, len(data), 36):  # Each MDDF entry is 36 bytes
+        for i in range(0, len(data), 36):
             chunk = data[i:i+36]
             placement = ModelPlacement(
-                name_id=struct.unpack_from('<I', chunk, 0)[0],      # Model ID
-                unique_id=struct.unpack_from('<I', chunk, 4)[0],    # Unique instance ID
-                position=struct.unpack_from('<3f', chunk, 8),       # X,Y,Z position
-                rotation=struct.unpack_from('<3f', chunk, 20),      # X,Y,Z rotation
-                scale=struct.unpack_from('<H', chunk, 32)[0] / 1024.0,  # Scale factor (needs to be divided by 1024)
-                flags=struct.unpack_from('<H', chunk, 34)[0]        # Flags
+                name_id=struct.unpack_from('<I', chunk, 0)[0],
+                unique_id=struct.unpack_from('<I', chunk, 4)[0],
+                position=struct.unpack_from('<3f', chunk, 8),
+                rotation=struct.unpack_from('<3f', chunk, 20),
+                scale=struct.unpack_from('<H', chunk, 32)[0] / 1024.0,
+                flags=struct.unpack_from('<H', chunk, 34)[0]
             )
-            placements.append(asdict(placement))
+            placement_dict = asdict(placement)
+            placements.append(placement_dict)
         return {'placements': placements}
-
     def _decode_modf(self, data: bytes) -> Dict:
         placements = []
-        for i in range(0, len(data), 64):  # Each MODF entry is 64 bytes
+        for i in range(0, len(data), 64):
             chunk = data[i:i+64]
             placement = WMOPlacement(
-                name_id=struct.unpack_from('<I', chunk, 0)[0],      # WMO name ID
-                unique_id=struct.unpack_from('<I', chunk, 4)[0],    # Unique instance ID
-                position=struct.unpack_from('<3f', chunk, 8),       # X,Y,Z position
-                rotation=struct.unpack_from('<3f', chunk, 20),      # X,Y,Z rotation
-                extent_min=struct.unpack_from('<3f', chunk, 32),    # Bounding box min
-                extent_max=struct.unpack_from('<3f', chunk, 44),    # Bounding box max
-                flags=struct.unpack_from('<H', chunk, 56)[0],       # Flags
-                doodad_set=struct.unpack_from('<H', chunk, 58)[0],  # Doodad set index
-                name_set=struct.unpack_from('<H', chunk, 60)[0],    # Name set index
-                scale=struct.unpack_from('<H', chunk, 62)[0]        # Scale factor
+                name_id=struct.unpack_from('<I', chunk, 0)[0],
+                unique_id=struct.unpack_from('<I', chunk, 4)[0],
+                position=struct.unpack_from('<3f', chunk, 8),
+                rotation=struct.unpack_from('<3f', chunk, 20),
+                extent_min=struct.unpack_from('<3f', chunk, 32),
+                extent_max=struct.unpack_from('<3f', chunk, 44),
+                flags=struct.unpack_from('<H', chunk, 56)[0],
+                doodad_set=struct.unpack_from('<H', chunk, 58)[0],
+                name_set=struct.unpack_from('<H', chunk, 60)[0],
+                scale=struct.unpack_from('<H', chunk, 62)[0]
             )
-            placements.append(asdict(placement))
+            placement_dict = asdict(placement)
+            placements.append(placement_dict)
         return {'placements': placements}
 
     def _decode_mcnk(self, data: bytes, index: int = 0) -> Dict:
@@ -234,84 +290,81 @@ class ADTDecoder:
                 tuple(x/127.0 for x in struct.unpack_from('<3b', data, offset_mcnr+i))
                 for i in range(0, 435, 3)
             ]
+        if offset_mcly and n_layers > 0:
+            for i in range(n_layers):
+                layer_offset = offset_mcly + (i * 16)
+                if layer_offset + 16 <= len(data):
+                    texture_id, layer_flags, alpha_offset, effect_id = struct.unpack('<4I', data[layer_offset:layer_offset + 16])
+                    
+                    layer = TerrainLayer(
+                        texture_id=texture_id,
+                        flags=layer_flags,
+                        offset_mcal=alpha_offset,
+                        effect_id=effect_id
+                    )
+                    chunk.layers.append(layer)
 
-        return asdict(chunk)
+        if offset_mcal and size_mcal > 0:
+            alpha_data = data[offset_mcal:offset_mcal + size_mcal]
+            current_pos = 0
+            
+            for layer in chunk.layers:
+                if layer.flags & 0x100:  # USE_ALPHA_MAP
+                    alpha_map = bytearray()
+                    
+                    if layer.flags & 0x200:  # ALPHA_COMPRESSED
+                        pos = current_pos
+                        while len(alpha_map) < 4096 and pos < len(alpha_data):
+                            command = alpha_data[pos]
+                            fill_mode = bool(command & 0x80)
+                            count = command & 0x7F
+                            pos += 1
+                            
+                            if fill_mode and pos < len(alpha_data):
+                                value = alpha_data[pos]
+                                alpha_map.extend([value] * count)
+                                pos += 1
+                            elif not fill_mode and pos + count <= len(alpha_data):
+                                alpha_map.extend(alpha_data[pos:pos + count])
+                                pos += count
+                        
+                        current_pos = pos
+                    else:
+                        size = 4096 if current_pos + 4096 <= len(alpha_data) else 2048
+                        if size == 2048:
+                            raw_data = alpha_data[current_pos:current_pos + size]
+                            for byte in raw_data:
+                                alpha_map.append((byte & 0xF) * 16)
+                                alpha_map.append((byte >> 4) * 16)
+                        else:
+                            alpha_map.extend(alpha_data[current_pos:current_pos + size])
+                        current_pos += size
+                    
+                    if alpha_map:
+                        chunk.alpha_maps.append(bytes(alpha_map[:4096]))
+                        layer.alpha_map = bytes(alpha_map[:4096])
 
-    def _decode_mh2o(self, data: bytes) -> Dict:
-        if len(data) < 8:
-            return {'chunks': []}
-            
-        chunks = []
-        for i in range(256):
-            offset = i * 8
-            info = {
-                'offset': struct.unpack_from('<I', data, offset)[0],
-                'layer_count': struct.unpack_from('<I', data, offset + 4)[0],
-                'layers': []
-            }
-            if info['offset'] and info['layer_count']:
-                pos = info['offset']
-                for j in range(info['layer_count']):
-                    if pos + 20 <= len(data):
-                        layer = {
-                            'type': struct.unpack_from('<H', data, pos)[0],
-                            'flags': struct.unpack_from('<H', data, pos + 2)[0],
-                            'height_levels': struct.unpack_from('<2f', data, pos + 4),
-                            'offset_mask': struct.unpack_from('<I', data, pos + 12)[0],
-                            'offset_data': struct.unpack_from('<I', data, pos + 16)[0]
-                        }
-                        info['layers'].append(layer)
-                    pos += 20
-            chunks.append(info)
-        return {'chunks': chunks}
-
-    def decode_file(self) -> Dict:
-        with open(self.filename, 'rb') as f:
-            data = f.read()
-            
-        pos = 0
-        mcnk_index = 0
-        while pos < len(data):
-            if pos + 8 > len(data):
-                break
-                
-            chunk_name = chunk_name_rev(data[pos:pos+4].decode('ascii'))
-            chunk_size = struct.unpack('<I', data[pos+4:pos+8])[0]
-            
-            if chunk_size > len(data) - (pos + 8):
-                break
-                
-            chunk_data = data[pos+8:pos+8+chunk_size]
-            
-            if chunk_name in self.CHUNK_DECODERS:
-                decoder = getattr(self, self.CHUNK_DECODERS[chunk_name])
-                if chunk_name == 'MCNK':
-                    self.chunks[f'MCNK_{mcnk_index}'] = decoder(chunk_data, mcnk_index)
-                    mcnk_index += 1
-                else:
-                    self.chunks[chunk_name] = decoder(chunk_data)
-            else:
-                self.chunks[chunk_name] = {'raw_size': chunk_size}
-                
-            pos += 8 + chunk_size
-            
-        return self.chunks
-
-class ADTDirectoryParser:
-    def __init__(self, input_dir: str, output_dir: str, log_file: str, debug: bool = False):
-        self.input_dir = Path(input_dir)
-        self.output_dir = Path(output_dir)
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+        return chunk.to_dict()
+class ADTProcessor:
+    def __init__(self, input_dir: Path, output_dir: Path):
+        self.input_dir = input_dir
+        self.output_dir = output_dir
+        self.logger = self._setup_logger()
         
-        logging.basicConfig(
-            level=logging.DEBUG if debug else logging.INFO,
-            format='%(asctime)s - %(levelname)s - %(message)s',
-            handlers=[
-                logging.FileHandler(log_file, encoding='utf-8'),
-                logging.StreamHandler(sys.stdout)
-            ]
-        )
-        self.logger = logging.getLogger(__name__)
+        if not self.output_dir.exists():
+            self.output_dir.mkdir(parents=True)
+
+    def _setup_logger(self) -> logging.Logger:
+        logger = logging.getLogger('ADTProcessor')
+        logger.setLevel(logging.INFO)
+        
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
+        
+        return logger
 
     def process_file(self, adt_path: Path) -> Dict:
         try:
@@ -329,7 +382,7 @@ class ADTDirectoryParser:
             }
             
             with open(output_json, 'w', encoding='utf-8') as f:
-                json.dump(result, f, indent=2, ensure_ascii=False)
+                json.dump(result, f, indent=2, ensure_ascii=False, cls=BytesEncoder)
             
             self.logger.info(f"Generated JSON: {output_json}")
             return result
@@ -343,36 +396,26 @@ class ADTDirectoryParser:
 
     def process_directory(self) -> List[Dict]:
         results = []
-        adt_files = list(self.input_dir.glob('**/*.adt'))
-        
-        self.logger.info(f"Found {len(adt_files)} ADT files to process")
-        
-        for adt_path in adt_files:
-            result = self.process_file(adt_path)
+        for adt_file in self.input_dir.glob('*.adt'):
+            result = self.process_file(adt_file)
             results.append(result)
-            
         return results
 
-    def generate_statistics(self, results: List[Dict]):
-        if not results:
-            self.logger.warning("No results to analyze")
-            return
-            
 def main():
-    parser = argparse.ArgumentParser(description='Process directory of ADT files')
-    parser.add_argument('input_dir', help='Input directory containing ADT files')
-    parser.add_argument('--output', '-o', default='adt_output',
-                      help='Output directory for JSON files (default: adt_output)')
-    parser.add_argument('--log', '-l', default='adt_processing.log',
-                      help='Log file (default: adt_processing.log)')
-    parser.add_argument('--debug', '-d', action='store_true',
-                      help='Enable debug logging')
-    
+    parser = argparse.ArgumentParser(description='Process ADT files to JSON format')
+    parser.add_argument('input_dir', type=str, help='Input directory containing ADT files')
+    parser.add_argument('output_dir', type=str, help='Output directory for JSON files')
     args = parser.parse_args()
-    
-    processor = ADTDirectoryParser(args.input_dir, args.output, args.log, args.debug)
-    results = processor.process_directory()
-    processor.generate_statistics(results)
+
+    input_path = Path(args.input_dir)
+    output_path = Path(args.output_dir)
+
+    if not input_path.exists():
+        print(f"Error: Input directory '{input_path}' does not exist")
+        sys.exit(1)
+
+    processor = ADTProcessor(input_path, output_path)
+    processor.process_directory()
 
 if __name__ == '__main__':
     main()

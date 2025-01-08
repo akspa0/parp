@@ -184,68 +184,128 @@ class ADTDecoder:
             placements.append(asdict(placement))
         return {'placements': placements}
 
-    def _decode_mcnk(self, data: bytes, index: int = 0) -> Dict:
-        header_size = 128
-        header = data[:header_size]
+def _decode_mcnk(self, data: bytes, index: int = 0) -> Dict:
+    header_size = 128
+    header = data[:header_size]
+    
+    flags = struct.unpack_from('<I', header, 0)[0]
+    ix = struct.unpack_from('<I', header, 4)[0]
+    iy = struct.unpack_from('<I', header, 8)[0]
+    n_layers = struct.unpack_from('<I', header, 12)[0]
+    n_doodad_refs = struct.unpack_from('<I', header, 16)[0]
+    offset_mcvt = struct.unpack_from('<I', header, 20)[0]
+    offset_mcnr = struct.unpack_from('<I', header, 24)[0]
+    offset_mcly = struct.unpack_from('<I', header, 28)[0]
+    offset_mcrf = struct.unpack_from('<I', header, 32)[0]
+    offset_mcal = struct.unpack_from('<I', header, 36)[0]
+    size_mcal = struct.unpack_from('<I', header, 40)[0]
+    offset_mcsh = struct.unpack_from('<I', header, 44)[0]
+    size_mcsh = struct.unpack_from('<I', header, 48)[0]
+    area_id = struct.unpack_from('<I', header, 52)[0]
+    n_mapobj_refs = struct.unpack_from('<I', header, 56)[0]
+    holes = struct.unpack_from('<I', header, 60)[0]
+    low_quality_texture_map = struct.unpack_from('<H', header, 64)[0]
+    no_effect_doodad = struct.unpack_from('<H', header, 66)[0]
+    offset_mcse = struct.unpack_from('<I', header, 68)[0]
+    n_sound_emitters = struct.unpack_from('<I', header, 72)[0]
+    offset_mclq = struct.unpack_from('<I', header, 76)[0]
+    size_mclq = struct.unpack_from('<I', header, 80)[0]
+    position = struct.unpack_from('<3f', header, 84)[0:3]
+    
+    chunk = MCNKChunk(
+        flags=flags,
+        ix=ix,
+        iy=iy,
+        n_layers=n_layers,
+        n_doodad_refs=n_doodad_refs,
+        holes=holes,
+        position=position,
+        area_id=area_id,
+        n_ground_effects=n_sound_emitters,
+        prediction_type=0,
+        prediction_id=0,
+        height_min=0,
+        height_max=0,
+        layer_ex=0,
+        n_object_refs=n_mapobj_refs
+    )
+    
+    # Process height map and normals (existing code)
+    if offset_mcvt:
+        chunk.height_map = list(struct.unpack('<145f', data[offset_mcvt:offset_mcvt+580]))
+    if offset_mcnr:
+        chunk.normals = [tuple(x/127.0 - 1.0 for x in struct.unpack_from('<3B', data, offset_mcnr+i)) 
+                       for i in range(0, 435, 3)]
+
+    # Process texture layers (MCLY)
+    if offset_mcly and n_layers > 0:
+        for i in range(n_layers):
+            layer_offset = offset_mcly + (i * 16)
+            if layer_offset + 16 <= len(data):
+                texture_id, layer_flags, alpha_offset, effect_id = struct.unpack('<4I', data[layer_offset:layer_offset + 16])
+                layer = TerrainLayer(
+                    texture_id=texture_id,
+                    flags=layer_flags,
+                    offset_mcal=alpha_offset,
+                    effect_id=effect_id
+                )
+                chunk.layers.append(layer)
+
+    # Process alpha maps (MCAL)
+    if offset_mcal and size_mcal > 0:
+        alpha_data = data[offset_mcal:offset_mcal + size_mcal]
+        current_pos = 0
         
-        flags = struct.unpack_from('<I', header, 0)[0]
-        ix = struct.unpack_from('<I', header, 4)[0]
-        iy = struct.unpack_from('<I', header, 8)[0]
-        n_layers = struct.unpack_from('<I', header, 12)[0]
-        n_doodad_refs = struct.unpack_from('<I', header, 16)[0]
-        offset_mcvt = struct.unpack_from('<I', header, 20)[0]
-        offset_mcnr = struct.unpack_from('<I', header, 24)[0]
-        offset_mcly = struct.unpack_from('<I', header, 28)[0]
-        offset_mcrf = struct.unpack_from('<I', header, 32)[0]
-        offset_mcal = struct.unpack_from('<I', header, 36)[0]
-        size_mcal = struct.unpack_from('<I', header, 40)[0]
-        offset_mcsh = struct.unpack_from('<I', header, 44)[0]
-        size_mcsh = struct.unpack_from('<I', header, 48)[0]
-        area_id = struct.unpack_from('<I', header, 52)[0]
-        n_mapobj_refs = struct.unpack_from('<I', header, 56)[0]
-        holes = struct.unpack_from('<I', header, 60)[0]
-        low_quality_texture_map = struct.unpack_from('<H', header, 64)[0]
-        no_effect_doodad = struct.unpack_from('<H', header, 66)[0]
-        offset_mcse = struct.unpack_from('<I', header, 68)[0]
-        n_sound_emitters = struct.unpack_from('<I', header, 72)[0]
-        offset_mclq = struct.unpack_from('<I', header, 76)[0]
-        size_mclq = struct.unpack_from('<I', header, 80)[0]
-        position = struct.unpack_from('<3f', header, 84)[0:3]
-        
-        chunk = MCNKChunk(
-            flags=flags,
-            ix=ix,
-            iy=iy,
-            n_layers=n_layers,
-            n_doodad_refs=n_doodad_refs,
-            holes=holes,
-            position=position,
-            area_id=area_id,
-            n_ground_effects=n_sound_emitters,
-            prediction_type=0,
-            prediction_id=0,
-            height_min=0,
-            height_max=0,
-            layer_ex=0,
-            n_object_refs=n_mapobj_refs
-        )
-        
-        if offset_mcvt:
-            chunk.height_map = list(struct.unpack('<145f', data[offset_mcvt:offset_mcvt+580]))
-        if offset_mcnr:
-            chunk.normals = [tuple(x/127.0 - 1.0 for x in struct.unpack_from('<3B', data, offset_mcnr+i)) 
-                           for i in range(0, 435, 3)]
-        if offset_mclq and size_mclq:
-            lq_data = data[offset_mclq:offset_mclq+size_mclq]
-            if len(lq_data) >= 2:
-                chunk.liquid_type = struct.unpack_from('<H', lq_data, 0)[0]
-                if len(lq_data) >= 6:
-                    chunk.liquid_height = struct.unpack_from('<f', lq_data, 2)[0]
-                if len(lq_data) >= 10:
-                    chunk.liquid_flags = struct.unpack_from('<I', lq_data, 6)[0]
-                    chunk.liquid_data = lq_data[10:]
-            
-        return asdict(chunk)
+        for layer in chunk.layers:
+            if layer.flags & 0x100:  # USE_ALPHA_MAP
+                if layer.flags & 0x200:  # ALPHA_COMPRESSED
+                    # Handle compressed alpha map
+                    decompressed = bytearray()
+                    pos = current_pos
+                    
+                    while len(decompressed) < 4096 and pos < len(alpha_data):
+                        command = alpha_data[pos]
+                        fill_mode = bool(command & 0x80)
+                        count = command & 0x7F
+                        pos += 1
+                        
+                        if fill_mode and pos < len(alpha_data):
+                            value = alpha_data[pos]
+                            decompressed.extend([value] * count)
+                            pos += 1
+                        elif not fill_mode and pos + count <= len(alpha_data):
+                            decompressed.extend(alpha_data[pos:pos + count])
+                            pos += count
+                    
+                    current_pos = pos
+                    chunk.alpha_maps.append(bytes(decompressed[:4096]))
+                else:
+                    # Handle uncompressed alpha map
+                    size = 4096 if current_pos + 4096 <= len(alpha_data) else 2048
+                    if size == 2048:
+                        # Convert 4-bit values to 8-bit
+                        converted = bytearray()
+                        alpha_map = alpha_data[current_pos:current_pos + size]
+                        for byte in alpha_map:
+                            converted.append((byte & 0xF) * 16)
+                            converted.append((byte >> 4) * 16)
+                        chunk.alpha_maps.append(bytes(converted[:4096]))
+                    else:
+                        chunk.alpha_maps.append(alpha_data[current_pos:current_pos + 4096])
+                    current_pos += size
+
+    # Process liquid data (existing code)
+    if offset_mclq and size_mclq:
+        lq_data = data[offset_mclq:offset_mclq+size_mclq]
+        if len(lq_data) >= 2:
+            chunk.liquid_type = struct.unpack_from('<H', lq_data, 0)[0]
+            if len(lq_data) >= 6:
+                chunk.liquid_height = struct.unpack_from('<f', lq_data, 2)[0]
+            if len(lq_data) >= 10:
+                chunk.liquid_flags = struct.unpack_from('<I', lq_data, 6)[0]
+                chunk.liquid_data = lq_data[10:]
+    
+    return asdict(chunk)
 
     def _decode_mh2o(self, data: bytes) -> Dict:
         if len(data) < 8:

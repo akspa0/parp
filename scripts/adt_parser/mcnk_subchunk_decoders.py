@@ -1,254 +1,293 @@
-#!/usr/bin/env python3
 from dataclasses import dataclass
 from typing import List, Dict, Optional, Tuple
 import struct
 from enum import IntFlag
 import numpy as np
+import zlib
 
 class MCLYFlags(IntFlag):
     """MCLY chunk flags"""
-    USE_ALPHA_MAP = 0x1
-    ALPHA_COMPRESSED = 0x2
-    USE_CUBE_MAP_ENV = 0x4
-    UNK8 = 0x8
-    UNK10 = 0x10
-    UNK20 = 0x20
-    UNK40 = 0x40
-    UNK80 = 0x80
-    UNK100 = 0x100
-    TEXTURE_ANIMATED = 0x200
+    ANIMATION_ROTATION = 0x7       # 3 bits - each tick is 45°
+    ANIMATION_SPEED = 0x38        # 3 bits (shifted by 3)
+    ANIMATION_ENABLED = 0x40      # 1 bit
+    OVERBRIGHT = 0x80            # Makes texture brighter (used for lava)
+    USE_ALPHA_MAP = 0x100        # Set for every layer after first
+    ALPHA_COMPRESSED = 0x200     # Indicates compressed alpha map
+    USE_CUBE_MAP_REFLECTION = 0x400  # Makes layer reflect skybox
+    UNKNOWN_800 = 0x800          # WoD+ texture scale related
+    UNKNOWN_1000 = 0x1000        # WoD+ texture scale related
+
+class MCNKFlags(IntFlag):
+    """MCNK chunk flags"""
+    HAS_MCSH = 0x1
+    IMPASS = 0x2
+    LQ_RIVER = 0x4
+    LQ_OCEAN = 0x8
+    LQ_MAGMA = 0x10
+    LQ_SLIME = 0x20
+    HAS_MCCV = 0x40
+    UNKNOWN_0X80 = 0x80
+    HIGH_RES_HOLES = 0x8000
+    DO_NOT_FIX_ALPHA_MAP = 0x10000
 
 @dataclass
-class TextureLayer:
-    """Texture layer definition from MCLY"""
-    texture_id: int
-    flags: MCLYFlags
-    offset_mcal: int
-    effect_id: int
-    layer_id: int = 0    # Added in Cata
-    compressed_size: int = 0  # Only if ALPHA_COMPRESSED
-    
+class MCNKHeader:
+    flags: MCNKFlags
+    idx_x: int
+    idx_y: int
+    n_layers: int
+    n_doodad_refs: int
+    ofs_height: Optional[int]  # Only if not high_res_holes
+    ofs_normal: Optional[int]  # Only if not high_res_holes
+    holes_high_res: Optional[int]  # Only if high_res_holes
+    ofs_layer: int
+    ofs_refs: int
+    ofs_alpha: int
+    size_alpha: int
+    ofs_shadow: int
+    size_shadow: int
+    area_id: int
+    n_map_obj_refs: int
+    holes_low_res: int
+    unknown_but_used: int
+    low_quality_texture_map: List[List[int]]  # 8x8 array of 2-bit values
+    no_effect_doodad: List[List[bool]]  # 8x8 array of bools
+    ofs_snd_emitters: int
+    n_snd_emitters: int
+    ofs_liquid: int
+    size_liquid: int
+    position: tuple[float, float, float]
+    ofs_mccv: int
+    ofs_mclv: int
+    unused: int
+
     @classmethod
-    def from_bytes(cls, data: bytes, version: int) -> 'TextureLayer':
-        if version >= 8: # Cata+
-            tex_id, flags, offset, effect_id, layer_id = struct.unpack('<IIIIH', data[:18])
-            return cls(tex_id, MCLYFlags(flags), offset, effect_id, layer_id)
+    def from_bytes(cls, data: bytes) -> 'MCNKHeader':
+        if len(data) < 128:
+            raise ChunkError(f"MCNK header too short: {len(data)} bytes")
+
+        flags = MCNKFlags(struct.unpack('<I', data[0:4])[0])
+        idx_x = struct.unpack('<I', data[4:8])[0]
+        idx_y = struct.unpack('<I', data[8:12])[0]
+        n_layers = struct.unpack('<I', data[12:16])[0]
+        n_doodad_refs = struct.unpack('<I', data[16:20])[0]
+
+        # Handle high_res_holes flag
+        if flags & MCNKFlags.HIGH_RES_HOLES:
+            holes_high_res = struct.unpack('<Q', data[20:28])[0]
+            ofs_height = None
+            ofs_normal = None
         else:
-            tex_id, flags, offset, effect_id = struct.unpack('<IIII', data[:16])
-            return cls(tex_id, MCLYFlags(flags), offset, effect_id)
+            holes_high_res = None
+            ofs_height = struct.unpack('<I', data[20:24])[0]
+            ofs_normal = struct.unpack('<I', data[24:28])[0]
 
-class MCVTChunk:
-    """Height map vertex data"""
-    def __init__(self, data: bytes):
-        self.height_map: List[float] = []
-        self._parse(data)
+        # Remaining offsets and sizes
+        ofs_layer = struct.unpack('<I', data[28:32])[0]
+        ofs_refs = struct.unpack('<I', data[32:36])[0]
+        ofs_alpha = struct.unpack('<I', data[36:40])[0]
+        size_alpha = struct.unpack('<I', data[40:44])[0]
+        ofs_shadow = struct.unpack('<I', data[44:48])[0]
+        size_shadow = struct.unpack('<I', data[48:52])[0]
+        area_id = struct.unpack('<I', data[52:56])[0]
+        n_map_obj_refs = struct.unpack('<I', data[56:60])[0]
+        holes_low_res = struct.unpack('<H', data[60:62])[0]
+        unknown_but_used = struct.unpack('<H', data[62:64])[0]
 
-    def _parse(self, data: bytes):
-        # 145 vertices per chunk (9*9 + 8*8)
-        num_heights = 145
-        for i in range(num_heights):
-            height = struct.unpack('f', data[i*4:i*4+4])[0]
-            self.height_map.append(height)
+        # Parse texture and doodad maps
+        tex_map_data = data[64:80]  # 16 bytes for 8x8 2-bit values
+        doodad_map_data = data[80:96]  # 16 bytes for 8x8 1-bit values
 
-    def get_height(self, x: int, y: int) -> float:
-        """Get height at grid position"""
-        if 0 <= x < 9 and 0 <= y < 9:
-            return self.height_map[y * 17 + x]
-        return 0.0
+        low_quality_texture_map = []
+        for row in range(8):
+            row_values = []
+            for col in range(8):
+                byte_idx = (row * 8 + col) // 4
+                bit_offset = ((row * 8 + col) % 4) * 2
+                value = (tex_map_data[byte_idx] >> bit_offset) & 0x3
+                row_values.append(value)
+            low_quality_texture_map.append(row_values)
 
-class MCNRChunk:
-    """Normal data for vertices"""
-    def __init__(self, data: bytes):
-        self.normals: List[Tuple[float, float, float]] = []
-        self._parse(data)
+        no_effect_doodad = []
+        for row in range(8):
+            row_values = []
+            for col in range(8):
+                byte_idx = (row * 8 + col) // 8
+                bit_offset = (row * 8 + col) % 8
+                value = bool(doodad_map_data[byte_idx] & (1 << bit_offset))
+                row_values.append(value)
+            no_effect_doodad.append(row_values)
 
-    def _parse(self, data: bytes):
-        # 145 normals per chunk (9*9 + 8*8)
-        num_normals = 145
-        for i in range(num_normals):
-            offset = i * 3
-            x, y, z = struct.unpack('3B', data[offset:offset+3])
-            # Convert from signed byte to float (-1 to 1)
-            self.normals.append((
-                (x - 127) / 127,
-                (y - 127) / 127,
-                (z - 127) / 127
-            ))
+        # Final fields
+        ofs_snd_emitters = struct.unpack('<I', data[96:100])[0]
+        n_snd_emitters = struct.unpack('<I', data[100:104])[0]
+        ofs_liquid = struct.unpack('<I', data[104:108])[0]
+        size_liquid = struct.unpack('<I', data[108:112])[0]
+        position = struct.unpack('<fff', data[112:124])
+        ofs_mccv = struct.unpack('<I', data[124:128])[0]
 
-class MCLYChunk:
-    """Texture layer definitions"""
-    def __init__(self, data: bytes, version: int):
-        self.layers: List[TextureLayer] = []
-        self._parse(data, version)
+        # These might be version dependent
+        try:
+            ofs_mclv = struct.unpack('<I', data[128:132])[0]
+            unused = struct.unpack('<I', data[132:136])[0]
+        except:
+            ofs_mclv = 0
+            unused = 0
 
-    def _parse(self, data: bytes, version: int):
-        layer_size = 18 if version >= 8 else 16
-        num_layers = len(data) // layer_size
+        return cls(
+            flags=flags,
+            idx_x=idx_x,
+            idx_y=idx_y,
+            n_layers=n_layers,
+            n_doodad_refs=n_doodad_refs,
+            ofs_height=ofs_height,
+            ofs_normal=ofs_normal,
+            holes_high_res=holes_high_res,
+            ofs_layer=ofs_layer,
+            ofs_refs=ofs_refs,
+            ofs_alpha=ofs_alpha,
+            size_alpha=size_alpha,
+            ofs_shadow=ofs_shadow,
+            size_shadow=size_shadow,
+            area_id=area_id,
+            n_map_obj_refs=n_map_obj_refs,
+            holes_low_res=holes_low_res,
+            unknown_but_used=unknown_but_used,
+            low_quality_texture_map=low_quality_texture_map,
+            no_effect_doodad=no_effect_doodad,
+            ofs_snd_emitters=ofs_snd_emitters,
+            n_snd_emitters=n_snd_emitters,
+            ofs_liquid=ofs_liquid,
+            size_liquid=size_liquid,
+            position=position,
+            ofs_mccv=ofs_mccv,
+            ofs_mclv=ofs_mclv,
+            unused=unused
+        )
+
+def decode_mcly(data: bytes, offset: int, size: int) -> Dict:
+    """Decode MCLY (Material Layer) chunk"""
+    layers = []
+    n_layers = size // 16  # Each layer entry is 16 bytes
+
+    for i in range(n_layers):
+        base = offset + (i * 16)
+        if base + 16 > len(data):
+            break
+
+        texture_id, flags, alpha_offset, effect_id = struct.unpack_from('<4I', data, base)
         
-        for i in range(num_layers):
-            offset = i * layer_size
-            layer = TextureLayer.from_bytes(data[offset:offset+layer_size], version)
-            self.layers.append(layer)
+        layer = {
+            "textureId": texture_id,
+            "flags": {
+                "raw_value": flags,
+                "animation_rotation": flags & 0x7,
+                "animation_speed": (flags >> 3) & 0x7,
+                "animation_enabled": bool(flags & 0x40),
+                "overbright": bool(flags & 0x80),
+                "use_alpha_map": bool(flags & 0x100),
+                "alpha_compressed": bool(flags & 0x200),
+                "use_cube_map_reflection": bool(flags & 0x400),
+                "unknown_0x800": bool(flags & 0x800),
+                "unknown_0x1000": bool(flags & 0x1000)
+            },
+            "alpha_map_offset": alpha_offset,
+            "effect_id": effect_id
+        }
+        layers.append(layer)
 
-class MCALChunk:
-    """Alpha maps for texture layers"""
-    def __init__(self, data: bytes, mcly_chunk: Optional[MCLYChunk] = None):
-        self.alpha_maps: List[bytes] = []
-        self._parse(data, mcly_chunk)
+    return {"layers": layers}
 
-    def _parse(self, data: bytes, mcly_chunk: Optional[MCLYChunk]):
-        if not mcly_chunk:
-            return
+def decode_mcal(data: bytes, offset: int, size: int, mcnk_flags: int = 0) -> Dict:
+    """Decode MCAL (Alpha Map) chunk"""
+    do_not_fix = bool(mcnk_flags & MCNKFlags.DO_NOT_FIX_ALPHA_MAP)
+    alpha_maps = []
+    
+    if size == 0:
+        return {"alpha_maps": alpha_maps}
 
-        current_pos = 0
-        for layer in mcly_chunk.layers:
-            if layer.flags & MCLYFlags.USE_ALPHA_MAP:
-                if layer.flags & MCLYFlags.ALPHA_COMPRESSED:
-                    size = layer.compressed_size
+    current_pos = offset
+    while current_pos < offset + size:
+        # Check for compression header
+        if current_pos + 1 <= len(data):
+            command = data[current_pos]
+            is_compressed = bool(command & 0x80)
+            count = command & 0x7F
+            
+            if is_compressed:
+                # Compressed format
+                if current_pos + 2 <= len(data):
+                    value = data[current_pos + 1]
+                    alpha_map = [value] * count
+                    current_pos += 2
                 else:
-                    size = 4096  # 64*64 alpha map
+                    break
+            else:
+                # Uncompressed format
+                if current_pos + 1 + count <= len(data):
+                    alpha_map = list(data[current_pos + 1:current_pos + 1 + count])
+                    current_pos += 1 + count
+                else:
+                    break
+
+            # Convert to 64x64 grid if we have enough data
+            if len(alpha_map) >= 4096:
+                grid = []
+                for y in range(64 if not do_not_fix else 63):
+                    row = []
+                    for x in range(64 if not do_not_fix else 63):
+                        idx = y * 64 + x
+                        if idx < len(alpha_map):
+                            row.append(alpha_map[idx])
+                        else:
+                            row.append(0)
+                    if do_not_fix:
+                        row.append(row[-1])  # Duplicate last value
+                    grid.append(row)
                 
-                alpha_data = data[current_pos:current_pos+size]
-                self.alpha_maps.append(alpha_data)
-                current_pos += size
+                if do_not_fix:
+                    grid.append(grid[-1][:])  # Duplicate last row
 
-    def get_alpha_map(self, layer_index: int) -> Optional[bytes]:
-        """Get alpha map for specific layer"""
-        if 0 <= layer_index < len(self.alpha_maps):
-            return self.alpha_maps[layer_index]
-        return None
+                alpha_maps.append({
+                    "format": "compressed" if is_compressed else "uncompressed",
+                    "data": grid,
+                    "compressed": is_compressed
+                })
 
-class MCSHChunk:
-    """Shadow map data"""
+    return {"alpha_maps": alpha_maps}
+
+class MCNKChunk:
+    """MCNK chunk decoder"""
     def __init__(self, data: bytes):
-        self.shadow_map: bytes = data
+        self.data = data
+        self.header = MCNKHeader.from_bytes(data[:128])
+        self._decode_subchunks()
 
-    def get_shadow(self, x: int, y: int) -> int:
-        """Get shadow value at position"""
-        if 0 <= x < 64 and 0 <= y < 64:
-            return self.shadow_map[y * 64 + x]
-        return 0
+    def _decode_subchunks(self):
+        """Decode all subchunks"""
+        self.mcly = None
+        self.mcal = None
+        
+        if self.header.ofs_layer and self.header.n_layers > 0:
+            layer_size = self.header.n_layers * 16
+            self.mcly = decode_mcly(
+                self.data[self.header.ofs_layer:], 
+                0, 
+                layer_size
+            )
+        
+        if self.header.ofs_alpha and self.header.size_alpha > 0:
+            self.mcal = decode_mcal(
+                self.data[self.header.ofs_alpha:],
+                0,
+                self.header.size_alpha,
+                self.header.flags
+            )
 
-class MCCVChunk:
-    """Vertex colors"""
-    def __init__(self, data: bytes):
-        self.vertex_colors: List[Tuple[int, int, int, int]] = []
-        self._parse(data)
+    def get_layers(self) -> List[Dict]:
+        """Get decoded layer information"""
+        return self.mcly["layers"] if self.mcly else []
 
-    def _parse(self, data: bytes):
-        num_vertices = len(data) // 4
-        for i in range(num_vertices):
-            offset = i * 4
-            b, g, r, a = struct.unpack('4B', data[offset:offset+4])
-            self.vertex_colors.append((r, g, b, a))
-
-class MCLVChunk:
-    """Light values"""
-    def __init__(self, data: bytes):
-        self.light_values: List[bytes] = []
-        self._parse(data)
-
-    def _parse(self, data: bytes):
-        # Store raw light data for now
-        self.light_values = data
-
-class MCRFChunk:
-    """M2/WMO model references"""
-    def __init__(self, data: bytes):
-        self.refs: List[int] = []
-        self._parse(data)
-
-    def _parse(self, data: bytes):
-        num_refs = len(data) // 4
-        for i in range(num_refs):
-            ref = struct.unpack('<I', data[i*4:i*4+4])[0]
-            self.refs.append(ref)
-
-def example_usage():
-    """Example usage of all MCNK sub-chunks"""
-    # Create example height data (MCVT)
-    mcvt_data = bytearray()
-    for i in range(145):
-        mcvt_data.extend(struct.pack('f', i * 0.5))  # Sample heights
-    
-    # Create example normal data (MCNR)
-    mcnr_data = bytearray()
-    for i in range(145):
-        mcnr_data.extend(struct.pack('3B', 127, 127, 255))  # Mostly upward normals
-    
-    # Create example texture layer data (MCLY)
-    mcly_data = bytearray()
-    # Two layers: one base, one with alpha
-    mcly_data.extend(struct.pack('<IIIIH', 
-        0,  # texture_id
-        0,  # flags
-        0,  # offset
-        0,  # effect_id
-        0   # layer_id
-    ))
-    mcly_data.extend(struct.pack('<IIIIH',
-        1,  # texture_id
-        int(MCLYFlags.USE_ALPHA_MAP),  # flags
-        0,  # offset
-        0,  # effect_id
-        1   # layer_id
-    ))
-    
-    # Create example alpha map data (MCAL)
-    mcal_data = bytes([128] * 4096)  # 64x64 alpha map with 50% opacity
-    
-    # Create example shadow map data (MCSH)
-    mcsh_data = bytes([255] * 4096)  # 64x64 fully shadowed
-    
-    # Create example vertex color data (MCCV)
-    mccv_data = bytearray()
-    for i in range(145):
-        mccv_data.extend(struct.pack('4B', 255, 255, 255, 255))  # White vertices
-    
-    # Create example light data (MCLV)
-    mclv_data = bytes([128] * 512)  # Example light values
-    
-    # Create example reference data (MCRF)
-    mcrf_data = struct.pack('<3I', 1000, 1001, 1002)  # Three model references
-    
-    # Parse all chunks
-    mcvt_chunk = MCVTChunk(mcvt_data)
-    mcnr_chunk = MCNRChunk(mcnr_data)
-    mcly_chunk = MCLYChunk(mcly_data, version=8)
-    mcal_chunk = MCALChunk(mcal_data, mcly_chunk)
-    mcsh_chunk = MCSHChunk(mcsh_data)
-    mccv_chunk = MCCVChunk(mccv_data)
-    mclv_chunk = MCLVChunk(mclv_data)
-    mcrf_chunk = MCRFChunk(mcrf_data)
-    
-    # Display results
-    print("MCVT (Height) Data:")
-    print(f"  First 5 heights: {mcvt_chunk.height_map[:5]}")
-    
-    print("\nMCNR (Normal) Data:")
-    print(f"  First 5 normals: {mcnr_chunk.normals[:5]}")
-    
-    print("\nMCLY (Texture Layers):")
-    for i, layer in enumerate(mcly_chunk.layers):
-        print(f"  Layer {i}:")
-        print(f"    Texture ID: {layer.texture_id}")
-        print(f"    Flags: {layer.flags}")
-        print(f"    Uses Alpha: {bool(layer.flags & MCLYFlags.USE_ALPHA_MAP)}")
-    
-    print("\nMCAL (Alpha Maps):")
-    print(f"  Number of alpha maps: {len(mcal_chunk.alpha_maps)}")
-    
-    print("\nMCSH (Shadow Map):")
-    print(f"  Shadow map size: {len(mcsh_chunk.shadow_map)} bytes")
-    
-    print("\nMCCV (Vertex Colors):")
-    print(f"  First 5 colors: {mccv_chunk.vertex_colors[:5]}")
-    
-    print("\nMCLV (Light Values):")
-    print(f"  Light data size: {len(mclv_chunk.light_values)} bytes")
-    
-    print("\nMCRF (Model References):")
-    print(f"  References: {mcrf_chunk.refs}")
-
-if __name__ == "__main__":
-    example_usage()
+    def get_alpha_maps(self) -> List[Dict]:
+        """Get decoded alpha maps"""
+        return self.mcal["alpha_maps"] if self.mcal else []
