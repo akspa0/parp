@@ -72,6 +72,7 @@ class MCNKHeader:
     pos: Tuple[float, float, float]
     mccv_offset: int
     mclv_offset: int
+    mcmt_offset: int  # texture map
     unused: int
 
 @dataclass
@@ -100,6 +101,7 @@ class MCNKAlphaHeader:
     mcnk_chunks_size: int
     unknown8: int
     mclq_offset: int
+    mcmt_offset: int  # texture map offset
     unused: List[int]  # 6 unused values
 
 class MCNKInfo:
@@ -149,7 +151,8 @@ class MCNKInfo:
             mcnk_chunks_size=struct.unpack('<I', data[92:96])[0],
             unknown8=struct.unpack('<I', data[96:100])[0],
             mclq_offset=struct.unpack('<I', data[100:104])[0],
-            unused=[struct.unpack('<I', data[104+i*4:108+i*4])[0] for i in range(6)]
+            mcmt_offset=struct.unpack('<I', data[104:108])[0],  # Use first unused value for mcmt_offset
+            unused=[struct.unpack('<I', data[108+i*4:112+i*4])[0] for i in range(5)]  # Reduce unused array by 1
         )
         
         # Set common properties
@@ -166,6 +169,7 @@ class MCNKInfo:
         self.mcrf_offset = self.header.mcrf_offset
         self.mcal_offset = self.header.mcal_offset
         self.mcsh_offset = self.header.mcsh_offset
+        self.mcmt_offset = getattr(self.header, 'mcmt_offset', 0)  # Default to 0 if not present
         self.mclq_offset = self.header.mclq_offset
         
     def _parse_retail_header(self, data: bytes):
@@ -201,7 +205,8 @@ class MCNKInfo:
             ),
             mccv_offset=struct.unpack('<I', data[116:120])[0],
             mclv_offset=struct.unpack('<I', data[120:124])[0],
-            unused=struct.unpack('<I', data[124:128])[0]
+            mcmt_offset=struct.unpack('<I', data[124:128])[0],  # Using the previously unused field for mcmt_offset
+            unused=0  # Set unused to 0 since we're using that field for mcmt_offset
         )
         
         # Set common properties

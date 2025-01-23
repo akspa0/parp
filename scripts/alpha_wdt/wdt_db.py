@@ -111,7 +111,7 @@ def setup_database(db_path):
         tile_x INTEGER,
         tile_y INTEGER,
         model_path TEXT,
-        original_format TEXT,
+        format_type TEXT,
         FOREIGN KEY(wdt_id) REFERENCES wdt_files(id)
     )''')
 
@@ -122,7 +122,7 @@ def setup_database(db_path):
         tile_x INTEGER,
         tile_y INTEGER,
         model_path TEXT,
-        original_format TEXT,
+        format_type TEXT,
         FOREIGN KEY(wdt_id) REFERENCES wdt_files(id)
     )''')
 
@@ -260,7 +260,7 @@ def insert_tile_layer(conn, tile_mcnk_id, layer_index, texture_id, flags, effect
     return cursor.lastrowid
 
 def insert_texture(conn, wdt_id, tile_x, tile_y, texture_path, layer_index):
-    """Insert texture record with tile coordinates"""
+    """Insert texture record"""
     cursor = conn.cursor()
     cursor.execute('''
     INSERT INTO wdt_textures (wdt_id, tile_x, tile_y, texture_path, layer_index)
@@ -269,28 +269,28 @@ def insert_texture(conn, wdt_id, tile_x, tile_y, texture_path, layer_index):
     conn.commit()
     return cursor.lastrowid
 
-def insert_m2_model(conn, wdt_id, tile_x, tile_y, model_path, original_format=None):
-    """Insert M2 model record with tile coordinates"""
+def insert_m2_model(conn, wdt_id, tile_x, tile_y, model_path, format_type):
+    """Insert M2 model record"""
     cursor = conn.cursor()
     cursor.execute('''
-    INSERT INTO m2_models (wdt_id, tile_x, tile_y, model_path, original_format)
+    INSERT INTO m2_models (wdt_id, tile_x, tile_y, model_path, format_type)
     VALUES (?, ?, ?, ?, ?)
-    ''', (wdt_id, tile_x, tile_y, model_path, original_format))
+    ''', (wdt_id, tile_x, tile_y, model_path, format_type))
     conn.commit()
     return cursor.lastrowid
 
-def insert_wmo_model(conn, wdt_id, tile_x, tile_y, model_path, original_format=None):
-    """Insert WMO model record with tile coordinates"""
+def insert_wmo_model(conn, wdt_id, tile_x, tile_y, model_path, format_type):
+    """Insert WMO model record"""
     cursor = conn.cursor()
     cursor.execute('''
-    INSERT INTO wmo_models (wdt_id, tile_x, tile_y, model_path, original_format)
+    INSERT INTO wmo_models (wdt_id, tile_x, tile_y, model_path, format_type)
     VALUES (?, ?, ?, ?, ?)
-    ''', (wdt_id, tile_x, tile_y, model_path, original_format))
+    ''', (wdt_id, tile_x, tile_y, model_path, format_type))
     conn.commit()
     return cursor.lastrowid
 
 def insert_m2_placement(conn, wdt_id, tile_x, tile_y, model_id, unique_id, position, rotation, scale, flags):
-    """Insert M2 placement record with tile coordinates"""
+    """Insert M2 placement record"""
     cursor = conn.cursor()
     cursor.execute('''
     INSERT INTO m2_placements (
@@ -311,7 +311,7 @@ def insert_m2_placement(conn, wdt_id, tile_x, tile_y, model_id, unique_id, posit
 
 def insert_wmo_placement(conn, wdt_id, tile_x, tile_y, model_id, unique_id, position, rotation, scale, flags,
                         doodad_set, name_set, bounds_min, bounds_max):
-    """Insert WMO placement record with tile coordinates"""
+    """Insert WMO placement record"""
     cursor = conn.cursor()
     cursor.execute('''
     INSERT INTO wmo_placements (
