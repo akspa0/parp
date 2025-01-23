@@ -1,0 +1,1 @@
+analyze_wdt.py is the main script. run it to see what it does, lol. use python 3.10 or higher.
