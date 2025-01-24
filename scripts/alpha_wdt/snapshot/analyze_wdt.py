@@ -8,8 +8,6 @@ from chunk_definitions import (
     parse_mhdr, parse_mcin, parse_mtex, parse_mddf, parse_modf, parse_mwmo,
     parse_mwid, parse_mmdx, parse_mmid, text_based_visualization
 )
-from adt_parser.mcnk_decoders import MCNKHeader
-from adt_parser.texture_decoders import TextureManager
 from chunk_handler import WDTFile
 from wdt_db import (
     setup_database, insert_wdt_record, insert_map_tile, insert_texture,
@@ -34,24 +32,17 @@ def analyze_wdt(filepath: str, db_path: str = "wdt_analysis.db") -> None:
     """
     Analyze WDT file using memory mapping and store results in database
     """
-    # Setup logging with detailed output for header info
+    # Setup minimal logging for errors only
     log_filename = f"wdt_errors_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
     logging.basicConfig(
         filename=log_filename,
         filemode='w',
         format='%(asctime)s [%(levelname)s] %(message)s',
-        level=logging.INFO
+        level=logging.ERROR
     )
 
-    # Also log to console for important messages
-    console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(message)s')
-    console.setFormatter(formatter)
-    logging.getLogger('').addHandler(console)
-
-    logging.info(f"\nAnalyzing WDT file: {filepath}")
-    logging.info("=" * 50)
+    print(f"\nAnalyzing WDT file: {filepath}")
+    print("=" * 50)
     
     # Setup database
     conn = setup_database(db_path)
@@ -86,15 +77,10 @@ def analyze_wdt(filepath: str, db_path: str = "wdt_analysis.db") -> None:
                 if chunk_name == 'MVER':
                     version_info = parse_mver(wdt.mm[pos+8:pos+8+chunk_size])
                     version = version_info['version']
-                    logging.info(f"WDT Version: {version}")
+                    print(f"WDT Version: {version}")
                 elif chunk_name == 'MPHD':
                     header_info = parse_mphd(wdt.mm[pos+8:pos+8+chunk_size])
                     flags = header_info['flags']
-                    flags_decoded = header_info['decoded_flags']
-                    logging.info(f"Map Header Flags: {flags:#x}")
-                    for flag_name, flag_value in flags_decoded.items():
-                        if flag_value:
-                            logging.info(f"  {flag_name}: {flag_value}")
                 
                 pos += 8 + chunk_size
             
@@ -120,178 +106,55 @@ def analyze_wdt(filepath: str, db_path: str = "wdt_analysis.db") -> None:
                 insert_chunk_offset(conn, wdt_id, chunk_name, pos, chunk_size, pos + 8)
                 pos += 8 + chunk_size
             
-            # Third pass: Process map tiles and ADT data
+            # Third pass: Process map tiles
             print("\nPhase 3: Processing map structure...")
             grid = [[0] * 64 for _ in range(64)]
             active_tiles = 0
             
             for chunk_ref, data in wdt.get_chunks_by_type('MAIN'):
-                main_info = parse_main(data, wdt)
-                total_tiles = len(main_info['entries'])
-                processed_tiles = 0
-                
+                main_info = parse_main(data)
                 for tile in main_info['entries']:
                     x, y = tile['coordinates']['x'], tile['coordinates']['y']
-                    processed_tiles += 1
-                    
-                    if processed_tiles % 100 == 0:
-                        print(f"Processing tile {processed_tiles}/{total_tiles}...")
-                    
                     if tile['offset'] > 0:
                         grid[y][x] = 1
                         active_tiles += 1
-                        
-                        # Insert map tile record
-                        tile_id = insert_map_tile(
+                        insert_map_tile(
                             conn, wdt_id, x, y,
                             tile['offset'], tile['size'],
                             tile['flags'], tile['async_id']
                         )
                         
-                        # Process ADT data
-                        try:
-                            # Store ADT chunk offsets with enhanced information
-                            offsets = {
-                                'MHDR': 0,
-                                'MCIN': 0,
-                                'MTEX': 0,
-                                'MMDX': 0,
-                                'MMID': 0,
-                                'MWMO': 0,
-                                'MWID': 0,
-                                'MDDF': 0,
-                                'MODF': 0
-                            }
-                            
-                            # Get offsets from MCNK data if available
-                            if 'mcnk_data' in tile and 'offsets' in tile['mcnk_data']:
-                                mcnk_offsets = tile['mcnk_data']['offsets']
-                                for chunk_name, offset in mcnk_offsets.items():
-                                    if chunk_name.upper() in offsets:
-                                        offsets[chunk_name.upper()] = offset
-                            
-                            # Get additional offsets from tile data
-                            if 'offsets' in tile:
-                                for chunk_name, offset in tile['offsets'].items():
-                                    if chunk_name.upper() in offsets:
-                                        offsets[chunk_name.upper()] = offset
-                            
-                            print(f"Found chunk offsets for tile ({x}, {y}): {[k for k, v in offsets.items() if v > 0]}")
-                            insert_adt_offsets(conn, wdt_id, x, y, offsets)
-                            
-                            # Process MCNK data with enhanced information
-                            if 'mcnk_data' in tile:
-                                print(f"Processing MCNK data for tile ({x}, {y})")
-                                mcnk_data = tile['mcnk_data']
-                                
-                                # Insert basic MCNK information
-                                mcnk_id = insert_tile_mcnk(
-                                    conn, wdt_id, x, y,
-                                    {
-                                        'flags': mcnk_data['flags'],
-                                        'n_layers': len(mcnk_data['layers']),
-                                        'n_doodad_refs': mcnk_data['doodad_refs'],
-                                        'mcvt_offset': mcnk_data['offsets']['mcvt'],
-                                        'mcnr_offset': mcnk_data['offsets']['mcnr'],
-                                        'mcly_offset': mcnk_data['offsets']['mcly'],
-                                        'mcrf_offset': mcnk_data['offsets']['mcrf'],
-                                        'mcal_offset': mcnk_data['offsets']['mcal'],
-                                        'mcsh_offset': mcnk_data['offsets']['mcsh'],
-                                        'mclq_offset': mcnk_data['offsets']['mclq']
-                                    }
-                                )
-                                
-                                # Process enhanced layer information
-                                if 'layers' in mcnk_data:
-                                    layer_count = len(mcnk_data['layers'])
-                                    print(f"Found {layer_count} layers for tile ({x}, {y})")
-                                    for i, layer in enumerate(mcnk_data['layers']):
-                                        insert_tile_layer(
-                                            conn, mcnk_id, i,
-                                            layer['texture_id'],
-                                            layer['flags'],
-                                            layer['effect_id']
-                                        )
-                            
-                            # Process enhanced texture information
-                            if 'textures' in tile:
-                                texture_info = tile['textures'].get('texture_info', [])
-                                print(f"Found {len(texture_info)} textures for tile ({x}, {y})")
-                                for texture in texture_info:
-                                    # Convert flags to integers
-                                    flags = 0
-                                    if texture['flags'].get('is_terrain'): flags |= 0x1
-                                    if texture['flags'].get('is_hole'): flags |= 0x2
-                                    if texture['flags'].get('is_water'): flags |= 0x4
-                                    if texture['flags'].get('has_alpha'): flags |= 0x8
-                                    if texture['flags'].get('is_animated'): flags |= 0x10
-                                    
-                                    # Store base texture information
-                                    texture_id = insert_texture(
-                                        conn, wdt_id, x, y,
-                                        texture['path'],
-                                        0,  # Base layer
-                                        texture.get('blend_mode', 0),
-                                        1 if texture['flags'].get('has_alpha') else 0,
-                                        texture.get('is_compressed', 0),
-                                        texture.get('effect_id', 0),
-                                        flags
-                                    )
-                                    
-                                    # Store additional layer information if available
-                                    if 'layers' in texture:
-                                        for i, layer in enumerate(texture['layers'], 1):
-                                            insert_texture(
-                                                conn, wdt_id, x, y,
-                                                texture['path'],
-                                                i,  # Additional layers
-                                                layer.get('blend_mode', 0),
-                                                1 if layer.get('has_alpha_map') else 0,
-                                                1 if layer.get('is_compressed') else 0,
-                                                layer.get('effect_id', 0),
-                                                flags
-                                            )
-                                    
-                        except Exception as e:
-                            logging.error(f"Failed to process ADT data at ({x}, {y}): {e}")
+                        # Store ADT chunk offsets if available
+                        if 'offsets' in tile:
+                            insert_adt_offsets(conn, wdt_id, x, y, tile['offsets'])
             
             print(f"Found {active_tiles} active map tiles")
             
             # Fourth pass: Process models and textures
             print("\nPhase 4: Processing assets...")
             
-            # Store model filenames first (with tile_x = -1, tile_y = -1)
-            m2_model_ids = []  # Store IDs in order to match file's name_id order
-            wmo_model_ids = []  # Store IDs in order to match file's name_id order
-            
+            # Handle Alpha format model names
             if is_alpha:
-                # Process M2 filenames (MDNM)
                 for chunk_ref, data in wdt.get_chunks_by_type('MDNM'):
                     mdnm_info = parse_mdnm(data)
-                    for model_path in mdnm_info['names']:
-                        model_id = insert_m2_model(conn, wdt_id, -1, -1, model_path, 'alpha')
-                        m2_model_ids.append(model_id)
+                    for i, model_path in enumerate(mdnm_info['names']):
+                        insert_m2_model(conn, wdt_id, -1, -1, model_path, 'alpha')
                 
-                # Process WMO filenames (MONM)
                 for chunk_ref, data in wdt.get_chunks_by_type('MONM'):
                     monm_info = parse_monm(data)
-                    for model_path in monm_info['names']:
-                        model_id = insert_wmo_model(conn, wdt_id, -1, -1, model_path, 'alpha')
-                        wmo_model_ids.append(model_id)
+                    for i, model_path in enumerate(monm_info['names']):
+                        insert_wmo_model(conn, wdt_id, -1, -1, model_path, 'alpha')
             else:
-                # Process M2 filenames (MMDX)
+                # Handle retail format model names
                 for chunk_ref, data in wdt.get_chunks_by_type('MMDX'):
                     mmdx_info = parse_mmdx(data)
-                    for model_path in mmdx_info['names']:
-                        model_id = insert_m2_model(conn, wdt_id, -1, -1, model_path, 'retail')
-                        m2_model_ids.append(model_id)
+                    for i, model_path in enumerate(mmdx_info['names']):
+                        insert_m2_model(conn, wdt_id, -1, -1, model_path, 'retail')
                 
-                # Process WMO filenames (MWMO)
                 for chunk_ref, data in wdt.get_chunks_by_type('MWMO'):
                     mwmo_info = parse_mwmo(data)
-                    for model_path in mwmo_info['names']:
-                        model_id = insert_wmo_model(conn, wdt_id, -1, -1, model_path, 'retail')
-                        wmo_model_ids.append(model_id)
+                    for i, model_path in enumerate(mwmo_info['names']):
+                        insert_wmo_model(conn, wdt_id, -1, -1, model_path, 'retail')
             
             # Process model placements
             m2_count = 0
@@ -301,12 +164,12 @@ def analyze_wdt(filepath: str, db_path: str = "wdt_analysis.db") -> None:
                     tile_x = int(entry['position']['x'] / 533.33333)
                     tile_y = int(entry['position']['y'] / 533.33333)
                     
-                    # Get the model_id using the name_id as an index
-                    if entry['name_id'] >= len(m2_model_ids):
-                        logging.error(f"Invalid M2 name_id {entry['name_id']} (max: {len(m2_model_ids)-1})")
-                        continue
+                    model_id = insert_m2_model(
+                        conn, wdt_id, tile_x, tile_y,
+                        entry.get('model_name', f"<id:{entry['name_id']}>"),
+                        'alpha' if is_alpha else 'retail'
+                    )
                     
-                    model_id = m2_model_ids[entry['name_id']]
                     insert_m2_placement(
                         conn, wdt_id, tile_x, tile_y, model_id,
                         entry['unique_id'],
@@ -320,7 +183,7 @@ def analyze_wdt(filepath: str, db_path: str = "wdt_analysis.db") -> None:
             if m2_count > 0:
                 print(f"Processed {m2_count} M2 model placements")
             
-            # Process WMO placements
+            # Process WMO placements with progress tracking
             wmo_count = 0
             print("\nProcessing WMO models...")
             for chunk_ref, data in wdt.get_chunks_by_type('MODF'):
@@ -337,12 +200,12 @@ def analyze_wdt(filepath: str, db_path: str = "wdt_analysis.db") -> None:
                             tile_x = int(entry['position']['x'] / 533.33333)
                             tile_y = int(entry['position']['y'] / 533.33333)
                             
-                            # Get the model_id using the name_id as an index
-                            if entry['name_id'] >= len(wmo_model_ids):
-                                logging.error(f"Invalid WMO name_id {entry['name_id']} (max: {len(wmo_model_ids)-1})")
-                                continue
-                            
-                            model_id = wmo_model_ids[entry['name_id']]
+                            # Insert model first
+                            model_id = insert_wmo_model(
+                                conn, wdt_id, tile_x, tile_y,
+                                entry.get('model_name', f"<id:{entry['name_id']}>"),
+                                'alpha' if is_alpha else 'retail'
+                            )
                             
                             # Extract position and rotation
                             position = (
@@ -375,6 +238,7 @@ def analyze_wdt(filepath: str, db_path: str = "wdt_analysis.db") -> None:
                                 bounds_min_tuple = (0.0, 0.0, 0.0)
                                 bounds_max_tuple = (0.0, 0.0, 0.0)
                             
+                            # Insert placement with proper bounds
                             insert_wmo_placement(
                                 conn, wdt_id, tile_x, tile_y, model_id,
                                 entry['unique_id'],
@@ -387,6 +251,7 @@ def analyze_wdt(filepath: str, db_path: str = "wdt_analysis.db") -> None:
                                 bounds_max_tuple
                             )
                             wmo_count += 1
+                            conn.commit()  # Commit after each placement
                             
                         except Exception as e:
                             logging.error(f"Error processing WMO placement {i}: {e}")
@@ -395,6 +260,40 @@ def analyze_wdt(filepath: str, db_path: str = "wdt_analysis.db") -> None:
                 except Exception as e:
                     logging.error(f"Error processing MODF chunk: {e}")
                     continue
+                    
+                    # Extract position and rotation
+                    position = (
+                        entry['position']['x'],
+                        entry['position']['y'],
+                        entry['position']['z']
+                    )
+                    rotation = (
+                        entry['rotation']['x'],
+                        entry['rotation']['y'],
+                        entry['rotation']['z']
+                    )
+                    
+                    # Handle bounds properly
+                    bounds = entry.get('bounds', {})
+                    bounds_min = bounds.get('min', {'x': 0, 'y': 0, 'z': 0})
+                    bounds_max = bounds.get('max', {'x': 0, 'y': 0, 'z': 0})
+                    
+                    # Create bounds tuples
+                    bounds_min_tuple = (bounds_min['x'], bounds_min['y'], bounds_min['z'])
+                    bounds_max_tuple = (bounds_max['x'], bounds_max['y'], bounds_max['z'])
+                    
+                    insert_wmo_placement(
+                        conn, wdt_id, tile_x, tile_y, model_id,
+                        entry['unique_id'],
+                        position, rotation,
+                        entry['scale'],
+                        entry['flags'],
+                        entry.get('doodad_set', 0),
+                        entry.get('name_set', 0),
+                        bounds_min_tuple,
+                        bounds_max_tuple
+                    )
+                    wmo_count += 1
             
             if wmo_count > 0:
                 print(f"Processed {wmo_count} WMO model placements")
@@ -405,21 +304,21 @@ def analyze_wdt(filepath: str, db_path: str = "wdt_analysis.db") -> None:
             print("\nGathering statistics...")
             cursor = conn.cursor()
             
-            # Count unique models and placements
+            # Count unique models and textures
             cursor.execute('''
-                SELECT COUNT(DISTINCT model_path) as unique_models,
-                       COUNT(DISTINCT p.id) as placements
+                SELECT COUNT(DISTINCT model_path) as m2_count,
+                       COUNT(DISTINCT unique_id) as unique_m2_ids
                 FROM m2_models m
-                LEFT JOIN m2_placements p ON m.id = p.model_id
+                JOIN m2_placements p ON m.id = p.model_id
                 WHERE m.wdt_id = ?
             ''', (wdt_id,))
             m2_stats = cursor.fetchone()
             
             cursor.execute('''
-                SELECT COUNT(DISTINCT model_path) as unique_models,
-                       COUNT(DISTINCT p.id) as placements
+                SELECT COUNT(DISTINCT model_path) as wmo_count,
+                       COUNT(DISTINCT unique_id) as unique_wmo_ids
                 FROM wmo_models m
-                LEFT JOIN wmo_placements p ON m.id = p.model_id
+                JOIN wmo_placements p ON m.id = p.model_id
                 WHERE m.wdt_id = ?
             ''', (wdt_id,))
             wmo_stats = cursor.fetchone()
@@ -437,14 +336,14 @@ def analyze_wdt(filepath: str, db_path: str = "wdt_analysis.db") -> None:
                        COUNT(DISTINCT m2.model_path) as m2_models,
                        COUNT(DISTINCT wmo.model_path) as wmo_models,
                        COUNT(DISTINCT tex.texture_path) as textures,
-                       COUNT(DISTINCT m2p.id) as m2_placements,
-                       COUNT(DISTINCT wmop.id) as wmo_placements
+                       COUNT(DISTINCT m2p.unique_id) as m2_placements,
+                       COUNT(DISTINCT wmop.unique_id) as wmo_placements
                 FROM map_tiles t
-                LEFT JOIN m2_placements m2p ON t.wdt_id = m2p.wdt_id AND t.tile_x = m2p.tile_x AND t.tile_y = m2p.tile_y
-                LEFT JOIN m2_models m2 ON m2p.model_id = m2.id
-                LEFT JOIN wmo_placements wmop ON t.wdt_id = wmop.wdt_id AND t.tile_x = wmop.tile_x AND t.tile_y = wmop.tile_y
-                LEFT JOIN wmo_models wmo ON wmop.model_id = wmo.id
+                LEFT JOIN m2_models m2 ON t.wdt_id = m2.wdt_id AND t.tile_x = m2.tile_x AND t.tile_y = m2.tile_y
+                LEFT JOIN wmo_models wmo ON t.wdt_id = wmo.wdt_id AND t.tile_x = wmo.tile_x AND t.tile_y = wmo.tile_y
                 LEFT JOIN wdt_textures tex ON t.wdt_id = tex.wdt_id AND t.tile_x = tex.tile_x AND t.tile_y = tex.tile_y
+                LEFT JOIN m2_placements m2p ON t.wdt_id = m2p.wdt_id AND t.tile_x = m2p.tile_x AND t.tile_y = m2p.tile_y
+                LEFT JOIN wmo_placements wmop ON t.wdt_id = wmop.wdt_id AND t.tile_x = wmop.tile_x AND t.tile_y = wmop.tile_y
                 WHERE t.wdt_id = ?
                 GROUP BY t.tile_x, t.tile_y
             ''', (wdt_id,))
@@ -457,8 +356,8 @@ def analyze_wdt(filepath: str, db_path: str = "wdt_analysis.db") -> None:
             print(f"Database: {db_path}")
             print("\nOverall Statistics:")
             print(f"Active Tiles: {active_tiles}")
-            print(f"M2 Models: {m2_stats[0]} unique models with {m2_stats[1]} placements")
-            print(f"WMO Models: {wmo_stats[0]} unique models with {wmo_stats[1]} placements")
+            print(f"Unique M2 Models: {m2_stats[0]} (with {m2_stats[1]} unique IDs)")
+            print(f"Unique WMO Models: {wmo_stats[0]} (with {wmo_stats[1]} unique IDs)")
             print(f"Unique Textures: {texture_count}")
             
             if tile_stats:

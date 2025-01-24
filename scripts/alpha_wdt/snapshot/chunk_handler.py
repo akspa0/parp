@@ -100,7 +100,7 @@ class MCNKAlphaHeader:
     mcnk_chunks_size: int
     unknown8: int
     mclq_offset: int
-    unused: List[int]  # 7 unused values
+    unused: List[int]  # 6 unused values
 
 class MCNKInfo:
     """MCNK chunk information with sub-chunks"""
@@ -120,6 +120,7 @@ class MCNKInfo:
         self.mcrf_data: Optional[bytes] = None  # refs
         self.mcal_data: Optional[bytes] = None  # alpha maps
         self.mcsh_data: Optional[bytes] = None  # shadows
+        self.mcmt_data: Optional[bytes] = None  # texture map
         self.mclq_data: Optional[bytes] = None  # liquid
         
     def _parse_alpha_header(self, data: bytes):
@@ -148,7 +149,7 @@ class MCNKInfo:
             mcnk_chunks_size=struct.unpack('<I', data[92:96])[0],
             unknown8=struct.unpack('<I', data[96:100])[0],
             mclq_offset=struct.unpack('<I', data[100:104])[0],
-            unused=[struct.unpack('<I', data[104+i*4:108+i*4])[0] for i in range(6)]  # Include all unused values
+            unused=[struct.unpack('<I', data[104+i*4:108+i*4])[0] for i in range(6)]
         )
         
         # Set common properties
@@ -226,6 +227,7 @@ class MCNKInfo:
         self.mcrf_data: Optional[bytes] = None
         self.mcal_data: Optional[bytes] = None
         self.mcsh_data: Optional[bytes] = None
+        self.mcmt_data: Optional[bytes] = None
         self.mclq_data: Optional[bytes] = None
 
     def has_subchunk(self, subchunk: str) -> bool:
@@ -237,6 +239,7 @@ class MCNKInfo:
             'MCRF': self.mcrf_offset,
             'MCAL': self.mcal_offset,
             'MCSH': self.mcsh_offset,
+            'MCMT': self.mcmt_offset,
             'MCLQ': self.mclq_offset
         }
         return offset_map.get(subchunk, 0) > 0
@@ -334,7 +337,9 @@ class WDTFile:
         if mcnk.mcal_offset:
             mcnk.mcal_data = data[mcnk.mcal_offset:mcnk.mcsh_offset or len(data)]
         if mcnk.mcsh_offset:
-            mcnk.mcsh_data = data[mcnk.mcsh_offset:mcnk.mclq_offset or len(data)]
+            mcnk.mcsh_data = data[mcnk.mcsh_offset:mcnk.mcmt_offset or len(data)]
+        if mcnk.mcmt_offset:
+            mcnk.mcmt_data = data[mcnk.mcmt_offset:mcnk.mclq_offset or len(data)]
         if mcnk.mclq_offset:
             mcnk.mclq_data = data[mcnk.mclq_offset:len(data)]
             

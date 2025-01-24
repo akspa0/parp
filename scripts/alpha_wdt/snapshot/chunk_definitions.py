@@ -1,8 +1,6 @@
 import struct
 import logging
 import math
-from adt_parser.mcnk_decoders import MCNKHeader, MCNKFlags, ADTChunkRef
-from adt_parser.texture_decoders import TextureManager, TextureDecoder
 
 def parse_mver(data):
     """Parse MVER (Version) chunk"""
@@ -31,14 +29,10 @@ def parse_mphd(data):
         logging.info(f"  {flag_name}: {flag_value}")
     return {'flags': flags, 'decoded_flags': flags_decoded}
 
-def parse_main(data, wdt_file=None):
+def parse_main(data):
     """
     Parse MAIN chunk (Map tile table)
     Reference: https://wowdev.wiki/WDT#MAIN_chunk
-    
-    Args:
-        data: Raw chunk data
-        wdt_file: Optional WDTFile instance for enhanced parsing
     """
     entry_size = 16  # Size of SMAreaInfo entry
     entry_count = len(data) // entry_size
@@ -69,61 +63,6 @@ def parse_main(data, wdt_file=None):
             'async_id': async_id,
             'coordinates': {'x': x, 'y': y}
         }
-        
-        # Enhanced parsing if WDTFile is provided
-        if wdt_file and offset > 0:
-            # Get MCNK data
-            for chunk_ref, chunk_data in wdt_file.get_chunks_by_type('MCNK'):
-                mcnk_info = wdt_file.parse_mcnk(chunk_ref)
-                if mcnk_info.idx_x == x and mcnk_info.idx_y == y:
-                    entry['mcnk_data'] = {
-                        'flags': int(mcnk_info.flags),
-                        'n_layers': mcnk_info.n_layers,
-                        'n_doodad_refs': mcnk_info.n_doodad_refs,
-                        'offsets': {
-                            'mcvt': mcnk_info.mcvt_offset,
-                            'mcnr': mcnk_info.mcnr_offset,
-                            'mcly': mcnk_info.mcly_offset,
-                            'mcrf': mcnk_info.mcrf_offset,
-                            'mcal': mcnk_info.mcal_offset,
-                            'mcsh': mcnk_info.mcsh_offset,
-                            'mcmt': mcnk_info.mcmt_offset,
-                            'mclq': mcnk_info.mclq_offset
-                        }
-                    }
-                    
-                    # Parse layer data if available
-                    if mcnk_info.mcly_data:
-                        layers = []
-                        layer_data = mcnk_info.mcly_data
-                        n_layers = len(layer_data) // 16
-                        for layer_idx in range(n_layers):
-                            layer_offset = layer_idx * 16
-                            texture_id, flags, alpha_offset, effect_id = struct.unpack(
-                                '<4I', layer_data[layer_offset:layer_offset + 16]
-                            )
-                            layers.append({
-                                'texture_id': texture_id,
-                                'flags': flags,
-                                'alpha_offset': alpha_offset,
-                                'effect_id': effect_id
-                            })
-                        entry['mcnk_data']['layers'] = layers
-                    break
-            
-            # Get texture data
-            if 'MTEX' in wdt_file.chunk_index:
-                for chunk_ref, mtex_data in wdt_file.get_chunks_by_type('MTEX'):
-                    mtxf_data = None
-                    if 'MTXF' in wdt_file.chunk_index:
-                        mtxf_chunks = wdt_file.get_chunks_by_type('MTXF')
-                        if mtxf_chunks:
-                            _, mtxf_data = mtxf_chunks[0]
-                    
-                    texture_info = parse_mtex(mtex_data, mtxf_data, mcnk_info.mcly_data if 'mcnk_data' in entry else None)
-                    entry['textures'] = texture_info
-                    break
-        
         entries.append(entry)
         
         if offset > 0:
@@ -240,58 +179,14 @@ def parse_mmid(data):
     logging.info(f"MMID Chunk: {len(indices)} M2 indices")
     return {'indices': list(indices)}
 
-def parse_mtex(data, mtxf_data=None, mcly_data=None):
-    """
-    Parse MTEX (Map Textures) chunk along with optional MTXF and MCLY data
-    Returns enhanced texture information using TextureManager
-    """
-    # Create texture manager and load all texture data
-    manager = TextureManager()
-    manager.load_from_chunks(data, mtxf_data, mcly_data)
-    
-    # Get basic texture list for backward compatibility
-    textures = [tex.filename for tex in manager.get_all_textures()]
-    
-    # Get detailed texture information
-    texture_info = []
-    for texture in manager.get_all_textures():
-        info = {
-            'path': texture.filename,
-            'id': texture.texture_id,
-            'flags': {
-                'is_terrain': texture.flags.is_terrain,
-                'is_hole': texture.flags.is_hole,
-                'is_water': texture.flags.is_water,
-                'has_alpha': texture.flags.has_alpha,
-                'is_animated': texture.flags.is_animated
-            }
-        }
-        
-        # Include layer information if available
-        if texture.layers:
-            info['layers'] = [{
-                'blend_mode': layer.blend_mode,
-                'has_alpha_map': layer.has_alpha_map,
-                'is_compressed': layer.is_compressed,
-                'effect_id': layer.effect_id
-            } for layer in texture.layers]
-        
-        texture_info.append(info)
-    
-    # Log texture statistics
-    stats = manager.analyze_texture_usage()
-    logging.info(f"MTEX Chunk: {stats['total']} textures")
-    logging.info(f"  Terrain textures: {stats['terrain']}")
-    logging.info(f"  Water textures: {stats['water']}")
-    logging.info(f"  Animated textures: {stats['animated']}")
-    logging.info(f"  Textures with alpha: {stats['with_alpha']}")
-    logging.info(f"  Total layers: {stats['layers']}")
-    
-    return {
-        'textures': textures,  # Basic list for backward compatibility
-        'texture_info': texture_info,  # Detailed information
-        'statistics': stats  # Usage statistics
-    }
+def parse_mtex(data):
+    """Parse MTEX (Map Textures) chunk"""
+    textures = data.split(b'\0')
+    names = [tex.decode('utf-8', 'replace') for tex in textures if tex]
+    logging.info(f"MTEX Chunk: {len(names)} textures")
+    for name in names:
+        logging.info(f"  Texture: {name}")
+    return {'textures': names}
 
 def parse_mdnm(data):
     """Parse MDNM (Map Doodad Name) chunk"""
@@ -317,57 +212,33 @@ def parse_mcnk(data):
         logging.warning(f"MCNK chunk too small: {len(data)} bytes")
         return {'error': 'Insufficient data'}
     
-    # Parse header using MCNKHeader from mcnk_decoders
-    header = MCNKHeader.from_bytes(data[:128])
+    flags = struct.unpack('<I', data[0:4])[0]
+    idx_x = struct.unpack('<I', data[4:8])[0]
+    idx_y = struct.unpack('<I', data[8:12])[0]
+    layers = struct.unpack('<I', data[12:16])[0]
+    doodad_refs = struct.unpack('<I', data[16:20])[0]
     
-    # Get layer information
-    layers = []
-    if header.ofs_layer > 0:
-        layer_data = data[header.ofs_layer:header.ofs_layer + header.n_layers * 16]
-        for i in range(header.n_layers):
-            offset = i * 16
-            layer_info = struct.unpack('<4I', layer_data[offset:offset + 16])
-            layers.append({
-                'texture_id': layer_info[0],
-                'flags': layer_info[1],
-                'offset_mcal': layer_info[2],
-                'effect_id': layer_info[3]
-            })
-    
-    # Get alpha maps for each layer
-    alpha_maps = []
-    for layer in layers:
-        if layer['offset_mcal'] > 0:
-            alpha_data = data[layer['offset_mcal']:layer['offset_mcal'] + header.size_alpha]
-            alpha_maps.append(alpha_data)
-        else:
-            alpha_maps.append(None)
-    
-    # Collect all offsets
-    offsets = {
-        'mcvt': header.ofs_height,
-        'mcnr': header.ofs_normal,
-        'mcly': header.ofs_layer,
-        'mcrf': header.ofs_refs,
-        'mcal': header.ofs_alpha,
-        'mcsh': header.ofs_shadow,
-        'mcmt': header.mcmt_offset if hasattr(header, 'mcmt_offset') else 0,
-        'mclq': header.ofs_liquid
+    flags_decoded = {
+        'has_mcsh': bool(flags & 0x1),
+        'impassable': bool(flags & 0x2),
+        'river': bool(flags & 0x4),
+        'ocean': bool(flags & 0x8),
+        'magma': bool(flags & 0x10),
+        'slime': bool(flags & 0x20),
+        'has_vertex_colors': bool(flags & 0x40)
     }
     
+    logging.info(f"MCNK Chunk: Position ({idx_x}, {idx_y})")
+    logging.info(f"  Layers: {layers}, Doodad refs: {doodad_refs}")
+    for flag_name, flag_value in flags_decoded.items():
+        if flag_value:
+            logging.info(f"  {flag_name}: {flag_value}")
+    
     return {
-        'flags': header.flags,
-        'position': {'x': header.idx_x, 'y': header.idx_y},
+        'flags': flags_decoded,
+        'position': {'x': idx_x, 'y': idx_y},
         'layers': layers,
-        'alpha_maps': alpha_maps,
-        'doodad_refs': header.n_doodad_refs,
-        'offsets': offsets,
-        'area_id': header.area_id,
-        'holes': header.holes_low_res,
-        'liquid': {
-            'offset': header.ofs_liquid,
-            'size': header.size_liquid
-        }
+        'doodad_refs': doodad_refs
     }
 
 def parse_mhdr(data):

@@ -76,15 +76,8 @@ def setup_database(db_path):
         mcrf_offset INTEGER,
         mcal_offset INTEGER,
         mcsh_offset INTEGER,
+        mcmt_offset INTEGER,
         mclq_offset INTEGER,
-        area_id INTEGER,
-        holes INTEGER,
-        liquid_size INTEGER,
-        position_x REAL,
-        position_y REAL,
-        position_z REAL,
-        has_vertex_colors INTEGER DEFAULT 0,
-        has_shadows INTEGER DEFAULT 0,
         FOREIGN KEY(wdt_id) REFERENCES wdt_files(id)
     )''')
 
@@ -108,11 +101,6 @@ def setup_database(db_path):
         tile_y INTEGER,
         texture_path TEXT,
         layer_index INTEGER,
-        blend_mode INTEGER DEFAULT 0,
-        has_alpha INTEGER DEFAULT 0,
-        is_compressed INTEGER DEFAULT 0,
-        effect_id INTEGER DEFAULT 0,
-        flags INTEGER DEFAULT 0,
         FOREIGN KEY(wdt_id) REFERENCES wdt_files(id)
     )''')
 
@@ -123,7 +111,7 @@ def setup_database(db_path):
         tile_x INTEGER,
         tile_y INTEGER,
         model_path TEXT,
-        format_type TEXT,
+        original_format TEXT,
         FOREIGN KEY(wdt_id) REFERENCES wdt_files(id)
     )''')
 
@@ -134,7 +122,7 @@ def setup_database(db_path):
         tile_x INTEGER,
         tile_y INTEGER,
         model_path TEXT,
-        format_type TEXT,
+        original_format TEXT,
         FOREIGN KEY(wdt_id) REFERENCES wdt_files(id)
     )''')
 
@@ -242,63 +230,21 @@ def insert_map_tile(conn, wdt_id, x, y, offset, size, flags, async_id):
     return cursor.lastrowid
 
 def insert_tile_mcnk(conn, wdt_id, tile_x, tile_y, mcnk_data):
-    """
-    Insert MCNK data for a specific tile with enhanced information
-    
-    Args:
-        conn: Database connection
-        wdt_id: WDT file ID
-        tile_x: Tile X coordinate
-        tile_y: Tile Y coordinate
-        mcnk_data: Dictionary containing MCNK chunk data with the following structure:
-            {
-                'flags': int,
-                'n_layers': int,
-                'n_doodad_refs': int,
-                'mcvt_offset': int,
-                'mcnr_offset': int,
-                'mcly_offset': int,
-                'mcrf_offset': int,
-                'mcal_offset': int,
-                'mcsh_offset': int,
-                'mcmt_offset': int,
-                'mclq_offset': int,
-                'area_id': int,
-                'holes': int,
-                'liquid': {'size': int},
-                'position': {'x': float, 'y': float, 'z': float}
-            }
-    """
+    """Insert MCNK data for a specific tile"""
     cursor = conn.cursor()
-    
-    # Extract position from mcnk_data if available
-    position = mcnk_data.get('position', {'x': 0.0, 'y': 0.0, 'z': 0.0})
-    liquid = mcnk_data.get('liquid', {'size': 0})
-    
-    # Check for specific flags
-    flags = mcnk_data['flags']
-    has_vertex_colors = 1 if isinstance(flags, dict) and flags.get('has_vertex_colors') else 0
-    has_shadows = 1 if isinstance(flags, dict) and flags.get('has_mcsh') else 0
-    
     cursor.execute('''
     INSERT INTO tile_mcnk (
         wdt_id, tile_x, tile_y, flags, layers, doodad_refs,
         mcvt_offset, mcnr_offset, mcly_offset, mcrf_offset,
-        mcal_offset, mcsh_offset, mclq_offset,
-        area_id, holes, liquid_size,
-        position_x, position_y, position_z,
-        has_vertex_colors, has_shadows
+        mcal_offset, mcsh_offset, mcmt_offset, mclq_offset
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         wdt_id, tile_x, tile_y,
-        mcnk_data['flags'], mcnk_data['n_layers'], mcnk_data['n_doodad_refs'],
-        mcnk_data['mcvt_offset'], mcnk_data['mcnr_offset'], mcnk_data['mcly_offset'],
-        mcnk_data['mcrf_offset'], mcnk_data['mcal_offset'], mcnk_data['mcsh_offset'],
-        mcnk_data['mclq_offset'],
-        mcnk_data.get('area_id', 0), mcnk_data.get('holes', 0), liquid['size'],
-        position['x'], position['y'], position['z'],
-        has_vertex_colors, has_shadows
+        mcnk_data.flags, mcnk_data.n_layers, mcnk_data.n_doodad_refs,
+        mcnk_data.mcvt_offset, mcnk_data.mcnr_offset, mcnk_data.mcly_offset,
+        mcnk_data.mcrf_offset, mcnk_data.mcal_offset, mcnk_data.mcsh_offset,
+        mcnk_data.mcmt_offset, mcnk_data.mclq_offset
     ))
     conn.commit()
     return cursor.lastrowid
@@ -313,60 +259,38 @@ def insert_tile_layer(conn, tile_mcnk_id, layer_index, texture_id, flags, effect
     conn.commit()
     return cursor.lastrowid
 
-def insert_texture(conn, wdt_id, tile_x, tile_y, texture_path, layer_index,
-                  blend_mode=0, has_alpha=0, is_compressed=0, effect_id=0, flags=0):
-    """
-    Insert texture record with enhanced information
-    
-    Args:
-        conn: Database connection
-        wdt_id: WDT file ID
-        tile_x: Tile X coordinate
-        tile_y: Tile Y coordinate
-        texture_path: Path to texture file
-        layer_index: Layer index (0 for base layer)
-        blend_mode: Texture blend mode
-        has_alpha: Whether texture has alpha channel
-        is_compressed: Whether texture data is compressed
-        effect_id: Special effect ID
-        flags: Additional texture flags
-    """
+def insert_texture(conn, wdt_id, tile_x, tile_y, texture_path, layer_index):
+    """Insert texture record with tile coordinates"""
     cursor = conn.cursor()
     cursor.execute('''
-    INSERT INTO wdt_textures (
-        wdt_id, tile_x, tile_y, texture_path, layer_index,
-        blend_mode, has_alpha, is_compressed, effect_id, flags
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (
-        wdt_id, tile_x, tile_y, texture_path, layer_index,
-        blend_mode, has_alpha, is_compressed, effect_id, flags
-    ))
+    INSERT INTO wdt_textures (wdt_id, tile_x, tile_y, texture_path, layer_index)
+    VALUES (?, ?, ?, ?, ?)
+    ''', (wdt_id, tile_x, tile_y, texture_path, layer_index))
     conn.commit()
     return cursor.lastrowid
 
-def insert_m2_model(conn, wdt_id, tile_x, tile_y, model_path, format_type):
-    """Insert M2 model record"""
+def insert_m2_model(conn, wdt_id, tile_x, tile_y, model_path, original_format=None):
+    """Insert M2 model record with tile coordinates"""
     cursor = conn.cursor()
     cursor.execute('''
-    INSERT INTO m2_models (wdt_id, tile_x, tile_y, model_path, format_type)
+    INSERT INTO m2_models (wdt_id, tile_x, tile_y, model_path, original_format)
     VALUES (?, ?, ?, ?, ?)
-    ''', (wdt_id, tile_x, tile_y, model_path, format_type))
+    ''', (wdt_id, tile_x, tile_y, model_path, original_format))
     conn.commit()
     return cursor.lastrowid
 
-def insert_wmo_model(conn, wdt_id, tile_x, tile_y, model_path, format_type):
-    """Insert WMO model record"""
+def insert_wmo_model(conn, wdt_id, tile_x, tile_y, model_path, original_format=None):
+    """Insert WMO model record with tile coordinates"""
     cursor = conn.cursor()
     cursor.execute('''
-    INSERT INTO wmo_models (wdt_id, tile_x, tile_y, model_path, format_type)
+    INSERT INTO wmo_models (wdt_id, tile_x, tile_y, model_path, original_format)
     VALUES (?, ?, ?, ?, ?)
-    ''', (wdt_id, tile_x, tile_y, model_path, format_type))
+    ''', (wdt_id, tile_x, tile_y, model_path, original_format))
     conn.commit()
     return cursor.lastrowid
 
 def insert_m2_placement(conn, wdt_id, tile_x, tile_y, model_id, unique_id, position, rotation, scale, flags):
-    """Insert M2 placement record"""
+    """Insert M2 placement record with tile coordinates"""
     cursor = conn.cursor()
     cursor.execute('''
     INSERT INTO m2_placements (
@@ -387,7 +311,7 @@ def insert_m2_placement(conn, wdt_id, tile_x, tile_y, model_id, unique_id, posit
 
 def insert_wmo_placement(conn, wdt_id, tile_x, tile_y, model_id, unique_id, position, rotation, scale, flags,
                         doodad_set, name_set, bounds_min, bounds_max):
-    """Insert WMO placement record"""
+    """Insert WMO placement record with tile coordinates"""
     cursor = conn.cursor()
     cursor.execute('''
     INSERT INTO wmo_placements (

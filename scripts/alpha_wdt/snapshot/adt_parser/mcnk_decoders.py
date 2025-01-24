@@ -1,35 +1,3 @@
-from dataclasses import dataclass
-from typing import List, Optional, Tuple
-import struct
-import array
-import logging
-import zlib
-from enum import Flag, auto
-
-@dataclass
-class ADTChunkRef:
-    """Reference to a chunk within an ADT file"""
-    offset: int
-    size: int
-    magic: str = "MCNK"
-
-class ChunkError(Exception):
-    """Exception raised for errors in chunk processing"""
-    pass
-
-logger = logging.getLogger(__name__)
-
-class MCNKFlags(Flag):
-    HAS_MCSH = auto()          # Has shadows
-    IMPASSABLE = auto()        # Impassable terrain
-    RIVER = auto()             # River
-    OCEAN = auto()             # Ocean
-    MAGMA = auto()             # Magma
-    SLIME = auto()             # Slime
-    HAS_VERTEX_COLORS = auto() # Has vertex colors
-    HIGH_RES_HOLES = auto()    # High resolution holes
-    DO_NOT_FIX_ALPHA_MAP = auto() # Don't fix alpha map
-
 @dataclass
 class MCNKHeader:
     flags: MCNKFlags
