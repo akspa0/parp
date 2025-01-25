@@ -1,6 +1,7 @@
 import os
 import struct
 import logging
+import array
 from datetime import datetime
 from pathlib import Path
 from chunk_definitions import (
@@ -10,11 +11,12 @@ from chunk_definitions import (
 )
 from adt_parser.mcnk_decoders import MCNKHeader
 from adt_parser.texture_decoders import TextureManager
-from chunk_handler import WDTFile
+from chunk_handler import WDTFile, ChunkRef
 from wdt_db import (
     setup_database, insert_wdt_record, insert_map_tile, insert_texture,
     insert_m2_model, insert_wmo_model, insert_m2_placement, insert_wmo_placement,
-    insert_tile_mcnk, insert_tile_layer, insert_chunk_offset, insert_adt_offsets
+    insert_tile_mcnk, insert_tile_layer, insert_chunk_offset, insert_adt_offsets,
+    insert_height_map, insert_liquid_data
 )
 
 def write_visualization_to_file(grid):
@@ -179,79 +181,66 @@ def analyze_wdt(filepath: str, db_path: str = "wdt_analysis.db") -> None:
                             print(f"Found chunk offsets for tile ({x}, {y}): {[k for k, v in offsets.items() if v > 0]}")
                             insert_adt_offsets(conn, wdt_id, x, y, offsets)
                             
-                            # Process MCNK data with enhanced information
+                            # Process MCNK data
                             if 'mcnk_data' in tile:
                                 print(f"Processing MCNK data for tile ({x}, {y})")
-                                mcnk_data = tile['mcnk_data']
-                                
-                                # Insert basic MCNK information
-                                mcnk_id = insert_tile_mcnk(
-                                    conn, wdt_id, x, y,
-                                    {
-                                        'flags': mcnk_data['flags'],
-                                        'n_layers': len(mcnk_data['layers']),
-                                        'n_doodad_refs': mcnk_data['doodad_refs'],
-                                        'mcvt_offset': mcnk_data['offsets']['mcvt'],
-                                        'mcnr_offset': mcnk_data['offsets']['mcnr'],
-                                        'mcly_offset': mcnk_data['offsets']['mcly'],
-                                        'mcrf_offset': mcnk_data['offsets']['mcrf'],
-                                        'mcal_offset': mcnk_data['offsets']['mcal'],
-                                        'mcsh_offset': mcnk_data['offsets']['mcsh'],
-                                        'mclq_offset': mcnk_data['offsets']['mclq']
+                                try:
+                                    mcnk = wdt.parse_mcnk(ChunkRef(
+                                        offset=tile['offset'],
+                                        size=tile['size'],
+                                        magic='MCNK',
+                                        header_offset=tile['offset']
+                                    ), is_alpha=is_alpha)
+                                    
+                                    # Insert MCNK information
+                                    mcnk_info = {
+                                        'flags': mcnk.flags,
+                                        'n_layers': mcnk.n_layers,
+                                        'n_doodad_refs': mcnk.n_doodad_refs,
+                                        'mcvt_offset': mcnk.mcvt_offset,
+                                        'mcnr_offset': mcnk.mcnr_offset,
+                                        'mcly_offset': mcnk.mcly_offset,
+                                        'mcrf_offset': mcnk.mcrf_offset,
+                                        'mcal_offset': mcnk.mcal_offset if not is_alpha else 0,
+                                        'mcsh_offset': mcnk.mcsh_offset,
+                                        'mclq_offset': mcnk.mclq_offset,
+                                        'area_id': mcnk.header.area_id if hasattr(mcnk.header, 'area_id') else 0,
+                                        'holes': mcnk.header.holes,
+                                        'liquid_size': len(mcnk.mclq_data) if mcnk.mclq_data else 0,
+                                        'is_alpha': is_alpha
                                     }
-                                )
-                                
-                                # Process enhanced layer information
-                                if 'layers' in mcnk_data:
-                                    layer_count = len(mcnk_data['layers'])
-                                    print(f"Found {layer_count} layers for tile ({x}, {y})")
-                                    for i, layer in enumerate(mcnk_data['layers']):
-                                        insert_tile_layer(
-                                            conn, mcnk_id, i,
-                                            layer['texture_id'],
-                                            layer['flags'],
-                                            layer['effect_id']
-                                        )
-                            
-                            # Process enhanced texture information
-                            if 'textures' in tile:
-                                texture_info = tile['textures'].get('texture_info', [])
-                                print(f"Found {len(texture_info)} textures for tile ({x}, {y})")
-                                for texture in texture_info:
-                                    # Convert flags to integers
-                                    flags = 0
-                                    if texture['flags'].get('is_terrain'): flags |= 0x1
-                                    if texture['flags'].get('is_hole'): flags |= 0x2
-                                    if texture['flags'].get('is_water'): flags |= 0x4
-                                    if texture['flags'].get('has_alpha'): flags |= 0x8
-                                    if texture['flags'].get('is_animated'): flags |= 0x10
                                     
-                                    # Store base texture information
-                                    texture_id = insert_texture(
-                                        conn, wdt_id, x, y,
-                                        texture['path'],
-                                        0,  # Base layer
-                                        texture.get('blend_mode', 0),
-                                        1 if texture['flags'].get('has_alpha') else 0,
-                                        texture.get('is_compressed', 0),
-                                        texture.get('effect_id', 0),
-                                        flags
-                                    )
+                                    mcnk_id = insert_tile_mcnk(conn, wdt_id, x, y, mcnk_info)
                                     
-                                    # Store additional layer information if available
-                                    if 'layers' in texture:
-                                        for i, layer in enumerate(texture['layers'], 1):
-                                            insert_texture(
-                                                conn, wdt_id, x, y,
-                                                texture['path'],
-                                                i,  # Additional layers
-                                                layer.get('blend_mode', 0),
-                                                1 if layer.get('has_alpha_map') else 0,
-                                                1 if layer.get('is_compressed') else 0,
-                                                layer.get('effect_id', 0),
-                                                flags
-                                            )
-                                    
+                                    try:
+                                        # Process height map
+                                        if mcnk.mcvt_data:
+                                            heights = array.array('f', mcnk.mcvt_data[8:])  # Skip header
+                                            insert_height_map(conn, mcnk_id, heights)
+                                        
+                                        # Process layers
+                                        if mcnk.mcly_data:
+                                            layer_size = 8 if is_alpha else 16
+                                            num_layers = len(mcnk.mcly_data[8:]) // layer_size  # Skip header
+                                            layer_data = mcnk.mcly_data[8:]
+                                            
+                                            for i in range(num_layers):
+                                                offset = i * layer_size
+                                                if is_alpha:
+                                                    texture_id, flags = struct.unpack('<2I', layer_data[offset:offset + 8])
+                                                    effect_id = 0  # Not present in Alpha
+                                                else:
+                                                    texture_id, flags, mcal_offset, effect_id = struct.unpack('<4I', layer_data[offset:offset + 16])
+                                                
+                                                insert_tile_layer(conn, mcnk_id, i, texture_id, flags, effect_id)
+                                        
+                                        # Process liquid data
+                                        if mcnk.mclq_data:
+                                            insert_liquid_data(conn, mcnk_id, mcnk.mclq_data[8:])  # Skip header
+                                    except Exception as e:
+                                        logging.error(f"Error processing MCNK subchunks for tile ({x}, {y}): {e}")
+                                except Exception as e:
+                                    logging.error(f"Error processing MCNK chunk for tile ({x}, {y}): {e}")
                         except Exception as e:
                             logging.error(f"Failed to process ADT data at ({x}, {y}): {e}")
             

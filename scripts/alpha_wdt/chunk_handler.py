@@ -317,26 +317,45 @@ class WDTFile:
         return [(ref, self.read_chunk_data(ref)) 
                 for ref in self.chunk_index.get(chunk_type, [])]
 
-    def parse_mcnk(self, chunk_ref: ChunkRef) -> MCNKInfo:
+    def parse_mcnk(self, chunk_ref: ChunkRef, is_alpha: bool = False) -> MCNKInfo:
         """Parse MCNK chunk and its sub-chunks"""
         data = self.read_chunk_data(chunk_ref)
-        mcnk = MCNKInfo(data, chunk_ref.offset)
+        mcnk = MCNKInfo(data, chunk_ref.offset, is_alpha=is_alpha)
         
-        # Read sub-chunks
+        # Read sub-chunks with proper size handling
         if mcnk.mcvt_offset:
-            mcnk.mcvt_data = data[mcnk.mcvt_offset:mcnk.mcnr_offset or len(data)]
+            mcnk.mcvt_data = data[mcnk.mcvt_offset:mcnk.mcvt_offset + 145]  # Fixed size for height map
+            
         if mcnk.mcnr_offset:
-            mcnk.mcnr_data = data[mcnk.mcnr_offset:mcnk.mcly_offset or len(data)]
-        if mcnk.mcly_offset:
-            mcnk.mcly_data = data[mcnk.mcly_offset:mcnk.mcrf_offset or len(data)]
-        if mcnk.mcrf_offset:
-            mcnk.mcrf_data = data[mcnk.mcrf_offset:mcnk.mcal_offset or len(data)]
-        if mcnk.mcal_offset:
-            mcnk.mcal_data = data[mcnk.mcal_offset:mcnk.mcsh_offset or len(data)]
-        if mcnk.mcsh_offset:
-            mcnk.mcsh_data = data[mcnk.mcsh_offset:mcnk.mclq_offset or len(data)]
+            mcnk.mcnr_data = data[mcnk.mcnr_offset:mcnk.mcnr_offset + 145]  # Fixed size for normals
+            
+        if mcnk.mcly_offset and mcnk.n_layers > 0:
+            layer_size = 8 if is_alpha else 16  # Alpha uses 8-byte layer entries
+            total_size = mcnk.n_layers * layer_size
+            mcnk.mcly_data = data[mcnk.mcly_offset:mcnk.mcly_offset + total_size]
+            
+        if mcnk.mcrf_offset and mcnk.n_doodad_refs > 0:
+            total_size = mcnk.n_doodad_refs * 4  # 4 bytes per reference
+            mcnk.mcrf_data = data[mcnk.mcrf_offset:mcnk.mcrf_offset + total_size]
+            
+        if mcnk.mcal_offset and mcnk.header.mcal_size > 0 and not is_alpha:  # Alpha has no MCAL
+            mcnk.mcal_data = data[mcnk.mcal_offset:mcnk.mcal_offset + mcnk.header.mcal_size]
+            
+        if mcnk.mcsh_offset and mcnk.header.mcsh_size > 0:
+            mcnk.mcsh_data = data[mcnk.mcsh_offset:mcnk.mcsh_offset + mcnk.header.mcsh_size]
+            
         if mcnk.mclq_offset:
-            mcnk.mclq_data = data[mcnk.mclq_offset:len(data)]
+            if is_alpha:
+                # Alpha liquid data is variable size, read until next chunk or end
+                next_offset = len(data)
+                for offset in [mcnk.mcvt_offset, mcnk.mcnr_offset, mcnk.mcly_offset,
+                             mcnk.mcrf_offset, mcnk.mcal_offset, mcnk.mcsh_offset]:
+                    if offset > mcnk.mclq_offset:
+                        next_offset = min(next_offset, offset)
+                mcnk.mclq_data = data[mcnk.mclq_offset:next_offset]
+            else:
+                # Retail has size field
+                mcnk.mclq_data = data[mcnk.mclq_offset:mcnk.mclq_offset + mcnk.header.mclq_size]
             
         return mcnk
 

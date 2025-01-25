@@ -159,6 +159,22 @@ def setup_database(db_path):
     )''')
 
     cursor.execute('''
+    CREATE TABLE IF NOT EXISTS height_map_info (
+        id INTEGER PRIMARY KEY,
+        tile_mcnk_id INTEGER,
+        height_data BLOB,
+        FOREIGN KEY(tile_mcnk_id) REFERENCES tile_mcnk(id)
+    )''')
+
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS liquid_data (
+        id INTEGER PRIMARY KEY,
+        tile_mcnk_id INTEGER,
+        liquid_data BLOB,
+        FOREIGN KEY(tile_mcnk_id) REFERENCES tile_mcnk(id)
+    )''')
+
+    cursor.execute('''
     CREATE TABLE IF NOT EXISTS wmo_placements (
         id INTEGER PRIMARY KEY,
         wdt_id INTEGER,
@@ -382,6 +398,26 @@ def insert_m2_placement(conn, wdt_id, tile_x, tile_y, model_id, unique_id, posit
         rotation[0], rotation[1], rotation[2],
         scale, flags
     ))
+    conn.commit()
+    return cursor.lastrowid
+
+def insert_height_map(conn, tile_mcnk_id, height_data):
+    """Insert height map data for a tile"""
+    cursor = conn.cursor()
+    cursor.execute('''
+    INSERT INTO height_map_info (tile_mcnk_id, height_data)
+    VALUES (?, ?)
+    ''', (tile_mcnk_id, height_data.tobytes()))
+    conn.commit()
+    return cursor.lastrowid
+
+def insert_liquid_data(conn, tile_mcnk_id, liquid_data):
+    """Insert liquid data for a tile"""
+    cursor = conn.cursor()
+    cursor.execute('''
+    INSERT INTO liquid_data (tile_mcnk_id, liquid_data)
+    VALUES (?, ?)
+    ''', (tile_mcnk_id, liquid_data))
     conn.commit()
     return cursor.lastrowid
 
