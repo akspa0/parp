@@ -126,6 +126,7 @@ def analyze_wdt(filepath: str, db_path: str = "wdt_analysis.db") -> None:
             print("\nPhase 3: Processing map structure...")
             grid = [[0] * 64 for _ in range(64)]
             active_tiles = 0
+            active_tiles_data = []  # Store tiles for batch processing
             
             for chunk_ref, data in wdt.get_chunks_by_type('MAIN'):
                 main_info = parse_main(data, wdt)
@@ -215,125 +216,70 @@ def analyze_wdt(filepath: str, db_path: str = "wdt_analysis.db") -> None:
                                                 'path': tex_path,
                                                 'flags': {'has_alpha': False, 'is_terrain': True}
                                             }
-                                            # Insert texture info immediately
-                                            insert_texture(
-                                                conn, wdt_id, x, y,
-                                                tex_path,
-                                                i,  # layer_index
+                                            # Store texture info for batch insertion
+                                            texture_info[i] = {
+                                                'path': tex_path,
+                                                'flags': {'has_alpha': False, 'is_terrain': True},
+                                                'layer_index': i
+                                            }
+                                            
+                                            if i % 100 == 0:  # Progress indicator for large texture sets
+                                                print(f"Processed {i} textures for tile ({x}, {y})...")
+                                    
+                                    # Batch insert textures
+                                    if texture_info:
+                                        cursor = conn.cursor()
+                                        cursor.executemany(
+                                            '''INSERT INTO wdt_textures (
+                                                wdt_id, tile_x, tile_y, texture_path,
+                                                layer_index, blend_mode, has_alpha,
+                                                is_compressed, effect_id, flags
+                                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                                            [(
+                                                wdt_id, x, y,
+                                                info['path'],
+                                                info['layer_index'],
                                                 0,  # blend_mode (not in Alpha)
                                                 0,  # has_alpha (will be set by layer flags)
                                                 0,  # is_compressed (not in Alpha)
                                                 0,  # effect_id (not in Alpha)
                                                 0   # flags (will be set by layer flags)
-                                            )
-                                            logging.info(f"Inserted texture {tex_path} for tile ({x}, {y})")
+                                            ) for info in texture_info.values()]
+                                        )
+                                        conn.commit()
+                                        print(f"Inserted {len(texture_info)} textures for tile ({x}, {y})")
                             
-                            # Process MCNK data
+                            # Store tiles for batch processing
                             if 'mcnk_data' in tile:
-                                print(f"Processing MCNK data for tile ({x}, {y})")
-                                try:
-                                    # Parse MCNK data with proper Alpha format handling
-                                    chunk_ref = ChunkRef(
-                                        offset=tile['offset'],
-                                        size=tile['size'],
-                                        magic='MCNK',
-                                        header_offset=tile['offset']
-                                    )
-                                    mcnk = wdt.parse_mcnk(chunk_ref, is_alpha=is_alpha)
-                                    
-                                    # Get MCNK header info
-                                    if is_alpha:
-                                        mcvt_offset = mcnk.mcvt_offset
-                                        mcly_offset = mcnk.mcly_offset
-                                        mcrf_offset = mcnk.mcrf_offset
-                                        mclq_offset = mcnk.mclq_offset
-                                    else:
-                                        mcvt_offset = mcnk.header.ofs_height
-                                        mcly_offset = mcnk.header.ofs_layer
-                                        mcrf_offset = mcnk.header.ofs_refs
-                                        mclq_offset = mcnk.header.ofs_liquid
-
-                                    mcnk_info = {
-                                        'flags': mcnk.header.flags,
-                                        'n_layers': mcnk.header.n_layers,
-                                        'n_doodad_refs': mcnk.header.n_doodad_refs,
-                                        'mcvt_offset': mcvt_offset,
-                                        'mcnr_offset': 0 if is_alpha else mcnk.header.ofs_normal,
-                                        'mcly_offset': mcly_offset,
-                                        'mcrf_offset': mcrf_offset,
-                                        'mcal_offset': 0 if is_alpha else mcnk.header.ofs_alpha,
-                                        'mcsh_offset': 0 if is_alpha else mcnk.header.ofs_shadow,
-                                        'mclq_offset': mclq_offset,
-                                        'area_id': mcnk.header.area_id,
-                                        'holes': 0 if is_alpha else mcnk.header.holes_low_res,
-                                        'liquid_size': 0 if is_alpha else mcnk.header.size_liquid,
-                                        'is_alpha': is_alpha
-                                    }
-                                    
-                                    mcnk_id = insert_tile_mcnk(conn, wdt_id, x, y, mcnk_info)
-                                    
-                                    try:
-                                        # Process height map (145 floats for Alpha)
-                                        height_map = mcnk.get_height_map()
-                                        if height_map:
-                                            insert_height_map(conn, mcnk_id, height_map)
-                                            logging.info(f"Inserted height map data for tile ({x}, {y})")
-                                        
-                                        # Process layers (8-byte format for Alpha)
-                                        layers = mcnk.get_layer_info()
-                                        if layers:
-                                            for i, layer in enumerate(layers):
-                                                # Insert layer info
-                                                insert_tile_layer(
-                                                    conn, mcnk_id, i,
-                                                    layer['texture_id'],
-                                                    layer['flags'],
-                                                    0  # effect_id not present in Alpha
-                                                )
-                                                
-                                                # Insert texture info
-                                                texture_path = f"tileset_{layer['texture_id']:03d}"  # Default name
-                                                if 'textures' in mcnk_info and layer['texture_id'] in mcnk_info['textures']:
-                                                    texture_info = mcnk_info['textures'][layer['texture_id']]
-                                                    texture_path = texture_info.get('path', texture_path)
-                                                
-                                                # Alpha format texture flags
-                                                has_alpha = bool(layer['flags'] & 0x1)  # First bit indicates alpha
-                                                is_terrain = bool(layer['flags'] & 0x2)  # Second bit for terrain
-                                                
-                                                insert_texture(
-                                                    conn, wdt_id, x, y,
-                                                    texture_path,
-                                                    i,  # layer_index
-                                                    0,  # blend_mode (not in Alpha)
-                                                    1 if has_alpha else 0,
-                                                    0,  # is_compressed (not in Alpha)
-                                                    0,  # effect_id (not in Alpha)
-                                                    layer['flags']
-                                                )
-                                            logging.info(f"Inserted {len(layers)} layers for tile ({x}, {y})")
-                                        
-                                        # Process liquid data (Alpha format)
-                                        liquid_info = mcnk.get_liquid_data()
-                                        if liquid_info:
-                                            liquid_type, liquid_heights = liquid_info
-                                            # Map flags to liquid types for Alpha
-                                            if mcnk.header.flags & 0x4:  # RIVER
-                                                liquid_type = 1  # Water
-                                            elif mcnk.header.flags & 0x8:  # OCEAN
-                                                liquid_type = 2  # Ocean
-                                            elif mcnk.header.flags & 0x10:  # MAGMA
-                                                liquid_type = 3  # Magma
-                                            elif mcnk.header.flags & 0x20:  # SLIME
-                                                liquid_type = 4  # Slime
-                                            insert_liquid_data(conn, mcnk_id, liquid_type, liquid_heights)
-                                            logging.info(f"Inserted liquid data for tile ({x}, {y})")
-                                    except Exception as e:
-                                        logging.error(f"Error processing MCNK subchunks for tile ({x}, {y}): {e}")
-                                except Exception as e:
-                                    logging.error(f"Error processing MCNK chunk for tile ({x}, {y}): {e}")
+                                tile['coordinates'] = {'x': x, 'y': y}
+                                active_tiles_data.append(tile)
                         except Exception as e:
                             logging.error(f"Failed to process ADT data at ({x}, {y}): {e}")
+            
+            # Process collected tiles using multi-threaded processor
+            if active_tiles_data:
+                print(f"\nProcessing {len(active_tiles_data)} active tiles using multiple threads...")
+                from mcnk_processor import process_wdt_tiles
+                
+                processing_stats = process_wdt_tiles(
+                    wdt_file=wdt,
+                    wdt_id=wdt_id,
+                    tiles=active_tiles_data,
+                    db_path=db_path,
+                    is_alpha=is_alpha,
+                    max_workers=4  # Adjust based on system capabilities
+                )
+                
+                print(f"\nTile Processing Results:")
+                print(f"Total Tiles: {processing_stats['total']}")
+                print(f"Successfully Processed: {processing_stats['successful']}")
+                print(f"Failed: {processing_stats['failed']}")
+                if processing_stats['errors']:
+                    print("\nErrors encountered:")
+                    for error in processing_stats['errors'][:5]:  # Show first 5 errors
+                        print(f"  - {error}")
+                    if len(processing_stats['errors']) > 5:
+                        print(f"  ... and {len(processing_stats['errors']) - 5} more errors")
             
             print(f"\nProcessed {active_tiles} active map tiles")
             
