@@ -165,13 +165,41 @@ class MCNKHeader:
             unused=unused
         )
 
+@dataclass
+class AlphaMCNKHeader:
+    """Alpha version MCNK header (16 bytes)"""
+    flags: int
+    area_id: int
+    n_layers: int
+    n_doodad_refs: int
+
+    @classmethod
+    def from_bytes(cls, data: bytes) -> 'AlphaMCNKHeader':
+        if len(data) < 16:
+            raise ChunkError(f"Alpha MCNK header too short: {len(data)} bytes")
+        header = struct.unpack('<4I', data[:16])
+        return cls(
+            flags=header[0],
+            area_id=header[1],
+            n_layers=header[2],
+            n_doodad_refs=header[3]
+        )
+
 class MCNKChunk:
     """MCNK chunk decoder"""
-    def __init__(self, chunk_ref: ADTChunkRef, data: bytes):
+    def __init__(self, chunk_ref: ADTChunkRef, data: bytes, is_alpha: bool = False):
         self.ref = chunk_ref
         self.data = data
-        self.header = MCNKHeader.from_bytes(data[:128])
+        self.is_alpha = is_alpha
+        self.header = AlphaMCNKHeader.from_bytes(data[:16]) if is_alpha else MCNKHeader.from_bytes(data[:128])
         self._subchunk_cache = {}
+        
+        # Calculate Alpha format offsets if needed
+        if is_alpha:
+            self.mcvt_offset = 16
+            self.mcly_offset = self.mcvt_offset + (145 * 4)
+            self.mcrf_offset = self.mcly_offset + (self.header.n_layers * 8)
+            self.mclq_offset = self.mcrf_offset + (self.header.n_doodad_refs * 4)
 
     def get_subchunk_data(self, offset: int, size: int) -> Optional[bytes]:
         """Get subchunk data using relative offset"""
@@ -184,32 +212,57 @@ class MCNKChunk:
 
     def get_height_map(self) -> Optional[array.array]:
         """Get height map data"""
-        if self.header.flags & MCNKFlags.HIGH_RES_HOLES:
+        if self.is_alpha:
+            # Alpha format: 145 floats (9x9 + 8x8 grid) starting at offset 16
+            height_data = self.get_subchunk_data(self.mcvt_offset, 145 * 4)
+            if height_data:
+                return array.array('f', height_data)
             return None
-            
-        height_data = self.get_subchunk_data(self.header.ofs_height, 145)
-        if height_data:
-            return array.array('f', height_data)
-        return None
+        else:
+            # Retail format
+            if self.header.flags & MCNKFlags.HIGH_RES_HOLES:
+                return None
+            height_data = self.get_subchunk_data(self.header.ofs_height, 145 * 4)
+            if height_data:
+                return array.array('f', height_data)
+            return None
 
     def get_layer_info(self) -> List[dict]:
         """Get texture layer information"""
-        if self.header.ofs_layer == 0:
-            return []
-
-        layers = []
-        layer_data = self.get_subchunk_data(self.header.ofs_layer, self.header.n_layers * 16)
-        if layer_data:
-            for i in range(self.header.n_layers):
-                offset = i * 16
-                layer_info = struct.unpack('<4I', layer_data[offset:offset + 16])
-                layers.append({
-                    'texture_id': layer_info[0],
-                    'flags': layer_info[1],
-                    'offset_mcal': layer_info[2],
-                    'effect_id': layer_info[3]
-                })
-        return layers
+        if self.is_alpha:
+            # Alpha format: 8 bytes per layer (texture_id, flags)
+            if not hasattr(self.header, 'n_layers'):
+                return []
+            layers = []
+            layer_data = self.get_subchunk_data(self.mcly_offset, self.header.n_layers * 8)
+            if layer_data:
+                for i in range(self.header.n_layers):
+                    offset = i * 8
+                    texture_id, flags = struct.unpack('<2I', layer_data[offset:offset + 8])
+                    layers.append({
+                        'texture_id': texture_id,
+                        'flags': flags,
+                        'offset_mcal': 0,  # Not present in Alpha
+                        'effect_id': 0  # Not present in Alpha
+                    })
+            return layers
+        else:
+            # Retail format: 16 bytes per layer
+            if self.header.ofs_layer == 0:
+                return []
+            layers = []
+            layer_data = self.get_subchunk_data(self.header.ofs_layer, self.header.n_layers * 16)
+            if layer_data:
+                for i in range(self.header.n_layers):
+                    offset = i * 16
+                    layer_info = struct.unpack('<4I', layer_data[offset:offset + 16])
+                    layers.append({
+                        'texture_id': layer_info[0],
+                        'flags': layer_info[1],
+                        'offset_mcal': layer_info[2],
+                        'effect_id': layer_info[3]
+                    })
+            return layers
 
     def get_alpha_map(self) -> Optional[bytes]:
         """Get alpha map data"""
@@ -221,11 +274,25 @@ class MCNKChunk:
             return self.get_subchunk_data(self.header.ofs_shadow, self.header.size_shadow)
         return None
 
-    def get_liquid_data(self) -> Optional[bytes]:
-        """Get liquid data if present"""
-        if self.header.size_liquid > 8:
-            return self.get_subchunk_data(self.header.ofs_liquid, self.header.size_liquid)
-        return None
+    def get_liquid_data(self) -> Optional[Tuple[int, array.array]]:
+        """Get liquid data if present. Returns tuple of (liquid_type, height_values)"""
+        if self.is_alpha:
+            # Alpha format: Simple liquid data after MCRF
+            # Format: 4 bytes liquid type + array of float height values
+            liquid_data = self.get_subchunk_data(self.mclq_offset, -1)  # Get all remaining data
+            if liquid_data and len(liquid_data) >= 8:
+                liquid_type = struct.unpack('<I', liquid_data[:4])[0]
+                height_values = array.array('f', liquid_data[4:])
+                return (liquid_type, height_values)
+            return None
+        else:
+            # Retail format
+            if hasattr(self.header, 'size_liquid') and self.header.size_liquid > 8:
+                liquid_data = self.get_subchunk_data(self.header.ofs_liquid, self.header.size_liquid)
+                if liquid_data:
+                    # Skip 8 byte header in retail format
+                    return (0, array.array('f', liquid_data[8:]))
+            return None
 
     def decode_alpha_map(self, alpha_data: bytes) -> List[List[int]]:
         """Decode alpha map data"""

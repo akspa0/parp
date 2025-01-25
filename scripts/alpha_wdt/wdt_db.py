@@ -157,12 +157,15 @@ def setup_database(db_path):
         FOREIGN KEY(wdt_id) REFERENCES wdt_files(id),
         FOREIGN KEY(model_id) REFERENCES m2_models(id)
     )''')
-
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS height_map_info (
         id INTEGER PRIMARY KEY,
         tile_mcnk_id INTEGER,
         height_data BLOB,
+        grid_size INTEGER DEFAULT 145,  -- 9x9 + 8x8 grid for Alpha
+        min_height REAL,
+        max_height REAL,
+        avg_height REAL,
         FOREIGN KEY(tile_mcnk_id) REFERENCES tile_mcnk(id)
     )''')
 
@@ -170,7 +173,10 @@ def setup_database(db_path):
     CREATE TABLE IF NOT EXISTS liquid_data (
         id INTEGER PRIMARY KEY,
         tile_mcnk_id INTEGER,
-        liquid_data BLOB,
+        liquid_type INTEGER,  -- 0=none, 1=water, 2=ocean, 3=magma, 4=slime
+        liquid_data BLOB,     -- Array of height values
+        min_height REAL,
+        max_height REAL,
         FOREIGN KEY(tile_mcnk_id) REFERENCES tile_mcnk(id)
     )''')
 
@@ -402,22 +408,70 @@ def insert_m2_placement(conn, wdt_id, tile_x, tile_y, model_id, unique_id, posit
     return cursor.lastrowid
 
 def insert_height_map(conn, tile_mcnk_id, height_data):
-    """Insert height map data for a tile"""
+    """
+    Insert height map data for a tile with enhanced metadata
+    Args:
+        conn: Database connection
+        tile_mcnk_id: ID of the MCNK tile
+        height_data: array.array of float height values
+    """
     cursor = conn.cursor()
+    
+    # Calculate height statistics
+    heights = list(height_data)
+    min_height = min(heights)
+    max_height = max(heights)
+    avg_height = sum(heights) / len(heights)
+    
     cursor.execute('''
-    INSERT INTO height_map_info (tile_mcnk_id, height_data)
-    VALUES (?, ?)
-    ''', (tile_mcnk_id, height_data.tobytes()))
+    INSERT INTO height_map_info (
+        tile_mcnk_id, height_data, grid_size,
+        min_height, max_height, avg_height
+    )
+    VALUES (?, ?, ?, ?, ?, ?)
+    ''', (
+        tile_mcnk_id,
+        height_data.tobytes(),
+        len(heights),
+        min_height,
+        max_height,
+        avg_height
+    ))
     conn.commit()
     return cursor.lastrowid
 
-def insert_liquid_data(conn, tile_mcnk_id, liquid_data):
-    """Insert liquid data for a tile"""
+def insert_liquid_data(conn, tile_mcnk_id, liquid_type, liquid_heights):
+    """
+    Insert liquid data for a tile with enhanced metadata
+    Args:
+        conn: Database connection
+        tile_mcnk_id: ID of the MCNK tile
+        liquid_type: Type of liquid (0=none, 1=water, 2=ocean, 3=magma, 4=slime)
+        liquid_heights: array.array of float height values
+    """
     cursor = conn.cursor()
+    
+    # Calculate height statistics if we have height data
+    if liquid_heights:
+        heights = list(liquid_heights)
+        min_height = min(heights)
+        max_height = max(heights)
+    else:
+        min_height = max_height = 0.0
+    
     cursor.execute('''
-    INSERT INTO liquid_data (tile_mcnk_id, liquid_data)
-    VALUES (?, ?)
-    ''', (tile_mcnk_id, liquid_data))
+    INSERT INTO liquid_data (
+        tile_mcnk_id, liquid_type, liquid_data,
+        min_height, max_height
+    )
+    VALUES (?, ?, ?, ?, ?)
+    ''', (
+        tile_mcnk_id,
+        liquid_type,
+        liquid_heights.tobytes() if liquid_heights else None,
+        min_height,
+        max_height
+    ))
     conn.commit()
     return cursor.lastrowid
 

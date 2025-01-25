@@ -6,33 +6,68 @@ from adt_parser.texture_decoders import TextureManager, TextureDecoder
 
 # Alpha WDT specific parsers
 def parse_alpha_mcnk(data):
-    """Parse Alpha version MCNK chunk (Map Chunk)"""
-    header = struct.unpack('<4I', data[:16])  # Simplified alpha header
-    return {
-        'flags': header[0],
-        'area_id': header[1],
-        'n_layers': header[2],
-        'n_doodad_refs': header[3],
-        'offsets': {
-            'MCVT': 16,  # Heightmap data starts immediately after header
-            'MCLY': 16 + (145 * 4),  # 145 floats (9x9 + 8x8 grid)
-            'MCRF': 16 + (145 * 4) + (header[2] * 8)  # Layer data
-        }
-    }
-
-def parse_alpha_mcnk(data):
-    """Parse Alpha-specific MCNK chunk (Map Chunk)"""
-    # Reference: https://wowdev.wiki/Alpha#MCNK
+    """
+    Parse Alpha-specific MCNK chunk (Map Chunk)
+    Reference: https://wowdev.wiki/Alpha#MCNK
+    
+    Alpha MCNK has a simplified 16-byte header followed by:
+    - MCVT: 145 float values (9x9 + 8x8 grid) for heightmap
+    - MCLY: n_layers * 8 bytes for layer info
+    - MCRF: n_doodad_refs * 4 bytes for doodad references
+    - MCLQ: Liquid data (if present)
+    """
+    if len(data) < 16:
+        logging.warning("Alpha MCNK chunk too small")
+        return None
+        
     header = struct.unpack('<4I', data[:16])
+    flags = header[0]
+    area_id = header[1]
+    n_layers = header[2]
+    n_doodad_refs = header[3]
+    
+    # Calculate offsets
+    mcvt_offset = 16  # Heightmap starts after header
+    mcly_offset = mcvt_offset + (145 * 4)  # After heightmap
+    mcrf_offset = mcly_offset + (n_layers * 8)  # After layers
+    mclq_offset = mcrf_offset + (n_doodad_refs * 4)  # After doodad refs
+    
+    # Parse heightmap (145 floats)
+    heights = None
+    if len(data) >= mcvt_offset + (145 * 4):
+        heights = array.array('f', data[mcvt_offset:mcvt_offset + (145 * 4)])
+    
+    # Parse layer info
+    layers = []
+    if len(data) >= mcly_offset + (n_layers * 8):
+        layer_data = data[mcly_offset:mcly_offset + (n_layers * 8)]
+        for i in range(n_layers):
+            texture_id, layer_flags = struct.unpack('<2I', layer_data[i * 8:(i + 1) * 8])
+            layers.append({
+                'texture_id': texture_id,
+                'flags': layer_flags,
+                'effect_id': 0  # Not present in Alpha
+            })
+    
+    # Parse liquid data if present
+    liquid_data = None
+    if len(data) > mclq_offset:
+        # Alpha liquid data format is simpler than retail
+        liquid_data = data[mclq_offset:]
+    
     return {
-        'flags': header[0],
-        'area_id': header[1],
-        'n_layers': header[2],
-        'n_doodad_refs': header[3],
+        'flags': flags,
+        'area_id': area_id,
+        'n_layers': n_layers,
+        'n_doodad_refs': n_doodad_refs,
+        'heights': heights,
+        'layers': layers,
+        'liquid_data': liquid_data,
         'offsets': {
-            'MCVT': 16,  # Heightmap starts after 16 byte header
-            'MCLY': 16 + (145 * 4),  # 145 float values (9x9 + 8x8 grid)
-            'MCRF': 16 + (145 * 4) + (header[2] * 8)  # Doodad refs after layers
+            'MCVT': mcvt_offset,
+            'MCLY': mcly_offset,
+            'MCRF': mcrf_offset,
+            'MCLQ': mclq_offset if liquid_data else 0
         }
     }
 
@@ -119,7 +154,6 @@ def parse_main(data, wdt_file=None):
                             'mcrf': mcnk_info.mcrf_offset,
                             'mcal': mcnk_info.mcal_offset,
                             'mcsh': mcnk_info.mcsh_offset,
-                            'mcmt': mcnk_info.mcmt_offset,
                             'mclq': mcnk_info.mclq_offset
                         }
                     }
@@ -383,7 +417,6 @@ def parse_mcnk(data):
         'mcrf': header.ofs_refs,
         'mcal': header.ofs_alpha,
         'mcsh': header.ofs_shadow,
-        'mcmt': header.mcmt_offset if hasattr(header, 'mcmt_offset') else 0,
         'mclq': header.ofs_liquid
     }
     
