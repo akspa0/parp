@@ -152,34 +152,81 @@ def analyze_wdt(filepath: str, db_path: str = "wdt_analysis.db") -> None:
                         
                         # Process ADT data
                         try:
-                            # Store ADT chunk offsets with enhanced information
-                            offsets = {
-                                'MHDR': 0,
-                                'MCIN': 0,
-                                'MTEX': 0,
-                                'MMDX': 0,
-                                'MMID': 0,
-                                'MWMO': 0,
-                                'MWID': 0,
-                                'MDDF': 0,
-                                'MODF': 0
-                            }
-                            
-                            # Get offsets from MCNK data if available
-                            if 'mcnk_data' in tile and 'offsets' in tile['mcnk_data']:
-                                mcnk_offsets = tile['mcnk_data']['offsets']
-                                for chunk_name, offset in mcnk_offsets.items():
-                                    if chunk_name.upper() in offsets:
-                                        offsets[chunk_name.upper()] = offset
-                            
-                            # Get additional offsets from tile data
-                            if 'offsets' in tile:
-                                for chunk_name, offset in tile['offsets'].items():
-                                    if chunk_name.upper() in offsets:
-                                        offsets[chunk_name.upper()] = offset
+                            # Store ADT chunk offsets with format-specific handling
+                            if is_alpha:
+                                # Alpha format has simpler chunk structure
+                                offsets = {
+                                    'MHDR': 0,  # Not used in Alpha
+                                    'MCIN': 0,  # Not used in Alpha
+                                    'MTEX': tile['offset'],  # MTEX starts at tile offset
+                                    'MMDX': 0,  # Not used in Alpha (uses MDNM instead)
+                                    'MMID': 0,  # Not used in Alpha
+                                    'MWMO': 0,  # Not used in Alpha (uses MONM instead)
+                                    'MWID': 0,  # Not used in Alpha
+                                    'MDDF': 0,  # Model placements handled differently in Alpha
+                                    'MODF': 0   # Model placements handled differently in Alpha
+                                }
+                                
+                                # Calculate MCNK offset (after MTEX)
+                                if 'mcnk_data' in tile:
+                                    mcnk_offset = tile['offset'] + 8  # Skip MTEX header
+                                    offsets['MCNK'] = mcnk_offset
+                                
+                                logging.info(f"Alpha format offsets for tile ({x}, {y}): MTEX={offsets['MTEX']}, MCNK={offsets.get('MCNK', 0)}")
+                            else:
+                                # Retail format offsets
+                                offsets = {
+                                    'MHDR': 0,
+                                    'MCIN': 0,
+                                    'MTEX': 0,
+                                    'MMDX': 0,
+                                    'MMID': 0,
+                                    'MWMO': 0,
+                                    'MWID': 0,
+                                    'MDDF': 0,
+                                    'MODF': 0
+                                }
+                                
+                                # Get offsets from MCNK data if available
+                                if 'mcnk_data' in tile and 'offsets' in tile['mcnk_data']:
+                                    mcnk_offsets = tile['mcnk_data']['offsets']
+                                    for chunk_name, offset in mcnk_offsets.items():
+                                        if chunk_name.upper() in offsets:
+                                            offsets[chunk_name.upper()] = offset
+                                
+                                # Get additional offsets from tile data
+                                if 'offsets' in tile:
+                                    for chunk_name, offset in tile['offsets'].items():
+                                        if chunk_name.upper() in offsets:
+                                            offsets[chunk_name.upper()] = offset
                             
                             print(f"Found chunk offsets for tile ({x}, {y}): {[k for k, v in offsets.items() if v > 0]}")
                             insert_adt_offsets(conn, wdt_id, x, y, offsets)
+                            
+                            # Get texture information first
+                            texture_info = {}
+                            if is_alpha:
+                                # For Alpha format, check MTEX chunks
+                                for chunk_ref, mtex_data in wdt.get_chunks_by_type('MTEX'):
+                                    mtex_info = parse_mtex(mtex_data)
+                                    if 'textures' in mtex_info:
+                                        for i, tex_path in enumerate(mtex_info['textures']):
+                                            texture_info[i] = {
+                                                'path': tex_path,
+                                                'flags': {'has_alpha': False, 'is_terrain': True}
+                                            }
+                                            # Insert texture info immediately
+                                            insert_texture(
+                                                conn, wdt_id, x, y,
+                                                tex_path,
+                                                i,  # layer_index
+                                                0,  # blend_mode (not in Alpha)
+                                                0,  # has_alpha (will be set by layer flags)
+                                                0,  # is_compressed (not in Alpha)
+                                                0,  # effect_id (not in Alpha)
+                                                0   # flags (will be set by layer flags)
+                                            )
+                                            logging.info(f"Inserted texture {tex_path} for tile ({x}, {y})")
                             
                             # Process MCNK data
                             if 'mcnk_data' in tile:
@@ -194,66 +241,45 @@ def analyze_wdt(filepath: str, db_path: str = "wdt_analysis.db") -> None:
                                     )
                                     mcnk = wdt.parse_mcnk(chunk_ref, is_alpha=is_alpha)
                                     
-                                    # Get texture information first
-                                    texture_info = {}
-                                    if is_alpha:
-                                        # For Alpha format, check MTEX chunks
-                                        for chunk_ref, mtex_data in wdt.get_chunks_by_type('MTEX'):
-                                            mtex_info = parse_mtex(mtex_data)
-                                            for i, tex_path in enumerate(mtex_info['textures']):
-                                                texture_info[i] = {
-                                                    'path': tex_path,
-                                                    'flags': {'has_alpha': False, 'is_terrain': True}
-                                                }
-                                    
                                     # Get MCNK header info
                                     if is_alpha:
-                                        mcnk_info = {
-                                            'flags': mcnk.header.flags,
-                                            'n_layers': mcnk.header.n_layers,
-                                            'n_doodad_refs': mcnk.header.n_doodad_refs,
-                                            'mcvt_offset': mcnk.mcvt_offset,
-                                            'mcnr_offset': 0,  # Not in Alpha
-                                            'mcly_offset': mcnk.mcly_offset,
-                                            'mcrf_offset': mcnk.mcrf_offset,
-                                            'mcal_offset': 0,  # Not in Alpha
-                                            'mcsh_offset': 0,  # Not in Alpha
-                                            'mclq_offset': mcnk.mclq_offset,
-                                            'area_id': mcnk.header.area_id,
-                                            'holes': 0,  # Not in Alpha
-                                            'liquid_size': 0,  # Will be calculated from actual data
-                                            'is_alpha': True,
-                                            'textures': texture_info  # Add texture info
-                                        }
+                                        mcvt_offset = mcnk.mcvt_offset
+                                        mcly_offset = mcnk.mcly_offset
+                                        mcrf_offset = mcnk.mcrf_offset
+                                        mclq_offset = mcnk.mclq_offset
                                     else:
-                                        mcnk_info = {
-                                            'flags': mcnk.header.flags,
-                                            'n_layers': mcnk.header.n_layers,
-                                            'n_doodad_refs': mcnk.header.n_doodad_refs,
-                                            'mcvt_offset': mcnk.header.ofs_height,
-                                            'mcnr_offset': mcnk.header.ofs_normal,
-                                            'mcly_offset': mcnk.header.ofs_layer,
-                                            'mcrf_offset': mcnk.header.ofs_refs,
-                                            'mcal_offset': mcnk.header.ofs_alpha,
-                                            'mcsh_offset': mcnk.header.ofs_shadow,
-                                            'mclq_offset': mcnk.header.ofs_liquid,
-                                            'area_id': mcnk.header.area_id,
-                                            'holes': mcnk.header.holes_low_res,
-                                            'liquid_size': mcnk.header.size_liquid,
-                                            'is_alpha': False,
-                                            'textures': texture_info  # Add texture info
-                                        }
+                                        mcvt_offset = mcnk.header.ofs_height
+                                        mcly_offset = mcnk.header.ofs_layer
+                                        mcrf_offset = mcnk.header.ofs_refs
+                                        mclq_offset = mcnk.header.ofs_liquid
+
+                                    mcnk_info = {
+                                        'flags': mcnk.header.flags,
+                                        'n_layers': mcnk.header.n_layers,
+                                        'n_doodad_refs': mcnk.header.n_doodad_refs,
+                                        'mcvt_offset': mcvt_offset,
+                                        'mcnr_offset': 0 if is_alpha else mcnk.header.ofs_normal,
+                                        'mcly_offset': mcly_offset,
+                                        'mcrf_offset': mcrf_offset,
+                                        'mcal_offset': 0 if is_alpha else mcnk.header.ofs_alpha,
+                                        'mcsh_offset': 0 if is_alpha else mcnk.header.ofs_shadow,
+                                        'mclq_offset': mclq_offset,
+                                        'area_id': mcnk.header.area_id,
+                                        'holes': 0 if is_alpha else mcnk.header.holes_low_res,
+                                        'liquid_size': 0 if is_alpha else mcnk.header.size_liquid,
+                                        'is_alpha': is_alpha
+                                    }
                                     
                                     mcnk_id = insert_tile_mcnk(conn, wdt_id, x, y, mcnk_info)
                                     
                                     try:
-                                        # Process height map using enhanced methods
+                                        # Process height map (145 floats for Alpha)
                                         height_map = mcnk.get_height_map()
                                         if height_map:
                                             insert_height_map(conn, mcnk_id, height_map)
                                             logging.info(f"Inserted height map data for tile ({x}, {y})")
                                         
-                                        # Process layers and textures
+                                        # Process layers (8-byte format for Alpha)
                                         layers = mcnk.get_layer_info()
                                         if layers:
                                             for i, layer in enumerate(layers):
@@ -262,41 +288,44 @@ def analyze_wdt(filepath: str, db_path: str = "wdt_analysis.db") -> None:
                                                     conn, mcnk_id, i,
                                                     layer['texture_id'],
                                                     layer['flags'],
-                                                    layer['effect_id']
+                                                    0  # effect_id not present in Alpha
                                                 )
                                                 
                                                 # Insert texture info
-                                                texture_path = f"tileset_{layer['texture_id']:03d}"  # Default name if not found
+                                                texture_path = f"tileset_{layer['texture_id']:03d}"  # Default name
                                                 if 'textures' in mcnk_info and layer['texture_id'] in mcnk_info['textures']:
                                                     texture_info = mcnk_info['textures'][layer['texture_id']]
                                                     texture_path = texture_info.get('path', texture_path)
+                                                
+                                                # Alpha format texture flags
+                                                has_alpha = bool(layer['flags'] & 0x1)  # First bit indicates alpha
+                                                is_terrain = bool(layer['flags'] & 0x2)  # Second bit for terrain
                                                 
                                                 insert_texture(
                                                     conn, wdt_id, x, y,
                                                     texture_path,
                                                     i,  # layer_index
                                                     0,  # blend_mode (not in Alpha)
-                                                    1 if layer['flags'] & 0x1 else 0,  # has_alpha
+                                                    1 if has_alpha else 0,
                                                     0,  # is_compressed (not in Alpha)
-                                                    layer['effect_id'],
+                                                    0,  # effect_id (not in Alpha)
                                                     layer['flags']
                                                 )
                                             logging.info(f"Inserted {len(layers)} layers for tile ({x}, {y})")
                                         
-                                        # Process liquid data using enhanced methods
+                                        # Process liquid data (Alpha format)
                                         liquid_info = mcnk.get_liquid_data()
                                         if liquid_info:
                                             liquid_type, liquid_heights = liquid_info
-                                            # Map flags to liquid types for Alpha format
-                                            if is_alpha and isinstance(mcnk.header.flags, int):
-                                                if mcnk.header.flags & 0x4:  # RIVER
-                                                    liquid_type = 1  # Water
-                                                elif mcnk.header.flags & 0x8:  # OCEAN
-                                                    liquid_type = 2  # Ocean
-                                                elif mcnk.header.flags & 0x10:  # MAGMA
-                                                    liquid_type = 3  # Magma
-                                                elif mcnk.header.flags & 0x20:  # SLIME
-                                                    liquid_type = 4  # Slime
+                                            # Map flags to liquid types for Alpha
+                                            if mcnk.header.flags & 0x4:  # RIVER
+                                                liquid_type = 1  # Water
+                                            elif mcnk.header.flags & 0x8:  # OCEAN
+                                                liquid_type = 2  # Ocean
+                                            elif mcnk.header.flags & 0x10:  # MAGMA
+                                                liquid_type = 3  # Magma
+                                            elif mcnk.header.flags & 0x20:  # SLIME
+                                                liquid_type = 4  # Slime
                                             insert_liquid_data(conn, mcnk_id, liquid_type, liquid_heights)
                                             logging.info(f"Inserted liquid data for tile ({x}, {y})")
                                     except Exception as e:
@@ -306,7 +335,7 @@ def analyze_wdt(filepath: str, db_path: str = "wdt_analysis.db") -> None:
                         except Exception as e:
                             logging.error(f"Failed to process ADT data at ({x}, {y}): {e}")
             
-            print(f"Found {active_tiles} active map tiles")
+            print(f"\nProcessed {active_tiles} active map tiles")
             
             # Fourth pass: Process models and textures
             print("\nPhase 4: Processing assets...")
@@ -345,7 +374,6 @@ def analyze_wdt(filepath: str, db_path: str = "wdt_analysis.db") -> None:
                         wmo_model_ids.append(model_id)
             
             # Process model placements
-            m2_count = 0
             for chunk_ref, data in wdt.get_chunks_by_type('MDDF'):
                 mddf_info = parse_mddf(data)
                 for entry in mddf_info['entries']:
@@ -366,23 +394,13 @@ def analyze_wdt(filepath: str, db_path: str = "wdt_analysis.db") -> None:
                         entry['scale'],
                         entry['flags']
                     )
-                    m2_count += 1
-            
-            if m2_count > 0:
-                print(f"Processed {m2_count} M2 model placements")
             
             # Process WMO placements
-            wmo_count = 0
             print("\nProcessing WMO models...")
             for chunk_ref, data in wdt.get_chunks_by_type('MODF'):
                 try:
                     modf_info = parse_modf(data)
-                    total_entries = len(modf_info['entries'])
-                    
-                    for i, entry in enumerate(modf_info['entries'], 1):
-                        if i % 100 == 0:
-                            print(f"Processing WMO model {i}/{total_entries}...", end='\r')
-                            
+                    for entry in modf_info['entries']:
                         try:
                             # Calculate tile coordinates
                             tile_x = int(entry['position']['x'] / 533.33333)
@@ -437,97 +455,21 @@ def analyze_wdt(filepath: str, db_path: str = "wdt_analysis.db") -> None:
                                 bounds_min_tuple,
                                 bounds_max_tuple
                             )
-                            wmo_count += 1
                             
                         except Exception as e:
-                            logging.error(f"Error processing WMO placement {i}: {e}")
+                            logging.error(f"Error processing WMO placement: {e}")
                             continue
                             
                 except Exception as e:
                     logging.error(f"Error processing MODF chunk: {e}")
                     continue
             
-            if wmo_count > 0:
-                print(f"Processed {wmo_count} WMO model placements")
-            
-            write_visualization_to_file(grid)
-            
-            # Gather statistics
-            print("\nGathering statistics...")
-            cursor = conn.cursor()
-            
-            # Count unique models and placements
-            cursor.execute('''
-                SELECT COUNT(DISTINCT model_path) as unique_models,
-                       COUNT(DISTINCT p.id) as placements
-                FROM m2_models m
-                LEFT JOIN m2_placements p ON m.id = p.model_id
-                WHERE m.wdt_id = ?
-            ''', (wdt_id,))
-            m2_stats = cursor.fetchone()
-            
-            cursor.execute('''
-                SELECT COUNT(DISTINCT model_path) as unique_models,
-                       COUNT(DISTINCT p.id) as placements
-                FROM wmo_models m
-                LEFT JOIN wmo_placements p ON m.id = p.model_id
-                WHERE m.wdt_id = ?
-            ''', (wdt_id,))
-            wmo_stats = cursor.fetchone()
-            
-            cursor.execute('''
-                SELECT COUNT(DISTINCT texture_path)
-                FROM wdt_textures
-                WHERE wdt_id = ?
-            ''', (wdt_id,))
-            texture_count = cursor.fetchone()[0]
-            
-            # Get per-tile statistics
-            cursor.execute('''
-                SELECT t.tile_x, t.tile_y,
-                       COUNT(DISTINCT m2.model_path) as m2_models,
-                       COUNT(DISTINCT wmo.model_path) as wmo_models,
-                       COUNT(DISTINCT tex.texture_path) as textures,
-                       COUNT(DISTINCT m2p.id) as m2_placements,
-                       COUNT(DISTINCT wmop.id) as wmo_placements
-                FROM map_tiles t
-                LEFT JOIN m2_placements m2p ON t.wdt_id = m2p.wdt_id AND t.tile_x = m2p.tile_x AND t.tile_y = m2p.tile_y
-                LEFT JOIN m2_models m2 ON m2p.model_id = m2.id
-                LEFT JOIN wmo_placements wmop ON t.wdt_id = wmop.wdt_id AND t.tile_x = wmop.tile_x AND t.tile_y = wmop.tile_y
-                LEFT JOIN wmo_models wmo ON wmop.model_id = wmo.id
-                LEFT JOIN wdt_textures tex ON t.wdt_id = tex.wdt_id AND t.tile_x = tex.tile_x AND t.tile_y = tex.tile_y
-                WHERE t.wdt_id = ?
-                GROUP BY t.tile_x, t.tile_y
-            ''', (wdt_id,))
-            tile_stats = cursor.fetchall()
-            
-            # Output results
-            print("\nAnalysis Complete!")
-            print("=" * 50)
             print(f"Format: {'Alpha' if is_alpha else 'Retail'} WDT")
             print(f"Database: {db_path}")
-            print("\nOverall Statistics:")
-            print(f"Active Tiles: {active_tiles}")
-            print(f"M2 Models: {m2_stats[0]} unique models with {m2_stats[1]} placements")
-            print(f"WMO Models: {wmo_stats[0]} unique models with {wmo_stats[1]} placements")
-            print(f"Unique Textures: {texture_count}")
+            print(f"Errors logged to: {log_filename}")
             
-            if tile_stats:
-                print("\nPer-Tile Summary (max counts):")
-                max_m2_models = max(s[2] for s in tile_stats)
-                max_wmo_models = max(s[3] for s in tile_stats)
-                max_textures = max(s[4] for s in tile_stats)
-                max_m2_placements = max(s[5] for s in tile_stats)
-                max_wmo_placements = max(s[6] for s in tile_stats)
-                print(f"  M2 Models: {max_m2_models}")
-                print(f"  WMO Models: {max_wmo_models}")
-                print(f"  Textures: {max_textures}")
-                print(f"  M2 Placements: {max_m2_placements}")
-                print(f"  WMO Placements: {max_wmo_placements}")
-            
-            print(f"\nChunk Order: {', '.join(chunk_order)}")
-            if os.path.exists(log_filename) and os.path.getsize(log_filename) > 0:
-                print(f"Errors logged to: {log_filename}")
+            # Write visualization to file
+            write_visualization_to_file(grid)
             
     except Exception as e:
         logging.error(f"Error analyzing WDT file: {e}")
