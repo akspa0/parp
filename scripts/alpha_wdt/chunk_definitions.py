@@ -4,6 +4,38 @@ import math
 from adt_parser.mcnk_decoders import MCNKHeader, MCNKFlags, ADTChunkRef
 from adt_parser.texture_decoders import TextureManager, TextureDecoder
 
+# Alpha WDT specific parsers
+def parse_alpha_mcnk(data):
+    """Parse Alpha version MCNK chunk (Map Chunk)"""
+    header = struct.unpack('<4I', data[:16])  # Simplified alpha header
+    return {
+        'flags': header[0],
+        'area_id': header[1],
+        'n_layers': header[2],
+        'n_doodad_refs': header[3],
+        'offsets': {
+            'MCVT': 16,  # Heightmap data starts immediately after header
+            'MCLY': 16 + (145 * 4),  # 145 floats (9x9 + 8x8 grid)
+            'MCRF': 16 + (145 * 4) + (header[2] * 8)  # Layer data
+        }
+    }
+
+def parse_alpha_mcnk(data):
+    """Parse Alpha-specific MCNK chunk (Map Chunk)"""
+    # Reference: https://wowdev.wiki/Alpha#MCNK
+    header = struct.unpack('<4I', data[:16])
+    return {
+        'flags': header[0],
+        'area_id': header[1],
+        'n_layers': header[2],
+        'n_doodad_refs': header[3],
+        'offsets': {
+            'MCVT': 16,  # Heightmap starts after 16 byte header
+            'MCLY': 16 + (145 * 4),  # 145 float values (9x9 + 8x8 grid)
+            'MCRF': 16 + (145 * 4) + (header[2] * 8)  # Doodad refs after layers
+        }
+    }
+
 def parse_mver(data):
     """Parse MVER (Version) chunk"""
     version = struct.unpack('<I', data[:4])[0]
