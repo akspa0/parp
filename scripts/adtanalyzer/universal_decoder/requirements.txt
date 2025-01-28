@@ -1,0 +1,11 @@
+# Core dependencies
+pathlib>=1.0.1
+typing>=3.7.4.3
+
+# Database
+sqlite3>=3.35.0  # For modern SQLite features like JSON functions
+
+# Development dependencies
+pytest>=7.0.0  # For testing
+black>=22.0.0  # For code formatting
+mypy>=0.950  # For type checking
