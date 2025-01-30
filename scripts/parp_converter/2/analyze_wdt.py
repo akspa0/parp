@@ -10,7 +10,7 @@ from typing import Dict, List, Optional, Set, Tuple, BinaryIO
 from chunk_definitions import (
     parse_mver, parse_mphd, parse_main, parse_mdnm, parse_monm,
     parse_mhdr, parse_mcin, parse_mtex, parse_mddf, parse_modf, parse_mwmo,
-    parse_mwid, parse_mmdx, parse_mmid
+    parse_mwid, parse_mmdx, parse_mmid, parse_mcnk
 )
 from chunk_handler import WDTFile
 
@@ -178,7 +178,23 @@ def analyze_tile_chunks(wdt: WDTFile, tile: TileDefinition):
         chunk_name = chunk_name_raw[::-1].decode('ascii', 'ignore') if wdt.reverse_names else chunk_name_raw.decode('ascii', 'ignore')
         chunk_size = struct.unpack('<I', wdt.mm[pos+4:pos+8])[0]
         
-        tile.chunks[chunk_name] = (pos + 8, chunk_size)  # Store data offset and size
+        if chunk_name == 'MCIN':
+            # Parse MCIN to get MCNK offsets
+            mcin_data = wdt.mm[pos+8:pos+8+chunk_size]
+            mcin_info = parse_mcin(mcin_data)
+            
+            # Store MCNK chunks using offsets from MCIN
+            for entry in mcin_info['entries']:
+                mcnk_offset = tile.offset + entry['offset']
+                if mcnk_offset + 8 <= len(wdt.mm):
+                    mcnk_name_raw = wdt.mm[mcnk_offset:mcnk_offset+4]
+                    mcnk_name = mcnk_name_raw[::-1].decode('ascii', 'ignore') if wdt.reverse_names else mcnk_name_raw.decode('ascii', 'ignore')
+                    if mcnk_name == 'MCNK':
+                        mcnk_size = struct.unpack('<I', wdt.mm[mcnk_offset+4:mcnk_offset+8])[0]
+                        tile.chunks[f"{mcnk_name}_{len(tile.chunks)}"] = (mcnk_offset + 8, mcnk_size)
+        else:
+            tile.chunks[chunk_name] = (pos + 8, chunk_size)  # Store data offset and size
+        
         pos += 8 + chunk_size
 
 def process_tile(wdt: WDTFile, tile: TileDefinition, output_dir: str, base_name: str, file_format: FileFormat, model_names: Dict[str, List[str]]):
@@ -226,6 +242,76 @@ def process_tile(wdt: WDTFile, tile: TileDefinition, output_dir: str, base_name:
                 if 0 <= model_id < len(model_names['wmo']):
                     entry['model_name'] = model_names['wmo'][model_id]
                 tile_data['placements']['wmo'].append(entry)
+        
+        elif chunk_name.startswith('MCNK_') and file_format == FileFormat.ALPHA:
+            try:
+                # Use our enhanced MCNK parser
+                mcnk_data = parse_mcnk(chunk_data)
+                
+                # Initialize tile terrain data if not present
+                if 'terrain' not in tile_data:
+                    tile_data['terrain'] = {
+                        'chunks': {},  # Indexed by chunk coordinates
+                        'layers': [],  # Texture layers
+                        'alpha_maps': [],  # Alpha maps for blending
+                        'sound_emitters': [],  # Sound emitter data
+                        'holes': [],  # Terrain holes
+                        'texture_maps': [],  # Low quality texture maps
+                        'doodad_maps': []  # Doodad effect maps
+                    }
+                
+                # Get chunk coordinates
+                chunk_x = mcnk_data['position']['x']
+                chunk_y = mcnk_data['position']['y']
+                chunk_key = f"{chunk_x}_{chunk_y}"
+                
+                # Store chunk data organized by coordinates
+                tile_data['terrain']['chunks'][chunk_key] = {
+                    'position': mcnk_data['position'],
+                    'flags': mcnk_data['flags_decoded'],
+                    'area_id': mcnk_data['area_id']
+                }
+                
+                # Store layer data
+                if mcnk_data['layers']['data']:
+                    tile_data['terrain']['layers'].extend(mcnk_data['layers']['data'])
+                
+                # Store alpha maps
+                if mcnk_data['alpha_maps']:
+                    for alpha_map in mcnk_data['alpha_maps']:
+                        alpha_map['chunk_coords'] = {'x': chunk_x, 'y': chunk_y}
+                        tile_data['terrain']['alpha_maps'].append(alpha_map)
+                
+                # Store sound emitters
+                if mcnk_data['sound_emitters']['data']:
+                    for emitter in mcnk_data['sound_emitters']['data']:
+                        emitter['chunk_coords'] = {'x': chunk_x, 'y': chunk_y}
+                        tile_data['terrain']['sound_emitters'].append(emitter)
+                
+                # Store holes data
+                if mcnk_data['holes']:
+                    hole_data = mcnk_data['holes'].copy()
+                    hole_data['chunk_coords'] = {'x': chunk_x, 'y': chunk_y}
+                    tile_data['terrain']['holes'].append(hole_data)
+                
+                # Store texture map
+                if mcnk_data['texture_map']:
+                    tex_map_data = {
+                        'chunk_coords': {'x': chunk_x, 'y': chunk_y},
+                        'data': mcnk_data['texture_map']
+                    }
+                    tile_data['terrain']['texture_maps'].append(tex_map_data)
+                
+                # Store doodad map
+                if mcnk_data['doodad_map']:
+                    doodad_map_data = {
+                        'chunk_coords': {'x': chunk_x, 'y': chunk_y},
+                        'data': mcnk_data['doodad_map']
+                    }
+                    tile_data['terrain']['doodad_maps'].append(doodad_map_data)
+                
+            except Exception as e:
+                logging.error(f"Error processing MCNK chunk in tile ({tile.x}, {tile.y}): {e}")
     
     # Write tile data to JSON
     tile_file = os.path.join(output_dir, f"{base_name}_{tile.x:02d}_{tile.y:02d}.json")

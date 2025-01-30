@@ -206,10 +206,20 @@ def decode_mcal(data: bytes, offset: int, size: int, mcnk_flags: int = 0) -> Dic
     if size == 0:
         return {"alpha_maps": alpha_maps}
 
-    current_pos = offset
-    while current_pos < offset + size:
+    current_pos = 0
+    max_iterations = 1000  # Safety limit to prevent infinite loops
+    iteration_count = 0
+    
+    while current_pos < size and current_pos < len(data):
+        # Check iteration limit
+        iteration_count += 1
+        if iteration_count > max_iterations:
+            logging.warning(f"MCAL decode exceeded max iterations ({max_iterations}), possible corrupted data")
+            break
+            
         # Check for compression header
-        if current_pos + 1 <= len(data):
+        if current_pos + 1 >= len(data):
+            break
             command = data[current_pos]
             is_compressed = bool(command & 0x80)
             count = command & 0x7F

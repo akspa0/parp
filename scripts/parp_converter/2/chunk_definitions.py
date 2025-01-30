@@ -1,6 +1,32 @@
 import struct
 import logging
 import math
+from enum import IntFlag
+
+class MCLYFlags(IntFlag):
+    """MCLY chunk flags"""
+    ANIMATION_ROTATION = 0x7       # 3 bits - each tick is 45°
+    ANIMATION_SPEED = 0x38        # 3 bits (shifted by 3)
+    ANIMATION_ENABLED = 0x40      # 1 bit
+    OVERBRIGHT = 0x80            # Makes texture brighter (used for lava)
+    USE_ALPHA_MAP = 0x100        # Set for every layer after first
+    ALPHA_COMPRESSED = 0x200     # Indicates compressed alpha map
+    USE_CUBE_MAP_REFLECTION = 0x400  # Makes layer reflect skybox
+    UNKNOWN_800 = 0x800          # WoD+ texture scale related
+    UNKNOWN_1000 = 0x1000        # WoD+ texture scale related
+
+class MCNKFlags(IntFlag):
+    """MCNK chunk flags"""
+    HAS_MCSH = 0x1
+    IMPASS = 0x2
+    LQ_RIVER = 0x4
+    LQ_OCEAN = 0x8
+    LQ_MAGMA = 0x10
+    LQ_SLIME = 0x20
+    HAS_MCCV = 0x40
+    UNKNOWN_0X80 = 0x80
+    HIGH_RES_HOLES = 0x8000
+    DO_NOT_FIX_ALPHA_MAP = 0x10000
 
 def parse_mver(data):
     """Parse MVER (Version) chunk"""
@@ -207,38 +233,281 @@ def parse_monm(data):
     return {'names': object_names}
 
 def parse_mcnk(data):
-    """Parse MCNK (Map Chunk) chunk"""
+    """Parse MCNK (Map Chunk) chunk with all subchunks"""
     if len(data) < 128:
         logging.warning(f"MCNK chunk too small: {len(data)} bytes")
         return {'error': 'Insufficient data'}
     
+    # Parse header
     flags = struct.unpack('<I', data[0:4])[0]
     idx_x = struct.unpack('<I', data[4:8])[0]
     idx_y = struct.unpack('<I', data[8:12])[0]
-    layers = struct.unpack('<I', data[12:16])[0]
-    doodad_refs = struct.unpack('<I', data[16:20])[0]
+    n_layers = struct.unpack('<I', data[12:16])[0]
+    n_doodad_refs = struct.unpack('<I', data[16:20])[0]
     
-    flags_decoded = {
-        'has_mcsh': bool(flags & 0x1),
-        'impassable': bool(flags & 0x2),
-        'river': bool(flags & 0x4),
-        'ocean': bool(flags & 0x8),
-        'magma': bool(flags & 0x10),
-        'slime': bool(flags & 0x20),
-        'has_vertex_colors': bool(flags & 0x40)
-    }
+    # Handle high_res_holes flag
+    if flags & MCNKFlags.HIGH_RES_HOLES:
+        holes_high_res = struct.unpack('<Q', data[20:28])[0]
+        ofs_height = None
+        ofs_normal = None
+    else:
+        holes_high_res = None
+        ofs_height = struct.unpack('<I', data[20:24])[0]
+        ofs_normal = struct.unpack('<I', data[24:28])[0]
     
-    logging.info(f"MCNK Chunk: Position ({idx_x}, {idx_y})")
-    logging.info(f"  Layers: {layers}, Doodad refs: {doodad_refs}")
-    for flag_name, flag_value in flags_decoded.items():
-        if flag_value:
-            logging.info(f"  {flag_name}: {flag_value}")
+    # Parse remaining offsets
+    ofs_layer = struct.unpack('<I', data[28:32])[0]
+    ofs_refs = struct.unpack('<I', data[32:36])[0]
+    ofs_alpha = struct.unpack('<I', data[36:40])[0]
+    size_alpha = struct.unpack('<I', data[40:44])[0]
+    ofs_shadow = struct.unpack('<I', data[44:48])[0]
+    size_shadow = struct.unpack('<I', data[48:52])[0]
+    area_id = struct.unpack('<I', data[52:56])[0]
+    n_map_obj_refs = struct.unpack('<I', data[56:60])[0]
+    holes_low_res = struct.unpack('<H', data[60:62])[0]
+    unknown_but_used = struct.unpack('<H', data[62:64])[0]
     
-    return {
-        'flags': flags_decoded,
-        'position': {'x': idx_x, 'y': idx_y},
-        'layers': layers,
-        'doodad_refs': doodad_refs
+    # Parse MCLV offset (vertex lighting) if present in extended header
+    try:
+        ofs_mclv = struct.unpack('<I', data[128:132])[0]
+    except:
+        ofs_mclv = 0
+    
+    # Parse texture and doodad maps
+    tex_map_data = data[64:80]  # 16 bytes for 8x8 2-bit values
+    doodad_map_data = data[80:96]  # 16 bytes for 8x8 1-bit values
+    
+    # Parse low quality texture map
+    low_quality_texture_map = []
+    for row in range(8):
+        row_values = []
+        for col in range(8):
+            byte_idx = (row * 8 + col) // 4
+            bit_offset = ((row * 8 + col) % 4) * 2
+            value = (tex_map_data[byte_idx] >> bit_offset) & 0x3
+            row_values.append(value)
+        low_quality_texture_map.append(row_values)
+    
+    # Parse doodad effect map
+    no_effect_doodad = []
+    for row in range(8):
+        row_values = []
+        for col in range(8):
+            byte_idx = (row * 8 + col) // 8
+            bit_offset = (row * 8 + col) % 8
+            value = bool(doodad_map_data[byte_idx] & (1 << bit_offset))
+            row_values.append(value)
+        no_effect_doodad.append(row_values)
+    
+    # Parse sound emitters
+    ofs_snd_emitters = struct.unpack('<I', data[96:100])[0]
+    n_snd_emitters = struct.unpack('<I', data[100:104])[0]
+    ofs_liquid = struct.unpack('<I', data[104:108])[0]
+    size_liquid = struct.unpack('<I', data[108:112])[0]
+    position = struct.unpack('<fff', data[112:124])
+    ofs_mccv = struct.unpack('<I', data[124:128])[0]
+    
+    # Parse MCLY (Material Layer) chunk if present
+    layers = []
+    if ofs_layer and n_layers > 0:
+        try:
+            from adt_parser.mcnk_subchunk_decoders import decode_mcly
+            layer_size = n_layers * 16
+            layer_data = data[ofs_layer:ofs_layer + layer_size]
+            mcly_result = decode_mcly(layer_data, 0, layer_size)
+            layers = mcly_result["layers"]
+        except Exception as e:
+            logging.warning(f"Error decoding MCLY chunk: {e}")
+            # Fallback to original layer parsing if the enhanced decoder fails
+            layer_data = data[ofs_layer:ofs_layer + layer_size]
+            for i in range(n_layers):
+                base = i * 16
+                if base + 16 > len(layer_data):
+                    break
+                texture_id, flags, alpha_offset, effect_id = struct.unpack('<4I', layer_data[base:base + 16])
+                layer = {
+                    "textureId": texture_id,
+                    "flags": {
+                        "raw_value": flags,
+                        "animation_rotation": flags & 0x7,
+                        "animation_speed": (flags >> 3) & 0x7,
+                        "animation_enabled": bool(flags & 0x40),
+                        "overbright": bool(flags & 0x80),
+                        "use_alpha_map": bool(flags & 0x100),
+                        "alpha_compressed": bool(flags & 0x200),
+                        "use_cube_map_reflection": bool(flags & 0x400),
+                        "unknown_0x800": bool(flags & 0x800),
+                        "unknown_0x1000": bool(flags & 0x1000)
+                    },
+                    "alpha_map_offset": alpha_offset,
+                    "effect_id": effect_id
+                }
+                layers.append(layer)
+    
+    # Parse MCAL (Alpha Map) chunk if present
+    alpha_maps = []
+    if ofs_alpha and size_alpha > 0:
+        try:
+            from adt_parser.mcnk_subchunk_decoders import decode_mcal
+            alpha_data = data[ofs_alpha:ofs_alpha + size_alpha]
+            alpha_result = decode_mcal(alpha_data, 0, size_alpha, flags)
+            alpha_maps = alpha_result["alpha_maps"]
+        except Exception as e:
+            logging.warning(f"Error decoding MCAL chunk: {e}")
+            # Fallback to original alpha map parsing if the enhanced decoder fails
+            alpha_data = data[ofs_alpha:ofs_alpha + size_alpha]
+            current_pos = 0
+            while current_pos < size_alpha:
+                if current_pos + 1 > len(alpha_data):
+                    break
+                command = alpha_data[current_pos]
+                is_compressed = bool(command & 0x80)
+                count = command & 0x7F
+                
+                if is_compressed:
+                    if current_pos + 2 <= len(alpha_data):
+                        value = alpha_data[current_pos + 1]
+                        alpha_map = [value] * count
+                        current_pos += 2
+                    else:
+                        break
+                else:
+                    if current_pos + 1 + count <= len(alpha_data):
+                        alpha_map = list(alpha_data[current_pos + 1:current_pos + 1 + count])
+                        current_pos += 1 + count
+                    else:
+                        break
+                
+                # Convert to 64x64 grid if we have enough data
+                if len(alpha_map) >= 4096:
+                    grid = []
+                    do_not_fix = bool(flags & MCNKFlags.DO_NOT_FIX_ALPHA_MAP)
+                    for y in range(64 if not do_not_fix else 63):
+                        row = []
+                        for x in range(64 if not do_not_fix else 63):
+                            idx = y * 64 + x
+                            if idx < len(alpha_map):
+                                row.append(alpha_map[idx])
+                            else:
+                                row.append(0)
+                        if do_not_fix:
+                            row.append(row[-1])  # Duplicate last value
+                        grid.append(row)
+                    
+                    if do_not_fix:
+                        grid.append(grid[-1][:])  # Duplicate last row
+                    
+                    alpha_maps.append({
+                        "format": "compressed" if is_compressed else "uncompressed",
+                        "data": grid,
+                        "compressed": is_compressed
+                    })
+    
+    # Parse MCSE (Sound Emitters) chunk if present
+    emitters = []
+    if ofs_snd_emitters and n_snd_emitters > 0:
+        try:
+            from adt_parser.mcnk_subchunk_decoders import decode_mcse
+            emitter_size = n_snd_emitters * 28
+            emitter_data = data[ofs_snd_emitters:ofs_snd_emitters + emitter_size]
+            mcse_result = decode_mcse(emitter_data, 0, emitter_size)
+            emitters = mcse_result["emitters"]
+        except Exception as e:
+            logging.warning(f"Error decoding MCSE chunk: {e}")
+            # Fallback to original emitter parsing if the enhanced decoder fails
+            emitter_data = data[ofs_snd_emitters:ofs_snd_emitters + emitter_size]
+            for i in range(n_snd_emitters):
+                base = i * 28
+                if base + 28 > len(emitter_data):
+                    break
+                emitter_id, position_x, position_y, position_z, size_min, size_max, flags = struct.unpack('<I6f', emitter_data[base:base + 28])
+                emitter = {
+                    "emitter_id": emitter_id,
+                    "position": {
+                        "x": position_x,
+                        "y": position_y,
+                        "z": position_z
+                    },
+                    "size": {
+                        "min": size_min,
+                        "max": size_max
+                    },
+                    "flags": flags
+                }
+                emitters.append(emitter)
+    
+    # Parse MCLV (Vertex Lighting) chunk if present
+    vertex_lighting = None
+    if ofs_mclv > 0 and ofs_mclv + 64 <= len(data):
+        try:
+            # MCLV contains 4x4 grid of lighting values
+            mclv_data = data[ofs_mclv:ofs_mclv + 64]  # 4x4 grid * 4 bytes per value
+            lighting_grid = []
+            for y in range(4):
+                row = []
+                for x in range(4):
+                    idx = (y * 4 + x) * 4
+                    value = struct.unpack('<f', mclv_data[idx:idx + 4])[0]
+                    row.append(value)
+                lighting_grid.append(row)
+            vertex_lighting = {
+                'grid': lighting_grid
+            }
+        except Exception as e:
+            logging.warning(f"Error parsing MCLV chunk: {e}")
+    
+    # Compile all data
+    result = {
+        'flags': flags,
+        'flags_decoded': {
+            'has_mcsh': bool(flags & MCNKFlags.HAS_MCSH),
+            'impassable': bool(flags & MCNKFlags.IMPASS),
+            'river': bool(flags & MCNKFlags.LQ_RIVER),
+            'ocean': bool(flags & MCNKFlags.LQ_OCEAN),
+            'magma': bool(flags & MCNKFlags.LQ_MAGMA),
+            'slime': bool(flags & MCNKFlags.LQ_SLIME),
+            'has_vertex_colors': bool(flags & MCNKFlags.HAS_MCCV),
+            'high_res_holes': bool(flags & MCNKFlags.HIGH_RES_HOLES),
+            'do_not_fix_alpha_map': bool(flags & MCNKFlags.DO_NOT_FIX_ALPHA_MAP)
+        },
+        'position': {
+            'x': idx_x,
+            'y': idx_y,
+            'world': {'x': position[0], 'y': position[1], 'z': position[2]}
+        },
+        'layers': {
+            'count': n_layers,
+            'data': layers
+        },
+        'alpha_maps': alpha_maps,
+        'sound_emitters': {
+            'count': n_snd_emitters,
+            'data': emitters
+        },
+        'area_id': area_id,
+        'holes': {
+            'high_res': holes_high_res,
+            'low_res': holes_low_res
+        },
+        'texture_map': low_quality_texture_map,
+        'doodad_map': no_effect_doodad,
+        'offsets': {
+            'height': ofs_height,
+            'normal': ofs_normal,
+            'layer': ofs_layer,
+            'refs': ofs_refs,
+            'alpha': ofs_alpha,
+            'shadow': ofs_shadow,
+            'liquid': ofs_liquid,
+            'vertex_colors': ofs_mccv,
+            'vertex_lighting': ofs_mclv
+        },
+        'sizes': {
+            'alpha': size_alpha,
+            'shadow': size_shadow,
+            'liquid': size_liquid
+        },
+        'vertex_lighting': vertex_lighting
     }
 
 def parse_mhdr(data):
