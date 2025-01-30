@@ -2,16 +2,21 @@ import os
 import json
 import struct
 import logging
+from enum import Enum
 from datetime import datetime
 from pathlib import Path
 from dataclasses import dataclass, asdict
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple, BinaryIO
 from chunk_definitions import (
     parse_mver, parse_mphd, parse_main, parse_mdnm, parse_monm,
     parse_mhdr, parse_mcin, parse_mtex, parse_mddf, parse_modf, parse_mwmo,
     parse_mwid, parse_mmdx, parse_mmid
 )
 from chunk_handler import WDTFile
+
+class FileFormat(Enum):
+    ALPHA = "alpha"
+    RETAIL = "retail"
 
 @dataclass
 class TileDefinition:
@@ -25,6 +30,26 @@ class TileDefinition:
 
     def __post_init__(self):
         self.chunks = {}
+
+def detect_format(wdt: WDTFile) -> FileFormat:
+    """Detect file format based on chunk signatures"""
+    # Scan for Alpha-specific chunks (MDNM/MONM)
+    has_mdnm = False
+    has_monm = False
+    
+    for chunk_ref, _ in wdt.get_chunks_by_type('MDNM'):
+        has_mdnm = True
+        break
+    
+    for chunk_ref, _ in wdt.get_chunks_by_type('MONM'):
+        has_monm = True
+        break
+    
+    # If we find either MDNM or MONM, it's Alpha format
+    if has_mdnm or has_monm:
+        return FileFormat.ALPHA
+    
+    return FileFormat.RETAIL
 
 def create_output_dir(base_name: str) -> str:
     """Create timestamped output directory"""
@@ -45,26 +70,43 @@ def write_visualization_to_file(grid, output_dir: str):
         vis_file.write(visualization + "\n")
     print(f"Grid visualization saved to: {vis_filename}")
 
-def process_wdt_header(wdt: WDTFile, output_dir: str, base_name: str) -> dict:
+def get_model_names(wdt: WDTFile, file_format: FileFormat) -> Dict[str, List[str]]:
+    """Get all model names from WDT file"""
+    models = {
+        'm2': [],
+        'wmo': []
+    }
+    
+    if file_format == FileFormat.ALPHA:
+        # Alpha format uses MDNM/MONM
+        for chunk_ref, data in wdt.get_chunks_by_type('MDNM'):
+            mdnm_info = parse_mdnm(data)
+            models['m2'].extend(mdnm_info['names'])
+        
+        for chunk_ref, data in wdt.get_chunks_by_type('MONM'):
+            monm_info = parse_monm(data)
+            models['wmo'].extend(monm_info['names'])
+    else:
+        # Retail format uses MMDX/MWMO
+        for chunk_ref, data in wdt.get_chunks_by_type('MMDX'):
+            mmdx_info = parse_mmdx(data)
+            models['m2'].extend(mmdx_info['names'])
+        
+        for chunk_ref, data in wdt.get_chunks_by_type('MWMO'):
+            mwmo_info = parse_mwmo(data)
+            models['wmo'].extend(mwmo_info['names'])
+    
+    return models
+
+def process_wdt_header(wdt: WDTFile, output_dir: str, base_name: str, file_format: FileFormat) -> dict:
     """Process and store WDT header data"""
     header_data = {
         'filename': wdt.path.name,
         'map_name': base_name,
+        'format': file_format.value,
         'version': None,
         'flags': None,
-        'chunks': {},
-        'models': {
-            'm2': [],
-            'wmo': []
-        },
-        'model_indices': {
-            'm2': [],
-            'wmo': []
-        },
-        'placements': {
-            'm2': [],
-            'wmo': []
-        }
+        'chunks': {}
     }
     
     # Process MVER chunk
@@ -76,48 +118,6 @@ def process_wdt_header(wdt: WDTFile, output_dir: str, base_name: str) -> dict:
     for chunk_ref, data in wdt.get_chunks_by_type('MPHD'):
         header_info = parse_mphd(data)
         header_data['flags'] = header_info
-    
-    # Process M2 model data
-    m2_models = []
-    for chunk_ref, data in wdt.get_chunks_by_type('MMDX'):
-        mmdx_info = parse_mmdx(data)
-        m2_models.extend(mmdx_info['names'])
-    header_data['models']['m2'] = m2_models
-    
-    for chunk_ref, data in wdt.get_chunks_by_type('MMID'):
-        mmid_info = parse_mmid(data)
-        header_data['model_indices']['m2'] = mmid_info['indices']
-    
-    # Process WMO model data
-    wmo_models = []
-    for chunk_ref, data in wdt.get_chunks_by_type('MWMO'):
-        mwmo_info = parse_mwmo(data)
-        wmo_models.extend(mwmo_info['names'])
-    header_data['models']['wmo'] = wmo_models
-    
-    for chunk_ref, data in wdt.get_chunks_by_type('MWID'):
-        mwid_info = parse_mwid(data)
-        header_data['model_indices']['wmo'] = mwid_info['indices']
-    
-    # Process M2 placement data
-    for chunk_ref, data in wdt.get_chunks_by_type('MDDF'):
-        mddf_info = parse_mddf(data)
-        for entry in mddf_info['entries']:
-            # Add model name to placement data
-            model_id = entry['name_id']
-            if 0 <= model_id < len(m2_models):
-                entry['model_name'] = m2_models[model_id]
-            header_data['placements']['m2'].append(entry)
-    
-    # Process WMO placement data
-    for chunk_ref, data in wdt.get_chunks_by_type('MODF'):
-        modf_info = parse_modf(data)
-        for entry in modf_info['entries']:
-            # Add model name to placement data
-            model_id = entry['name_id']
-            if 0 <= model_id < len(wmo_models):
-                entry['model_name'] = wmo_models[model_id]
-            header_data['placements']['wmo'].append(entry)
     
     # Store chunk order and offsets
     pos = 0
@@ -181,25 +181,18 @@ def analyze_tile_chunks(wdt: WDTFile, tile: TileDefinition):
         tile.chunks[chunk_name] = (pos + 8, chunk_size)  # Store data offset and size
         pos += 8 + chunk_size
 
-def process_tile(wdt: WDTFile, tile: TileDefinition, output_dir: str, base_name: str):
+def process_tile(wdt: WDTFile, tile: TileDefinition, output_dir: str, base_name: str, file_format: FileFormat, model_names: Dict[str, List[str]]):
     """Third pass: Process a single tile's data"""
     tile_data = {
         'info': asdict(tile),
+        'format': file_format.value,
         'chunks': {},
         'textures': [],
-        'models': {
-            'm2': [],
-            'wmo': []
-        },
-        'model_indices': {
-            'm2': [],
-            'wmo': []
-        },
+        'models': model_names,  # Use model names from WDT header
         'placements': {
             'm2': [],
             'wmo': []
-        },
-        'mcnk': []
+        }
     }
     
     # Process each chunk
@@ -211,34 +204,18 @@ def process_tile(wdt: WDTFile, tile: TileDefinition, output_dir: str, base_name:
             'data_hex': chunk_data.hex()  # Store raw data as hex for debugging
         }
         
-        # Process chunk data based on type
+        # Process chunk data
         if chunk_name == 'MTEX':
             mtex_info = parse_mtex(chunk_data)
             tile_data['textures'].extend(mtex_info['textures'])
-        
-        elif chunk_name == 'MMDX':
-            mmdx_info = parse_mmdx(chunk_data)
-            tile_data['models']['m2'].extend(mmdx_info['names'])
-        
-        elif chunk_name == 'MMID':
-            mmid_info = parse_mmid(chunk_data)
-            tile_data['model_indices']['m2'].extend(mmid_info['indices'])
-        
-        elif chunk_name == 'MWMO':
-            mwmo_info = parse_mwmo(chunk_data)
-            tile_data['models']['wmo'].extend(mwmo_info['names'])
-        
-        elif chunk_name == 'MWID':
-            mwid_info = parse_mwid(chunk_data)
-            tile_data['model_indices']['wmo'].extend(mwid_info['indices'])
         
         elif chunk_name == 'MDDF':
             mddf_info = parse_mddf(chunk_data)
             for entry in mddf_info['entries']:
                 # Add model name to placement data
                 model_id = entry['name_id']
-                if 0 <= model_id < len(tile_data['models']['m2']):
-                    entry['model_name'] = tile_data['models']['m2'][model_id]
+                if 0 <= model_id < len(model_names['m2']):
+                    entry['model_name'] = model_names['m2'][model_id]
                 tile_data['placements']['m2'].append(entry)
         
         elif chunk_name == 'MODF':
@@ -246,13 +223,9 @@ def process_tile(wdt: WDTFile, tile: TileDefinition, output_dir: str, base_name:
             for entry in modf_info['entries']:
                 # Add model name to placement data
                 model_id = entry['name_id']
-                if 0 <= model_id < len(tile_data['models']['wmo']):
-                    entry['model_name'] = tile_data['models']['wmo'][model_id]
+                if 0 <= model_id < len(model_names['wmo']):
+                    entry['model_name'] = model_names['wmo'][model_id]
                 tile_data['placements']['wmo'].append(entry)
-        
-        elif chunk_name == 'MCNK':
-            mcnk_info = parse_mcnk(chunk_data)
-            tile_data['mcnk'].append(mcnk_info)
     
     # Write tile data to JSON
     tile_file = os.path.join(output_dir, f"{base_name}_{tile.x:02d}_{tile.y:02d}.json")
@@ -278,9 +251,16 @@ def analyze_wdt(filepath: str) -> None:
     
     try:
         with WDTFile(Path(filepath)) as wdt:
+            # Detect file format
+            file_format = detect_format(wdt)
+            print(f"\nDetected format: {file_format.value}")
+            
+            # Get model names from WDT header
+            model_names = get_model_names(wdt, file_format)
+            
             # Process WDT header data
             print("\nPhase 1: Processing WDT header...")
-            header_data = process_wdt_header(wdt, output_dir, base_name)
+            header_data = process_wdt_header(wdt, output_dir, base_name, file_format)
             
             # First pass: Get all tile definitions
             print("\nPhase 2: Scanning tile definitions...")
@@ -298,7 +278,7 @@ def analyze_wdt(filepath: str) -> None:
             print("\nPhase 4: Processing tiles...")
             for coords, tile in tiles.items():
                 print(f"\nProcessing tile ({tile.x}, {tile.y})")
-                process_tile(wdt, tile, output_dir, base_name)
+                process_tile(wdt, tile, output_dir, base_name, file_format, model_names)
             
             print("\nAnalysis Complete!")
             print("=" * 50)
