@@ -3,7 +3,7 @@ Common data structures for WoW terrain file parsing.
 Supports both ADT and WDT formats, including Alpha and Retail versions.
 """
 import struct
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set, Tuple, Union
 from enum import IntFlag, auto
 
@@ -219,3 +219,4 @@ class WDTFile(TerrainFile):
     m2_placements: List[ModelPlacement]
     wmo_placements: List[WMOPlacement]
     is_global_wmo: bool
+    chunk_offsets: Dict[str, ChunkInfo] = field(default_factory=dict)  # Store chunk offset information

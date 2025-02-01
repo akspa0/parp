@@ -140,20 +140,100 @@ def process_terrain_file(file_path: Path, output_dir: Path,
         parser = ADTParser(str(file_path)) if file_type == 'adt' else WDTParser(str(file_path))
         terrain_file = parser.parse()
         
-        # Save to JSON
-        json_path = save_to_json(terrain_file, output_dir)
-        logger.debug(f"Saved to JSON: {json_path}")
-        
-        # Create visualization for WDT files
-        if isinstance(terrain_file, WDTFile):
+        # Handle Alpha WDT files specially
+        if isinstance(terrain_file, WDTFile) and terrain_file.format_type == 'alpha':
+            logger.info("Processing Alpha format WDT file...")
+            json_paths = []
             grid = [[0] * 64 for _ in range(64)]
+            
+            # Create ADT files directory
+            adt_dir = output_dir.parent / 'adt_files'
+            adt_dir.mkdir(exist_ok=True)
+            
+            # Create separate ADT files and JSON metadata for each tile
             for tile in terrain_file.tiles.values():
                 grid[tile.y][tile.x] = 1
+                if tile.mcnk_data and 'adt_data' in tile.mcnk_data:
+                    # Write ADT file
+                    adt_path = adt_dir / f"{file_path.stem}_{tile.x}_{tile.y}.adt"
+                    with open(adt_path, 'wb') as f:
+                        f.write(tile.mcnk_data['adt_data'])
+                    logger.debug(f"Created ADT file: {adt_path}")
+                    
+                    # Create minimal JSON metadata for database
+                    tile_data = ADTFile(
+                        path=str(adt_path),
+                        file_type='adt',
+                        format_type='alpha',
+                        version=terrain_file.version,
+                        flags=terrain_file.flags,
+                        map_name=terrain_file.map_name,
+                        chunk_order=['MVER', 'MTEX', 'MCNK'],
+                        textures=[],
+                        m2_models=terrain_file.m2_models,
+                        wmo_models=terrain_file.wmo_models,
+                        m2_placements=[p for p in terrain_file.m2_placements if int(p.position.x / 533.33333) == tile.x and int(p.position.y / 533.33333) == tile.y],
+                        wmo_placements=[p for p in terrain_file.wmo_placements if int(p.position.x / 533.33333) == tile.x and int(p.position.y / 533.33333) == tile.y],
+                        mcnk_chunks={(0, 0): {
+                            'flags': tile.flags,
+                            'has_terrain': tile.mcnk_data.get('has_terrain', False),
+                            'has_vertex_colors': tile.mcnk_data.get('has_vertex_colors', False),
+                            'has_big_alpha': tile.mcnk_data.get('has_big_alpha', False)
+                        }},
+                        subchunks={}  # Don't store raw chunk data in JSON
+                    )
+                    
+                    # Save metadata JSON
+                    tile_json = save_to_json(tile_data, output_dir)
+                    json_paths.append(tile_json)
+                    logger.debug(f"Saved tile ({tile.x}, {tile.y}) metadata to: {tile_json}")
+                    
+                    # Create database for this tile
+                    tile_db_path = output_dir / f"{file_path.stem}_{tile.x}_{tile.y}.db"
+                    logger.info(f"Building database for tile {tile.x}, {tile.y}...")
+                    
+                    # Create a temporary directory for this tile's JSON
+                    tile_json_dir = output_dir / 'temp_json' / f"{file_path.stem}_{tile.x}_{tile.y}"
+                    tile_json_dir.mkdir(parents=True, exist_ok=True)
+                    
+                    # Copy just this tile's JSON to the temp directory
+                    import shutil
+                    shutil.copy2(tile_json, tile_json_dir / tile_json.name)
+                    
+                    # Build database using only this tile's JSON
+                    build_database(tile_json_dir, tile_db_path, None, None)
+                    
+                    # Clean up temp directory
+                    shutil.rmtree(tile_json_dir.parent)
+                    logger.info(f"Tile Database: {tile_db_path}")
+            
+            # Save visualization
             vis_path = file_path.with_suffix('.vis.txt')
             write_visualization(grid, vis_path)
             logger.debug(f"Grid visualization saved to: {vis_path}")
             
-        return json_path
+            # Also save the WDT file itself
+            wdt_json = save_to_json(terrain_file, output_dir)
+            json_paths.append(wdt_json)
+            logger.debug(f"Saved WDT data to: {wdt_json}")
+            
+            return wdt_json  # Return WDT JSON path as primary
+            
+        else:
+            # Handle regular files normally
+            json_path = save_to_json(terrain_file, output_dir)
+            logger.debug(f"Saved to JSON: {json_path}")
+            
+            # Create visualization for regular WDT files
+            if isinstance(terrain_file, WDTFile):
+                grid = [[0] * 64 for _ in range(64)]
+                for tile in terrain_file.tiles.values():
+                    grid[tile.y][tile.x] = 1
+                vis_path = file_path.with_suffix('.vis.txt')
+                write_visualization(grid, vis_path)
+                logger.debug(f"Grid visualization saved to: {vis_path}")
+            
+            return json_path
         
     except Exception as e:
         logger.error(f"Error processing {file_path}: {e}")
