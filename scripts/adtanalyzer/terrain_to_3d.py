@@ -7,7 +7,13 @@ import json
 import argparse
 import numpy as np
 from pathlib import Path
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Optional
+from dataclasses import dataclass
+
+@dataclass
+class TextureLayer:
+    """Represents a terrain texture layer with alpha map"""
+    alpha_map: List[float]
 import logging
 
 try:
@@ -58,37 +64,70 @@ def create_heightmap_mesh(heights: List[float], normals: List[List[float]],
         raise ValueError(f"Unexpected number of vertices: {len(heights)}")
     
     # Create vertices
+    chunk_width = 33.33333  # yards
+    
+    # Helper function to check if vertex is in a hole
+    def is_hole(x: int, z: int) -> bool:
+        # Convert vertex position to hole grid cell (8x8)
+        cell_x = int(x * 8 / width)
+        cell_z = int(z * 8 / height)
+        cell_idx = cell_z * 8 + cell_x
+        
+        # Check both low and high resolution hole masks
+        return bool(holes & (1 << cell_idx)) or bool(holes_high_res & (1 << cell_idx))
+    
     for z in range(height):
         for x in range(width):
             idx = z * width + x
             if idx >= len(heights):
                 break
+                
+            # Skip vertices in holes
+            if is_hole(x, z):
+                continue
+                
+            # Get terrain height
             y = heights[idx] * scale
-            # Convert to WoW's coordinate system:
-            # - X is east/west (same)
-            # - Y is up/down (was Z)
-            # - Z is north/south (was Y)
-            # Each chunk is 33.33333 yards wide
-            chunk_width = 33.33333
+            
+            # Check for liquid height
+            if liquid_heights and idx < len(liquid_heights) and liquid_heights[idx] > y:
+                y = liquid_heights[idx] * scale
+            
+            # Convert to WoW's coordinate system
             vertices.append([
-                x * (chunk_width/width) * scale,  # X: scale to chunk width
-                y * scale,                        # Y: height in yards
-                z * (chunk_width/height) * scale  # Z: scale to chunk width
+                x * (chunk_width/width) * scale,   # X: east/west
+                y,                                 # Y: up/down
+                z * (chunk_width/height) * scale   # Z: north/south
             ])
             vertex_normals.append(normals[idx])
+            
+            if logger and texture_layers:
+                logger.debug(f"Vertex {idx}: pos=({x},{y},{z}), layers={len(texture_layers)}")
     
-    # Create faces (triangles)
+    # Create vertex index lookup
+    vertex_indices = {}  # Maps (x,z) to vertex index
+    for i, v in enumerate(vertices):
+        x = int(v[0] / (chunk_width/width) / scale)
+        z = int(v[2] / (chunk_width/height) / scale)
+        vertex_indices[(x, z)] = i
+
+    # Create faces (triangles), skipping holes
     for z in range(height - 1):
         for x in range(width - 1):
-            # Get vertex indices for this quad
-            v0 = z * width + x
-            v1 = v0 + 1
-            v2 = v0 + width
-            v3 = v2 + 1
+            # Get vertices for this quad
+            quad_vertices = []
+            for dx, dz in [(0,0), (1,0), (0,1), (1,1)]:  # Clockwise order
+                pos = (x+dx, z+dz)
+                if pos in vertex_indices and not is_hole(pos[0], pos[1]):
+                    quad_vertices.append(vertex_indices[pos])
+                else:
+                    quad_vertices.append(None)
             
-            # Create two triangles
-            faces.append([v0, v1, v2])  # First triangle
-            faces.append([v1, v3, v2])  # Second triangle
+            # Create triangles if we have all vertices
+            if None not in quad_vertices[:3]:  # First triangle
+                faces.append([quad_vertices[0], quad_vertices[1], quad_vertices[2]])
+            if None not in quad_vertices[1:]:  # Second triangle
+                faces.append([quad_vertices[1], quad_vertices[3], quad_vertices[2]])
     
     # Log mesh statistics
     if logger:
@@ -251,10 +290,20 @@ def process_json_file(json_path: Path, output_dir: Path, format: str = 'obj',
                     logger.warning(f"Mismatched counts - heights: {len(heights)}, normals: {len(normals)}")
                     continue
                 
+                # Get additional terrain data
+                holes = chunk_data.get('holes', 0)
+                holes_high_res = chunk_data.get('holes_high_res', 0)
+                texture_layers = chunk_data.get('texture_layers', [])
+                liquid_heights = chunk_data.get('liquid_heights', [])
+                
                 # Create mesh data for this chunk
                 vertices, faces, vertex_normals = create_heightmap_mesh(
                     heights,
                     normals,
+                    holes=holes,
+                    holes_high_res=holes_high_res,
+                    texture_layers=texture_layers,
+                    liquid_heights=liquid_heights,
                     scale=1.0,  # Use actual yard measurements from WoW
                     logger=logger
                 )
