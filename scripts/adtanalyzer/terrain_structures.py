@@ -143,6 +143,7 @@ class MCNKInfo:
     noEffectDoodad: int
     holes_high_res: int
     height_map: Optional[List[float]] = None
+    normal_data: Optional[List[float]] = None  # MCNR data
     liquid_heights: Optional[List[float]] = None
     liquid_flags: Optional[List[int]] = None
     texture_layers: Optional[List[TextureLayer]] = None  # MCLY data

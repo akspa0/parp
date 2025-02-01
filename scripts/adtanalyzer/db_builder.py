@@ -12,12 +12,13 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 from queue import Queue
 
-from terrain_structures import TerrainFile, ADTFile, WDTFile
+from terrain_structures import TerrainFile, ADTFile, WDTFile, ChunkInfo
 from terrain_database import (
     setup_database, compress_array,
     insert_mcnk_data, insert_height_map, insert_liquid_data,
     insert_chunk_offset, insert_m2_placement, insert_wmo_placement,
-    insert_map_tile, insert_texture
+    insert_map_tile, insert_texture, insert_texture_layer,
+    insert_normal_data
 )
 from json_handler import load_from_json
 
@@ -110,31 +111,38 @@ class DatabaseBuilder:
                 
                 # Store MCNK data and related chunks
                 for coord, mcnk in terrain_file.mcnk_chunks.items():
+                    # Get coordinates from the tuple
+                    x, y = coord
+                    
                     # Store MCNK info
-                    insert_mcnk_data(conn, file_id, mcnk, -1, -1)
+                    insert_mcnk_data(conn, file_id, mcnk, x, y)
                     
                     # Store height map if available
                     if hasattr(mcnk, 'height_map') and mcnk.height_map:
-                        insert_height_map(conn, file_id, mcnk.index_x, mcnk.index_y, mcnk.height_map)
+                        insert_height_map(conn, file_id, x, y, mcnk.height_map)
+                    
+                    # Store normal data if available
+                    if hasattr(mcnk, 'normal_data') and mcnk.normal_data:
+                        insert_normal_data(conn, file_id, x, y, mcnk.normal_data)
                     
                     # Store liquid data if available
                     if hasattr(mcnk, 'liquid_heights') and mcnk.liquid_heights:
-                        insert_liquid_data(conn, file_id, mcnk.index_x, mcnk.index_y,
+                        insert_liquid_data(conn, file_id, x, y,
                                         mcnk.liquid_heights,
                                         mcnk.liquid_flags if hasattr(mcnk, 'liquid_flags') else None)
                     
                     # Store chunk offsets from subchunks
                     if coord in terrain_file.subchunks:
                         for chunk_name, chunk_info in terrain_file.subchunks[coord].items():
-                            if isinstance(chunk_info, ChunkInfo):
-                                insert_chunk_offset(conn, file_id, chunk_name,
-                                                chunk_info.offset, chunk_info.size,
-                                                chunk_info.data_offset)
+                            # chunk_info is a dictionary with offset, size, data_offset
+                            insert_chunk_offset(conn, file_id, chunk_name,
+                                            chunk_info['offset'], chunk_info['size'],
+                                            chunk_info['data_offset'])
                     
                     # Store texture layers and alpha maps
                     if hasattr(mcnk, 'texture_layers') and mcnk.texture_layers:
                         for layer in mcnk.texture_layers:
-                            insert_texture_layer(conn, file_id, mcnk.index_x, mcnk.index_y, layer)
+                            insert_texture_layer(conn, file_id, x, y, layer)
                 
                 # Store M2 placements
                 for placement in terrain_file.m2_placements:

@@ -182,6 +182,16 @@ def setup_database(db_path: str) -> sqlite3.Connection:
             FOREIGN KEY(file_id) REFERENCES terrain_files(id)
         );
         
+        -- Normal data (MCNR)
+        CREATE TABLE IF NOT EXISTS normal_data (
+            id INTEGER PRIMARY KEY,
+            file_id INTEGER NOT NULL,
+            tile_x INTEGER NOT NULL,
+            tile_y INTEGER NOT NULL,
+            normals BLOB NOT NULL,  -- Store as compressed binary
+            FOREIGN KEY(file_id) REFERENCES terrain_files(id)
+        );
+        
         -- Liquid data
         CREATE TABLE IF NOT EXISTS liquid_data (
             id INTEGER PRIMARY KEY,
@@ -387,6 +397,22 @@ def insert_mcnk_data(conn: sqlite3.Connection, file_id: int, mcnk: MCNKInfo,
         mcnk.area_id,
         mcnk.holes,
         mcnk.liquid_type
+    ))
+    return c.lastrowid
+
+def insert_normal_data(conn: sqlite3.Connection, file_id: int,
+                      tile_x: int, tile_y: int, normals: List[float]) -> int:
+    """Insert normal data"""
+    c = conn.cursor()
+    c.execute("""
+        INSERT INTO normal_data
+        (file_id, tile_x, tile_y, normals)
+        VALUES (?, ?, ?, ?)
+    """, (
+        file_id,
+        tile_x,
+        tile_y,
+        compress_array(normals)
     ))
     return c.lastrowid
 

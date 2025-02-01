@@ -130,6 +130,21 @@ class ADTParser(TerrainParser):
             alpha_map = list(data[start_pos:end_pos])
             layer.alpha_map = alpha_map
             
+    def _parse_mcnr(self, data: bytes) -> List[float]:
+        """Parse MCNR (normal data) chunk"""
+        if len(data) < 435:  # 145 vertices * 3 bytes
+            raise ChunkError("MCNR chunk too small")
+            
+        normals = []
+        for i in range(0, 435, 3):
+            # Each normal is stored as 3 signed bytes (-127 to 127)
+            x = int.from_bytes(data[i:i+1], byteorder='little', signed=True) / 127.0
+            y = int.from_bytes(data[i+1:i+2], byteorder='little', signed=True) / 127.0
+            z = int.from_bytes(data[i+2:i+3], byteorder='little', signed=True) / 127.0
+            normals.extend([x, y, z])
+            
+        return normals
+        
     def _parse_mcvt(self, data: bytes) -> List[float]:
         """Parse MCVT (height map) chunk"""
         if len(data) < 580:  # 145 vertices * 4 bytes
@@ -347,6 +362,13 @@ class ADTParser(TerrainParser):
                                     self._parse_mcal(subchunk_data, mcnk.texture_layers)
                             except (ChunkError, struct.error) as e:
                                 self.logger.warning(f"Failed to parse MCAL: {e}")
+                                
+                        elif subchunk_name == b'MCNR':
+                            try:
+                                normals = self._parse_mcnr(subchunk_data)
+                                mcnk.normal_data = normals
+                            except (ChunkError, struct.error) as e:
+                                self.logger.warning(f"Failed to parse MCNR: {e}")
                                 
                         pos += 8 + subchunk_size
                         
