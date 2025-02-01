@@ -1,8 +1,10 @@
+
 """
 ADT (Area Definition Table) file parser.
 Supports both Retail and Alpha formats.
 """
 import struct
+import zlib
 from typing import Dict, List, Optional, Set, Tuple, Union
 from pathlib import Path
 
@@ -67,8 +69,7 @@ class ADTParser(TerrainParser):
         min_elev, max_elev = struct.unpack('<2f', data[49:57])
         liquid_type = struct.unpack('<I', data[57:61])[0]
         pred_tex, noeff_doodad, holes_high = struct.unpack('<3H', data[61:67])
-        
-        return MCNKInfo(
+        mcnk = MCNKInfo(
             flags=flags,
             index_x=ix,
             index_y=iy,
@@ -85,8 +86,11 @@ class ADTParser(TerrainParser):
             liquid_type=liquid_type,
             predTex=pred_tex,
             noEffectDoodad=noeff_doodad,
-            holes_high_res=holes_high
+            holes_high_res=holes_high,
+            texture_layers=[],  # Initialize as empty list instead of None
+            mcal_data=None
         )
+        return mcnk
         
     def _parse_mcly(self, data: bytes) -> List[TextureLayer]:
         """Parse MCLY (texture layer) chunk"""
@@ -98,14 +102,33 @@ class ADTParser(TerrainParser):
             if i + 16 > len(data):
                 break
                 
+            # MCLY entry: 16 bytes
+            # uint32 textureId;        // Index into file's MTEX list
+            # uint32 flags;            // Alpha map flags
+            # uint32 offsetInMCAL;     // Offset of this layer's alpha map in MCAL chunk
+            # uint32 effectId;         // Index into ADT's MCRF chunk, -1 if none
             texture_id, flags, offset_mcal, effect_id = struct.unpack('<4I', data[i:i+16])
+            
+            # Flags:
+            # 0x001: Animation enabled
+            # 0x002: Animation speed multiplier
+            # 0x004: Animation rotation multiplier
+            # 0x008: Animation wave multiplier
+            # 0x010: Alpha map is compressed
+            # 0x020: Ground effect
+            # 0x040: Do not compress alpha map
+            # 0xFF000000: Alpha map blend mode
+            blend_mode = (flags >> 24) & 0xFF
+            is_compressed = bool(flags & 0x010)
+            
             layer = TextureLayer(
                 texture_id=texture_id,
-                flags=flags,
+                flags=flags & 0x00FFFFFF,  # Mask out blend mode
                 offset_mcal=offset_mcal,
-                effect_id=effect_id,
+                effect_id=effect_id if effect_id != 0xFFFFFFFF else None,
                 layer_index=len(layers),  # Layer index is order in MCLY
-                blend_mode=(flags >> 24) & 0xFF  # Extract blend mode from flags
+                blend_mode=blend_mode,
+                is_compressed=bool(flags & 0x010)  # Check compression flag
             )
             layers.append(layer)
             
@@ -113,7 +136,6 @@ class ADTParser(TerrainParser):
         
     def _parse_mcal(self, data: bytes, layers: List[TextureLayer]):
         """Parse MCAL (alpha map) chunk and assign to layers"""
-        current_pos = 0
         for layer in layers:
             if layer.offset_mcal >= len(data):
                 continue
@@ -127,7 +149,25 @@ class ADTParser(TerrainParser):
                 break
                 
             # Extract alpha values
-            alpha_map = list(data[start_pos:end_pos])
+            alpha_data = data[start_pos:end_pos]
+            
+            # Check if alpha map is compressed (flag 0x010)
+            if layer.flags & 0x010:
+                try:
+                    # Decompress using zlib
+                    decompressed = zlib.decompress(alpha_data)
+                    if len(decompressed) == alpha_size:
+                        alpha_map = list(decompressed)
+                    else:
+                        self.logger.warning(f"Decompressed alpha map wrong size: {len(decompressed)}")
+                        alpha_map = [0] * alpha_size
+                except zlib.error as e:
+                    self.logger.warning(f"Failed to decompress alpha map: {e}")
+                    alpha_map = [0] * alpha_size
+            else:
+                # Raw alpha values
+                alpha_map = list(alpha_data)
+                
             layer.alpha_map = alpha_map
             
     def _parse_mcnr(self, data: bytes) -> List[float]:

@@ -84,9 +84,10 @@ def setup_database(db_path: str) -> sqlite3.Connection:
             mcnk_index_y INTEGER NOT NULL,
             texture_id INTEGER NOT NULL,
             flags INTEGER NOT NULL,
-            effect_id INTEGER,
+            effect_id INTEGER,  -- NULL if no effect
             layer_index INTEGER NOT NULL,
-            blend_mode INTEGER,
+            blend_mode INTEGER NOT NULL,
+            is_compressed INTEGER NOT NULL,  -- Boolean
             FOREIGN KEY(file_id) REFERENCES terrain_files(id),
             FOREIGN KEY(texture_id) REFERENCES textures(id)
         );
@@ -284,8 +285,8 @@ def insert_texture_layer(conn: sqlite3.Connection, file_id: int,
     c.execute("""
         INSERT INTO texture_layers
         (file_id, mcnk_index_x, mcnk_index_y, texture_id,
-         flags, effect_id, layer_index, blend_mode)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+         flags, effect_id, layer_index, blend_mode, is_compressed)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         file_id,
         mcnk_x,
@@ -294,7 +295,8 @@ def insert_texture_layer(conn: sqlite3.Connection, file_id: int,
         layer.flags,
         layer.effect_id,
         layer.layer_index,
-        layer.blend_mode
+        layer.blend_mode,
+        1 if layer.is_compressed else 0
     ))
     layer_id = c.lastrowid
     

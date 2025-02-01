@@ -25,7 +25,7 @@ from json_handler import load_from_json
 class DatabaseBuilder:
     """Multi-threaded database builder"""
     
-    def __init__(self, db_path: Path, json_dir: Path, max_workers: int = None):
+    def __init__(self, db_path: Path, json_dir: Path, max_workers: int = None, limit: int = None):
         """
         Initialize database builder
         
@@ -33,10 +33,12 @@ class DatabaseBuilder:
             db_path: Path to output database
             json_dir: Directory containing JSON files
             max_workers: Maximum number of worker threads
+            limit: Maximum number of JSON files to process (None for all)
         """
         self.db_path = db_path
         self.json_dir = json_dir
         self.max_workers = max_workers or os.cpu_count()
+        self.limit = limit
         self.logger = logging.getLogger('db_builder')
         
         # Thread-local storage for database connections
@@ -114,45 +116,107 @@ class DatabaseBuilder:
                     # Get coordinates from the tuple
                     x, y = coord
                     
-                    # Store MCNK info
-                    insert_mcnk_data(conn, file_id, mcnk, x, y)
-                    
-                    # Store height map if available
-                    if hasattr(mcnk, 'height_map') and mcnk.height_map:
-                        insert_height_map(conn, file_id, x, y, mcnk.height_map)
-                    
-                    # Store normal data if available
-                    if hasattr(mcnk, 'normal_data') and mcnk.normal_data:
-                        insert_normal_data(conn, file_id, x, y, mcnk.normal_data)
-                    
-                    # Store liquid data if available
-                    if hasattr(mcnk, 'liquid_heights') and mcnk.liquid_heights:
-                        insert_liquid_data(conn, file_id, x, y,
-                                        mcnk.liquid_heights,
-                                        mcnk.liquid_flags if hasattr(mcnk, 'liquid_flags') else None)
+                    try:
+                        # Store MCNK info
+                        insert_mcnk_data(conn, file_id, mcnk, x, y)
+                        
+                        # Store height map
+                        if hasattr(mcnk, 'height_map'):
+                            heights = mcnk.height_map if isinstance(mcnk.height_map, list) else []
+                            if heights:
+                                insert_height_map(conn, file_id, x, y, heights)
+                        
+                        # Store normal data
+                        if hasattr(mcnk, 'normal_data'):
+                            normals = mcnk.normal_data if isinstance(mcnk.normal_data, list) else []
+                            if normals:
+                                insert_normal_data(conn, file_id, x, y, normals)
+                        
+                        # Store liquid data
+                        if hasattr(mcnk, 'liquid_heights'):
+                            heights = mcnk.liquid_heights if isinstance(mcnk.liquid_heights, list) else []
+                            flags = mcnk.liquid_flags if hasattr(mcnk, 'liquid_flags') and isinstance(mcnk.liquid_flags, list) else None
+                            if heights:
+                                insert_liquid_data(conn, file_id, x, y, heights, flags)
+                    except Exception as e:
+                        self.logger.error(f"Error storing MCNK data at {x},{y}: {e}", exc_info=True)
                     
                     # Store chunk offsets from subchunks
-                    if coord in terrain_file.subchunks:
-                        for chunk_name, chunk_info in terrain_file.subchunks[coord].items():
-                            # chunk_info is a dictionary with offset, size, data_offset
-                            insert_chunk_offset(conn, file_id, chunk_name,
-                                            chunk_info['offset'], chunk_info['size'],
-                                            chunk_info['data_offset'])
+                    try:
+                        if coord in terrain_file.subchunks:
+                            subchunks = terrain_file.subchunks[coord]
+                            if isinstance(subchunks, dict):
+                                for chunk_name, chunk_info in subchunks.items():
+                                    if isinstance(chunk_info, dict):
+                                        offset = chunk_info.get('offset', 0)
+                                        size = chunk_info.get('size', 0)
+                                        data_offset = chunk_info.get('data_offset', 0)
+                                        
+                                        if offset and size:  # Only insert if we have valid data
+                                            c.execute("""
+                                                INSERT INTO chunk_offsets
+                                                (file_id, chunk_name, offset, size, data_offset)
+                                                VALUES (?, ?, ?, ?, ?)
+                                            """, (file_id, chunk_name, offset, size, data_offset))
+                    except Exception as e:
+                        self.logger.error(f"Error storing chunk offsets at {coord}: {e}", exc_info=True)
                     
                     # Store texture layers and alpha maps
-                    if hasattr(mcnk, 'texture_layers') and mcnk.texture_layers:
-                        for layer in mcnk.texture_layers:
-                            insert_texture_layer(conn, file_id, x, y, layer)
+                    try:
+                        if hasattr(mcnk, 'texture_layers'):
+                            layers = mcnk.texture_layers if isinstance(mcnk.texture_layers, list) else []
+                            for layer in layers:
+                                # Insert texture layer
+                                layer_id = insert_texture_layer(conn, file_id, x, y, layer)
+                                
+                                # Store alpha map if available
+                                if hasattr(layer, 'alpha_map') and layer.alpha_map:
+                                    alpha_values = layer.alpha_map if isinstance(layer.alpha_map, list) else []
+                                    if alpha_values:
+                                        c.execute("""
+                                            INSERT INTO alpha_maps
+                                            (layer_id, alpha_data)
+                                            VALUES (?, ?)
+                                        """, (layer_id, compress_array(alpha_values)))
+                    except Exception as e:
+                        self.logger.error(f"Error storing texture layers at {x},{y}: {e}", exc_info=True)
                 
-                # Store M2 placements
-                for placement in terrain_file.m2_placements:
-                    model_name = terrain_file.m2_models[placement.name_id]
-                    insert_m2_placement(conn, file_id, placement, model_name, -1, -1)
-                
-                # Store WMO placements
-                for placement in terrain_file.wmo_placements:
-                    model_name = terrain_file.wmo_models[placement.name_id]
-                    insert_wmo_placement(conn, file_id, placement, model_name, -1, -1)
+                try:
+                    # Store M2 models and placements
+                    for i, model in enumerate(terrain_file.m2_models):
+                        # Insert model reference
+                        c.execute("""
+                            INSERT INTO models
+                            (file_id, model_type, filename, format_type)
+                            VALUES (?, 'M2', ?, ?)
+                        """, (file_id, model, terrain_file.format_type))
+                    
+                    # Store M2 placements with proper coordinates
+                    for placement in terrain_file.m2_placements:
+                        model_name = terrain_file.m2_models[placement.name_id]
+                        # Calculate tile coordinates from position
+                        tile_x = int(placement.position.x / 533.33333)
+                        tile_y = int(placement.position.y / 533.33333)
+                        insert_m2_placement(conn, file_id, placement, model_name, tile_x, tile_y)
+                    
+                    # Store WMO models and placements
+                    for i, model in enumerate(terrain_file.wmo_models):
+                        # Insert model reference
+                        c.execute("""
+                            INSERT INTO models
+                            (file_id, model_type, filename, format_type)
+                            VALUES (?, 'WMO', ?, ?)
+                        """, (file_id, model, terrain_file.format_type))
+                    
+                    # Store WMO placements with proper coordinates
+                    for placement in terrain_file.wmo_placements:
+                        model_name = terrain_file.wmo_models[placement.name_id]
+                        # Calculate tile coordinates from position
+                        tile_x = int(placement.position.x / 533.33333)
+                        tile_y = int(placement.position.y / 533.33333)
+                        insert_wmo_placement(conn, file_id, placement, model_name, tile_x, tile_y)
+                except Exception as e:
+                    self.logger.error(f"Error storing model data: {e}", exc_info=True)
                     
             elif isinstance(terrain_file, WDTFile):
                 # Store tiles
@@ -211,7 +275,13 @@ class DatabaseBuilder:
         # Find all JSON files
         json_files = list(self.json_dir.glob('*.json'))
         total_files = len(json_files)
-        self.logger.info(f"Found {total_files} JSON files to process")
+        
+        # Apply limit if specified
+        if self.limit is not None:
+            json_files = json_files[:self.limit]
+            self.logger.info(f"Found {total_files} JSON files, processing {len(json_files)} due to limit")
+        else:
+            self.logger.info(f"Found {total_files} JSON files to process")
         
         # Process files in parallel
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
@@ -246,7 +316,7 @@ class DatabaseBuilder:
         self.logger.info("Database construction complete")
         self.close_connections()
 
-def build_database(json_dir: Path, db_path: Path, max_workers: Optional[int] = None):
+def build_database(json_dir: Path, db_path: Path, max_workers: Optional[int] = None, limit: Optional[int] = None):
     """
     Build database from JSON files
     
@@ -254,6 +324,7 @@ def build_database(json_dir: Path, db_path: Path, max_workers: Optional[int] = N
         json_dir: Directory containing JSON files
         db_path: Path to output database
         max_workers: Maximum number of worker threads
+        limit: Maximum number of JSON files to process (None for all)
     """
-    builder = DatabaseBuilder(db_path, json_dir, max_workers)
+    builder = DatabaseBuilder(db_path, json_dir, max_workers, limit)
     builder.build_database()

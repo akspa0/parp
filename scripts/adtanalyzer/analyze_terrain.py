@@ -163,7 +163,7 @@ def process_terrain_file(file_path: Path, output_dir: Path,
 def process_directory(path: Path, listfile_path: Optional[Path],
                      output_dir: Path, max_workers: Optional[int] = None,
                      logger: Optional[logging.Logger] = None,
-                     debug: bool = False):
+                     debug: bool = False, limit: Optional[int] = None):
     """
     Process directory of terrain files
     
@@ -238,7 +238,7 @@ def process_directory(path: Path, listfile_path: Optional[Path],
             if wdt_jsons:
                 wdt_db_path = output_dir / f"{map_name}.wdt.db"
                 logger.info("Building WDT database...")
-                build_database(json_dir, wdt_db_path, max_workers)
+                build_database(json_dir, wdt_db_path, max_workers, limit)
                 logger.info(f"WDT Database: {wdt_db_path}")
             
             # Process ADT files
@@ -256,7 +256,7 @@ def process_directory(path: Path, listfile_path: Optional[Path],
                     import shutil
                     shutil.copy2(json_file, tile_json_dir / json_file.name)
                     # Build database using only this tile's JSON
-                    build_database(tile_json_dir, adt_db_path, max_workers)
+                    build_database(tile_json_dir, adt_db_path, max_workers, limit)
                     # Clean up temp directory
                     shutil.rmtree(tile_json_dir.parent)
                     logger.info(f"Tile Database: {adt_db_path}")
@@ -280,6 +280,7 @@ def main():
     parser.add_argument('--listfile', help='Path to listfile for checking references')
     parser.add_argument('--db', help='Output database path', default='terrain_analysis.db')
     parser.add_argument('--workers', type=int, help='Maximum number of worker threads')
+    parser.add_argument('--limit', type=int, help='Maximum number of files to process')
     parser.add_argument('--debug', action='store_true', help='Enable debug logging')
     args = parser.parse_args()
     
@@ -335,13 +336,13 @@ def main():
                 import shutil
                 shutil.copy2(json_path, temp_json_dir / json_path.name)
                 # Build database using only this file's JSON
-                build_database(temp_json_dir, db_path)
+                build_database(temp_json_dir, db_path, args.workers, args.limit)
                 # Clean up temp directory
                 shutil.rmtree(temp_json_dir.parent)
                 
         elif path.is_dir():
             # Process directory
-            process_directory(path, listfile_path, output_dir, args.workers, logger, args.debug)
+            process_directory(path, listfile_path, output_dir, args.workers, logger, args.debug, args.limit)
         else:
             logger.error(f"Path not found: {path}")
             sys.exit(1)

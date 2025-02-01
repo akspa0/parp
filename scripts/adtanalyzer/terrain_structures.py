@@ -85,14 +85,27 @@ class WDTFlags(IntFlag):
 
 @dataclass
 class TextureLayer:
-    """Texture layer information from MCLY"""
-    texture_id: int
-    flags: int
+    """
+    Texture layer information from MCLY chunk
+    
+    Flags:
+    - 0x001: Animation enabled
+    - 0x002: Animation speed multiplier
+    - 0x004: Animation rotation multiplier
+    - 0x008: Animation wave multiplier
+    - 0x010: Alpha map is compressed
+    - 0x020: Ground effect
+    - 0x040: Do not compress alpha map
+    - 0xFF000000: Alpha map blend mode
+    """
+    texture_id: int  # Index into file's MTEX list
+    flags: int  # Alpha map and animation flags
     offset_mcal: int  # Offset into MCAL data
-    effect_id: int
-    layer_index: int
-    blend_mode: int
-    alpha_map: Optional[List[int]] = None  # Alpha values from MCAL
+    effect_id: Optional[int]  # Index into ADT's MCRF chunk, None if no effect
+    layer_index: int  # Order in layer stack
+    blend_mode: int  # Alpha map blend mode
+    is_compressed: bool = False  # Whether alpha map is compressed
+    alpha_map: Optional[List[int]] = None  # Alpha values from MCAL (64x64 = 4096 bytes)
 
 @dataclass
 class TextureInfo:
