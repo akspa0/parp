@@ -274,7 +274,7 @@ def process_adt_file(file_path: str, format_type: FileFormat, reversed_chunks: b
         
     return decoded_data
 
-def process_file(file_path: str, output_dir: str, listfile_path: Optional[str] = None) -> bool:
+def process_file(file_path: str, output_dir: str, map_name: Optional[str] = None, listfile_path: Optional[str] = None) -> bool:
     """Process a single file (WDT or ADT)"""
     try:
         # Initialize handlers
@@ -308,7 +308,7 @@ def process_file(file_path: str, output_dir: str, listfile_path: Optional[str] =
             
             # Write outputs
             json_path = json_handler.write_adt_data(file_path, format_type.name, decoded_data)
-            db_path = sqlite_handler.write_adt_data(file_path, format_type.name, decoded_data)
+            db_path = sqlite_handler.write_adt_data(file_path, format_type.name, decoded_data, map_name)
             
             logger.info(f"JSON output written to: {json_path}")
             logger.info(f"SQLite output written to: {db_path}")
@@ -336,15 +336,36 @@ def process_directory(directory: str,
     successful = 0
     failed = 0
     
-    for i, file_path in enumerate(files, 1):
-        logging.info(f"\nProcessing file {i}/{total}: {file_path.name}")
-        
-        if process_file(str(file_path), output_dir, listfile_path):
+    # Extract map name from directory name
+    map_name = path.name
+    
+    # Sort files to process WDT first if it exists
+    wdt_files = [f for f in files if f.suffix.lower() == '.wdt']
+    adt_files = [f for f in files if f.suffix.lower() == '.adt']
+    
+    # Process WDT first if it exists
+    for file_path in wdt_files:
+        logging.info(f"\nProcessing WDT file: {file_path.name}")
+        if process_file(str(file_path), output_dir, listfile_path=listfile_path):
+            successful += 1
+        else:
+            failed += 1
+    
+    # Then process ADT files
+    adt_pattern = re.compile(r'^(?:.*?)(\d+)_(\d+)\.adt$', re.IGNORECASE)
+    for file_path in adt_files:
+        match = adt_pattern.search(file_path.name)
+        if not match:
+            logging.warning(f"Skipping {file_path.name}, does not match pattern _X_Y.adt")
+            continue
+            
+        logging.info(f"\nProcessing ADT file: {file_path.name}")
+        if process_file(str(file_path), output_dir, map_name, listfile_path):
             successful += 1
         else:
             failed += 1
             
-        logging.info(f"Progress: {i}/{total} files processed")
+        logging.info(f"Progress: {successful + failed}/{total} files processed")
     
     return successful, failed
 
@@ -386,7 +407,7 @@ def main():
     try:
         if os.path.isfile(args.input):
             # Process single file
-            success = process_file(args.input, args.output_dir, args.listfile)
+            success = process_file(args.input, args.output_dir, listfile_path=args.listfile)
             sys.exit(0 if success else 1)
         elif os.path.isdir(args.input):
             # Process directory

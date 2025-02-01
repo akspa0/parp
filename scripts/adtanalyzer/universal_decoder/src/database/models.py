@@ -30,7 +30,7 @@ class DatabaseManager:
 
     def _create_tables(self):
         """Create all database tables"""
-        # Maps table
+        # Maps table with chunk order tracking
         self.conn.execute("""
         CREATE TABLE IF NOT EXISTS maps (
             id INTEGER PRIMARY KEY,
@@ -38,11 +38,12 @@ class DatabaseManager:
             format TEXT NOT NULL CHECK(format IN ('ALPHA', 'RETAIL')),
             version INTEGER NOT NULL,
             flags INTEGER NOT NULL,
+            chunk_order TEXT NOT NULL DEFAULT '',
             UNIQUE(name, format)
         )
         """)
         
-        # Map tiles table
+        # Map tiles table with version tracking
         self.conn.execute("""
         CREATE TABLE IF NOT EXISTS map_tiles (
             id INTEGER PRIMARY KEY,
@@ -55,7 +56,9 @@ class DatabaseManager:
             offset INTEGER,
             size INTEGER,
             async_id INTEGER,
-            FOREIGN KEY (map_id) REFERENCES maps(id),
+            version INTEGER NOT NULL DEFAULT 0,
+            header_flags INTEGER NOT NULL DEFAULT 0,
+            FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE,
             UNIQUE (map_id, x, y)
         )
         """)
@@ -114,7 +117,7 @@ class DatabaseManager:
         )
         """)
         
-        # WMO model placements table
+        # WMO model placements table with bounds
         self.conn.execute("""
         CREATE TABLE IF NOT EXISTS model_placements_wmo (
             id INTEGER PRIMARY KEY,
@@ -131,6 +134,12 @@ class DatabaseManager:
             flags INTEGER NOT NULL,
             doodad_set INTEGER,
             name_set INTEGER,
+            bounds_min_x REAL,
+            bounds_min_y REAL,
+            bounds_min_z REAL,
+            bounds_max_x REAL,
+            bounds_max_y REAL,
+            bounds_max_z REAL,
             FOREIGN KEY (map_id) REFERENCES maps(id),
             FOREIGN KEY (model_id) REFERENCES models_wmo(id),
             UNIQUE (map_id, unique_id)
@@ -148,6 +157,9 @@ class DatabaseManager:
             flags INTEGER NOT NULL,
             area_id INTEGER,
             holes INTEGER,
+            has_mcvt BOOLEAN NOT NULL DEFAULT 0,
+            has_mcnr BOOLEAN NOT NULL DEFAULT 0,
+            has_mclq BOOLEAN NOT NULL DEFAULT 0,
             FOREIGN KEY (map_id) REFERENCES maps(id),
             FOREIGN KEY (tile_id) REFERENCES map_tiles(id),
             UNIQUE (tile_id, index_x, index_y)
@@ -188,6 +200,7 @@ class DatabaseManager:
             texture_id INTEGER NOT NULL,
             flags INTEGER NOT NULL,
             effect_id INTEGER,
+            offset_in_mcal INTEGER NOT NULL DEFAULT 0,
             FOREIGN KEY (chunk_id) REFERENCES terrain_chunks(id),
             FOREIGN KEY (texture_id) REFERENCES textures(id)
         )
@@ -213,6 +226,45 @@ class DatabaseManager:
             max_height REAL,
             data BLOB,
             FOREIGN KEY (chunk_id) REFERENCES terrain_chunks(id)
+        )
+        """)
+
+        # Terrain vertex colors table (MCCV)
+        self.conn.execute("""
+        CREATE TABLE IF NOT EXISTS terrain_vertex_colors (
+            id INTEGER PRIMARY KEY,
+            chunk_id INTEGER NOT NULL,
+            vertex_index INTEGER NOT NULL CHECK(vertex_index >= 0 AND vertex_index < 145),
+            r INTEGER NOT NULL CHECK(r >= 0 AND r <= 255),
+            g INTEGER NOT NULL CHECK(g >= 0 AND g <= 255),
+            b INTEGER NOT NULL CHECK(b >= 0 AND b <= 255),
+            a INTEGER NOT NULL CHECK(a >= 0 AND a <= 255),
+            FOREIGN KEY (chunk_id) REFERENCES terrain_chunks(id),
+            UNIQUE (chunk_id, vertex_index)
+        )
+        """)
+
+        # Terrain alpha maps table (MCAL)
+        self.conn.execute("""
+        CREATE TABLE IF NOT EXISTS terrain_alpha_maps (
+            id INTEGER PRIMARY KEY,
+            chunk_id INTEGER NOT NULL,
+            data BLOB NOT NULL,
+            is_compressed BOOLEAN NOT NULL DEFAULT 0,
+            FOREIGN KEY (chunk_id) REFERENCES terrain_chunks(id)
+        )
+        """)
+
+        # Missing files tracking table
+        self.conn.execute("""
+        CREATE TABLE IF NOT EXISTS missing_files (
+            id INTEGER PRIMARY KEY,
+            map_id INTEGER NOT NULL,
+            file_path TEXT NOT NULL,
+            reference_file TEXT NOT NULL,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (map_id) REFERENCES maps(id),
+            UNIQUE (map_id, file_path)
         )
         """)
 
@@ -268,6 +320,11 @@ class DatabaseManager:
         self.conn.execute("""
         CREATE INDEX IF NOT EXISTS idx_model_placements_wmo_map 
         ON model_placements_wmo(map_id)
+        """)
+
+        self.conn.execute("""
+        CREATE INDEX IF NOT EXISTS idx_missing_files_map
+        ON missing_files(map_id)
         """)
 
     def close(self):

@@ -10,22 +10,23 @@ import logging
 import argparse
 from pathlib import Path
 from datetime import datetime
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Set
 
 from .format_detector import FormatDetector, FileType, FileFormat
 from .base.chunk_parser import ChunkParsingError
-from .database.models import setup_database
+from .database.operations import DatabaseOperations
 from .formats.alpha.wdt_parser import AlphaWDTParser
 from .formats.alpha.adt_parser import AlphaADTParser
 from .formats.retail.wdt_parser import RetailWDTParser
 from .formats.retail.adt_parser import RetailADTParser
 
-def setup_logging(output_dir: str) -> Tuple[logging.Logger, str]:
+def setup_logging(output_dir: str) -> Tuple[logging.Logger, str, logging.Logger]:
     """Setup logging configuration"""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     log_dir = Path(output_dir) / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
     
+    # Main log file
     log_file = log_dir / f"decoder_{timestamp}.log"
     
     # Configure file logging
@@ -43,18 +44,44 @@ def setup_logging(output_dir: str) -> Tuple[logging.Logger, str]:
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
     
-    return logging.getLogger(__name__), str(log_file)
+    # Setup missing files logger
+    missing_logger = logging.getLogger('missing_files')
+    missing_file_handler = logging.FileHandler(log_dir / f"missing_files_{timestamp}.log")
+    missing_file_handler.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(message)s'))
+    missing_logger.addHandler(missing_file_handler)
+    missing_logger.setLevel(logging.INFO)
+    
+    return logging.getLogger(__name__), str(log_file), missing_logger
+
+def load_listfile(listfile_path: str) -> Set[str]:
+    """Load and normalize listfile entries"""
+    known_files = set()
+    if os.path.exists(listfile_path):
+        with open(listfile_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if ';' in line:
+                    filename = line.split(';')[1].strip().lower()
+                    if filename.endswith('.mdx'):
+                        filename = filename[:-4] + '.m2'
+                    known_files.add(filename)
+        logging.info(f"Loaded {len(known_files)} known files from {listfile_path}")
+    else:
+        logging.warning(f"Listfile not found: {listfile_path}")
+    return known_files
 
 def process_file(file_path: str,
                 output_dir: str,
-                listfile_path: Optional[str] = None) -> bool:
+                db_ops: DatabaseOperations,
+                known_files: Optional[Set[str]] = None) -> bool:
     """
     Process a single WDT or ADT file
     
     Args:
         file_path: Path to the file to process
         output_dir: Directory for output files
-        listfile_path: Optional path to listfile for validation
+        db_ops: Database operations instance
+        known_files: Set of known good files for validation
         
     Returns:
         bool: Whether processing was successful
@@ -68,10 +95,6 @@ def process_file(file_path: str,
         logging.info(f"Type: {file_type.name}")
         logging.info(f"Format: {format_type.name}")
         logging.info(f"Reversed chunks: {reversed_chunks}")
-        
-        # Setup database
-        db_path = os.path.join(output_dir, "map_data.db")
-        conn = setup_database(db_path)
         
         try:
             # Select appropriate parser
@@ -95,18 +118,57 @@ def process_file(file_path: str,
                 result = parser.parse()
                 logging.info("Parsing completed successfully")
                 
-                # Additional validation if listfile provided
-                if listfile_path and os.path.exists(listfile_path):
-                    validate_against_listfile(result, listfile_path)
+                # Store in database
+                if file_type == FileType.WDT:
+                    map_id = db_ops.process_wdt_data(
+                        file_path,
+                        format_type.name,
+                        result
+                    )
+                else:  # ADT
+                    # Extract map name and coordinates from ADT filename
+                    path = Path(file_path)
+                    parts = path.stem.split('_')
+                    if len(parts) >= 3:
+                        map_name = '_'.join(parts[:-2])
+                        x, y = int(parts[-2]), int(parts[-1])
+                        
+                        # Find or create map record
+                        cursor = db_ops.db.conn.execute(
+                            "SELECT id FROM maps WHERE name = ?",
+                            (map_name,)
+                        )
+                        row = cursor.fetchone()
+                        if row:
+                            map_id = row[0]
+                        else:
+                            map_id = db_ops.insert_map(
+                                map_name,
+                                format_type.name,
+                                result.get('version', 0),
+                                result.get('flags', 0)
+                            )
+                        
+                        # Create tile record
+                        tile_id = db_ops.insert_map_tile(
+                            map_id, x, y,
+                            result.get('flags', 0),
+                            True,  # has_data
+                            path.name
+                        )
+                        
+                        # Process ADT data
+                        db_ops.process_adt_data(map_id, tile_id, result)
+                    else:
+                        logging.error(f"Invalid ADT filename format: {file_path}")
+                        return False
             
             return True
             
-        finally:
-            conn.close()
+        except ChunkParsingError as e:
+            logging.error(f"Chunk parsing error: {e}")
+            return False
             
-    except ChunkParsingError as e:
-        logging.error(f"Chunk parsing error: {e}")
-        return False
     except Exception as e:
         logging.error(f"Unexpected error: {e}", exc_info=True)
         return False
@@ -137,40 +199,36 @@ def process_directory(directory: str,
     
     logging.info(f"\nProcessing {total} files from {directory}")
     
+    # Setup database
+    db_path = os.path.join(output_dir, "map_data.db")
+    db_ops = DatabaseOperations(db_path)
+    
+    # Load listfile if provided
+    known_files = load_listfile(listfile_path) if listfile_path else None
+    
     successful = 0
     failed = 0
     
-    for i, file_path in enumerate(files, 1):
-        logging.info(f"\nProcessing file {i}/{total}: {file_path.name}")
-        
-        if process_file(str(file_path), output_dir, listfile_path):
-            successful += 1
-        else:
-            failed += 1
+    try:
+        for i, file_path in enumerate(files, 1):
+            logging.info(f"\nProcessing file {i}/{total}: {file_path.name}")
             
-        logging.info(f"Progress: {i}/{total} files processed")
+            if process_file(str(file_path), output_dir, db_ops, known_files):
+                successful += 1
+            else:
+                failed += 1
+                
+            logging.info(f"Progress: {i}/{total} files processed")
+        
+        # Generate uid.ini if we have unique IDs
+        if db_ops.unique_ids:
+            db_ops.write_uid_ini(output_dir)
+            logging.info(f"Generated uid.ini with max ID: {max(db_ops.unique_ids)}")
+            
+    finally:
+        db_ops.close()
     
     return successful, failed
-
-def validate_against_listfile(parse_result: dict, listfile_path: str) -> None:
-    """Validate parsed data against known-good listfile"""
-    with open(listfile_path, 'r', encoding='utf-8') as f:
-        known_files = {line.strip().split(';')[1].lower() for line in f if ';' in line}
-    
-    # Check M2 models
-    for model in parse_result.get('m2_models', []):
-        if model.lower() not in known_files:
-            logging.warning(f"Unknown M2 model: {model}")
-    
-    # Check WMO models
-    for model in parse_result.get('wmo_models', []):
-        if model.lower() not in known_files:
-            logging.warning(f"Unknown WMO model: {model}")
-    
-    # Check textures
-    for texture in parse_result.get('textures', []):
-        if texture.lower() not in known_files:
-            logging.warning(f"Unknown texture: {texture}")
 
 def main():
     parser = argparse.ArgumentParser(
@@ -205,13 +263,22 @@ def main():
     os.makedirs(args.output_dir, exist_ok=True)
     
     # Setup logging
-    logger, log_file = setup_logging(args.output_dir)
+    logger, log_file, missing_logger = setup_logging(args.output_dir)
     
     try:
         if os.path.isfile(args.input):
             # Process single file
-            success = process_file(args.input, args.output_dir, args.listfile)
-            sys.exit(0 if success else 1)
+            db_ops = DatabaseOperations(os.path.join(args.output_dir, "map_data.db"))
+            known_files = load_listfile(args.listfile) if args.listfile else None
+            
+            try:
+                success = process_file(args.input, args.output_dir, db_ops, known_files)
+                if db_ops.unique_ids:
+                    db_ops.write_uid_ini(args.output_dir)
+                sys.exit(0 if success else 1)
+            finally:
+                db_ops.close()
+                
         elif os.path.isdir(args.input):
             # Process directory
             successful, failed = process_directory(

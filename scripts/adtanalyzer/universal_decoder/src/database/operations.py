@@ -2,9 +2,11 @@
 Database operations for WoW map data
 """
 
+import os
 import json
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional, Tuple, Set
 from pathlib import Path
+from datetime import datetime
 from .models import DatabaseManager
 
 class DatabaseOperations:
@@ -12,15 +14,16 @@ class DatabaseOperations:
     
     def __init__(self, db_path: str):
         self.db = DatabaseManager(db_path)
+        self.unique_ids: Set[int] = set()
 
-    def insert_map(self, name: str, format_type: str, version: int, flags: int) -> int:
+    def insert_map(self, name: str, format_type: str, version: int, flags: int, chunk_order: str = '') -> int:
         """Insert map record and return its ID"""
         cursor = self.db.conn.execute(
             """
-            INSERT INTO maps (name, format, version, flags)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO maps (name, format, version, flags, chunk_order)
+            VALUES (?, ?, ?, ?, ?)
             """,
-            (name, format_type, version, flags)
+            (name, format_type, version, flags, chunk_order)
         )
         self.db.conn.commit()
         return cursor.lastrowid
@@ -28,21 +31,45 @@ class DatabaseOperations:
     def insert_map_tile(self, map_id: int, x: int, y: int, flags: int,
                        has_data: bool, adt_file: Optional[str] = None,
                        offset: Optional[int] = None, size: Optional[int] = None,
-                       async_id: Optional[int] = None) -> int:
+                       async_id: Optional[int] = None, version: int = 0,
+                       header_flags: int = 0) -> int:
         """Insert map tile record and return its ID"""
         cursor = self.db.conn.execute(
             """
             INSERT INTO map_tiles (
                 map_id, x, y, flags, has_data, adt_file,
-                offset, size, async_id
+                offset, size, async_id, version, header_flags
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (map_id, x, y, flags, has_data, adt_file,
-             offset, size, async_id)
+             offset, size, async_id, version, header_flags)
         )
         self.db.conn.commit()
         return cursor.lastrowid
+
+    def track_missing_file(self, map_id: int, file_path: str, reference_file: str) -> None:
+        """Track missing file reference"""
+        self.db.conn.execute(
+            """
+            INSERT OR IGNORE INTO missing_files (map_id, file_path, reference_file)
+            VALUES (?, ?, ?)
+            """,
+            (map_id, file_path, reference_file)
+        )
+        self.db.conn.commit()
+
+    def track_unique_id(self, unique_id: int) -> None:
+        """Track unique ID for uid.ini generation"""
+        self.unique_ids.add(unique_id)
+
+    def write_uid_ini(self, directory: str) -> None:
+        """Write uid.ini file with max unique ID"""
+        if self.unique_ids:
+            max_uid = max(self.unique_ids)
+            ini_path = os.path.join(directory, 'uid.ini')
+            with open(ini_path, 'w') as f:
+                f.write(f"max_unique_id={max_uid}\n")
 
     def batch_insert_textures(self, map_id: int, textures: List[Dict[str, Any]]) -> Dict[str, int]:
         """Batch insert textures and return mapping of paths to IDs"""
@@ -122,6 +149,7 @@ class DatabaseOperations:
         for p in placements:
             if p['model_path'] not in model_ids:
                 continue
+            self.track_unique_id(p['unique_id'])
             values.append((
                 map_id,
                 model_ids[p['model_path']],
@@ -152,6 +180,7 @@ class DatabaseOperations:
         for p in placements:
             if p['model_path'] not in model_ids:
                 continue
+            self.track_unique_id(p['unique_id'])
             values.append((
                 map_id,
                 model_ids[p['model_path']],
@@ -161,7 +190,13 @@ class DatabaseOperations:
                 p['scale'],
                 p['flags'],
                 p.get('doodad_set'),
-                p.get('name_set')
+                p.get('name_set'),
+                p.get('bounds', {}).get('min', {}).get('x'),
+                p.get('bounds', {}).get('min', {}).get('y'),
+                p.get('bounds', {}).get('min', {}).get('z'),
+                p.get('bounds', {}).get('max', {}).get('x'),
+                p.get('bounds', {}).get('max', {}).get('y'),
+                p.get('bounds', {}).get('max', {}).get('z')
             ))
         
         self.db.conn.executemany(
@@ -170,9 +205,11 @@ class DatabaseOperations:
                 map_id, model_id, unique_id,
                 pos_x, pos_y, pos_z,
                 rot_x, rot_y, rot_z,
-                scale, flags, doodad_set, name_set
+                scale, flags, doodad_set, name_set,
+                bounds_min_x, bounds_min_y, bounds_min_z,
+                bounds_max_x, bounds_max_y, bounds_max_z
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             values
         )
@@ -191,16 +228,20 @@ class DatabaseOperations:
                 x, y,
                 chunk['flags'],
                 chunk.get('area_id'),
-                chunk.get('holes')
+                chunk.get('holes'),
+                1 if chunk.get('has_mcvt', False) else 0,
+                1 if chunk.get('has_mcnr', False) else 0,
+                1 if chunk.get('has_mclq', False) else 0
             ))
         
         cursor = self.db.conn.executemany(
             """
             INSERT INTO terrain_chunks (
                 map_id, tile_id, index_x, index_y,
-                flags, area_id, holes
+                flags, area_id, holes,
+                has_mcvt, has_mcnr, has_mclq
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             values
         )
@@ -237,14 +278,36 @@ class DatabaseOperations:
         )
         self.db.conn.commit()
 
-    def batch_insert_terrain_layers(self, layers_data: List[Tuple[int, int, int, Optional[int]]]) -> None:
+    def batch_insert_terrain_layers(self, layers_data: List[Tuple[int, int, int, Optional[int], int]]) -> None:
         """Batch insert terrain layer data"""
         self.db.conn.executemany(
             """
-            INSERT INTO terrain_layers (chunk_id, texture_id, flags, effect_id)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO terrain_layers (chunk_id, texture_id, flags, effect_id, offset_in_mcal)
+            VALUES (?, ?, ?, ?, ?)
             """,
             layers_data
+        )
+        self.db.conn.commit()
+
+    def batch_insert_vertex_colors(self, colors_data: List[Tuple[int, int, int, int, int, int]]) -> None:
+        """Batch insert vertex color data"""
+        self.db.conn.executemany(
+            """
+            INSERT INTO terrain_vertex_colors (chunk_id, vertex_index, r, g, b, a)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            colors_data
+        )
+        self.db.conn.commit()
+
+    def insert_alpha_map(self, chunk_id: int, data: bytes, is_compressed: bool) -> None:
+        """Insert alpha map data"""
+        self.db.conn.execute(
+            """
+            INSERT INTO terrain_alpha_maps (chunk_id, data, is_compressed)
+            VALUES (?, ?, ?)
+            """,
+            (chunk_id, data, is_compressed)
         )
         self.db.conn.commit()
 
@@ -257,13 +320,16 @@ class DatabaseOperations:
         # Get version and flags
         version = 0
         flags = 0
+        chunk_order = ''
         if 'MVER' in decoded_data:
             version = decoded_data['MVER'][0]['version']
         if 'MPHD' in decoded_data:
             flags = decoded_data['MPHD'][0]['flags']
+        if 'chunk_order' in decoded_data:
+            chunk_order = ','.join(decoded_data['chunk_order'])
         
         # Insert map record
-        map_id = self.insert_map(map_name, format_type, version, flags)
+        map_id = self.insert_map(map_name, format_type, version, flags, chunk_order)
         
         # Process model files
         m2_models = []
@@ -280,6 +346,14 @@ class DatabaseOperations:
             m2_models = decoded_data['MMDX'][0]['names']
         if 'MWMO' in decoded_data:
             wmo_models = decoded_data['MWMO'][0]['names']
+        
+        # Track missing files
+        for model in m2_models:
+            if not self._check_file_exists(model):
+                self.track_missing_file(map_id, model, file_path)
+        for model in wmo_models:
+            if not self._check_file_exists(model):
+                self.track_missing_file(map_id, model, file_path)
         
         # Batch insert models
         m2_model_ids = self.batch_insert_m2_models(map_id, m2_models)
@@ -314,7 +388,8 @@ class DatabaseOperations:
                         'scale': entry['scale'],
                         'flags': entry['flags'],
                         'doodad_set': entry.get('doodadSet'),
-                        'name_set': entry.get('nameSet')
+                        'name_set': entry.get('nameSet'),
+                        'bounds': entry.get('bounds', {})
                     })
             self.batch_insert_wmo_placements(map_id, placements, wmo_model_ids)
         
@@ -330,7 +405,9 @@ class DatabaseOperations:
                         tile.get('adt_file'),
                         tile.get('offset'),
                         tile.get('size'),
-                        tile.get('async_id')
+                        tile.get('async_id'),
+                        tile.get('version', 0),
+                        tile.get('header_flags', 0)
                     )
                     
                     # Process ADT data if available
@@ -351,6 +428,11 @@ class DatabaseOperations:
         textures = []
         if 'MTEX' in decoded_data:
             textures = [{'path': path} for path in decoded_data['MTEX'][0]['textures']]
+            # Track missing textures
+            for tex in textures:
+                if not self._check_file_exists(tex['path']):
+                    self.track_missing_file(map_id, tex['path'], f"tile_{tile_id}")
+                    
         texture_ids = self.batch_insert_textures(map_id, textures)
         
         # Process terrain chunks
@@ -358,18 +440,19 @@ class DatabaseOperations:
             # Batch insert chunks
             chunk_ids = self.batch_insert_terrain_chunks(map_id, tile_id, decoded_data['MCNK'])
             
-            # Prepare batch data for heights and layers
+            # Prepare batch data
             heights_data = []
             layers_data = []
+            colors_data = []
             
             for chunk_idx, chunk in enumerate(decoded_data['MCNK']):
                 chunk_id = chunk_ids[chunk_idx]
                 
-                # Collect height data
+                # Heights (MCVT)
                 if 'heights' in chunk:
                     heights_data.append((chunk_id, chunk['heights']))
                 
-                # Collect layer data
+                # Layers (MCLY)
                 if 'layers' in chunk:
                     for layer in chunk['layers']:
                         texture_path = layer['texture_path']
@@ -378,14 +461,39 @@ class DatabaseOperations:
                                 chunk_id,
                                 texture_ids[texture_path],
                                 layer['flags'],
-                                layer.get('effect_id')
+                                layer.get('effect_id'),
+                                layer.get('offset_in_mcal', 0)
                             ))
+                
+                # Vertex Colors (MCCV)
+                if 'vertex_colors' in chunk:
+                    for i, color in enumerate(chunk['vertex_colors']):
+                        colors_data.append((
+                            chunk_id, i,
+                            color['r'], color['g'], color['b'], color['a']
+                        ))
+                
+                # Alpha Maps (MCAL)
+                if 'alpha_map' in chunk:
+                    self.insert_alpha_map(
+                        chunk_id,
+                        chunk['alpha_map']['data'],
+                        chunk['alpha_map'].get('is_compressed', False)
+                    )
             
-            # Batch insert heights and layers
+            # Batch insert all data
             if heights_data:
                 self.batch_insert_terrain_heights(heights_data)
             if layers_data:
                 self.batch_insert_terrain_layers(layers_data)
+            if colors_data:
+                self.batch_insert_vertex_colors(colors_data)
+
+    def _check_file_exists(self, file_path: str) -> bool:
+        """Check if a file exists in the game files"""
+        # This would typically check against a listfile or game directory
+        # For now, just return True to avoid false positives
+        return True
 
     def close(self):
         """Close database connection"""

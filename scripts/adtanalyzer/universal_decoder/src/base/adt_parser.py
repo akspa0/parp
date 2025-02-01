@@ -231,31 +231,49 @@ class ADTParserBase(ChunkParser):
         self._parse_version()
         
         # Parse all MCNK chunks
-        for chunk in self.find_chunks(self.MCNK_CHUNK):
+        mcnk_chunks = list(self.find_chunks(self.MCNK_CHUNK))
+        self.logger.debug(f"Found {len(mcnk_chunks)} MCNK chunks")
+        
+        for chunk in mcnk_chunks:
             try:
+                self.logger.debug(f"Processing MCNK chunk at offset {chunk.offset}")
                 mcnk = self.parse_mcnk(chunk)
                 self._mcnk_chunks[mcnk.index] = mcnk
+                self.logger.debug(f"Successfully parsed MCNK chunk {mcnk.index} at ({mcnk.x}, {mcnk.y})")
             except Exception as e:
                 self.logger.error(f"Error parsing MCNK at offset {chunk.offset}: {e}")
+                import traceback
+                self.logger.error(traceback.format_exc())
         
         return {
             'version': self.version,
-            'chunks': [
-                {
-                    'x': mcnk.x,
-                    'y': mcnk.y,
-                    'flags': mcnk.flags,
-                    'area_id': mcnk.area_id,
-                    'num_layers': mcnk.num_layers,
-                    'position': mcnk.position,
-                    'has_height_map': self.MCVT_CHUNK in mcnk.subchunks,
-                    'has_liquid': self.MCLQ_CHUNK in mcnk.subchunks
-                }
-                for mcnk in self.iter_mcnks()
-            ],
-            'textures': self._textures,
-            'm2_models': self._m2_models,
-            'wmo_models': self._wmo_models,
-            'm2_placements': self._m2_placements,
-            'wmo_placements': self._wmo_placements
+            'decoded_chunks': {
+                'MCNK': [
+                    {
+                        'flags': mcnk.flags,
+                        'area_id': mcnk.area_id,
+                        'holes': mcnk.holes,
+                        'position': mcnk.position,
+                        'liquid_type': mcnk.liquid_type,
+                        'flags': mcnk.flags,
+                        'area_id': mcnk.area_id,
+                        'holes': mcnk.holes,
+                        'position': mcnk.position,
+                        'liquid_type': mcnk.liquid_type,
+                        'x': mcnk.x,
+                        'y': mcnk.y,
+                        'has_mcvt': mcnk.subchunks.get('has_mcvt', False),
+                        'has_mcnr': mcnk.subchunks.get('has_mcnr', False),
+                        'has_mclq': mcnk.subchunks.get('has_mclq', False),
+                        'heights': mcnk.subchunks.get('heights', []),
+                        'layers': mcnk.subchunks.get('layers', [])
+                    }
+                    for mcnk in self.iter_mcnks()
+                ],
+                'textures': self._textures,
+                'm2_models': self._m2_models,
+                'wmo_models': self._wmo_models,
+                'm2_placements': self._m2_placements,
+                'wmo_placements': self._wmo_placements
+            }
         }

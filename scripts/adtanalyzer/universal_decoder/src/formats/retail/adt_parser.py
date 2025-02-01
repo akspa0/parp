@@ -143,8 +143,13 @@ class RetailADTParser(ADTParserBase):
     def parse_mcnk(self, chunk: ChunkInfo) -> MCNKInfo:
         """Parse a Retail format MCNK chunk"""
         data = self.read_chunk(chunk)
+        self.logger.debug(f"Parsing MCNK chunk at offset {chunk.offset}, size {chunk.size}")
+        
         header = self._parse_mcnk_header(data)
+        self.logger.debug(f"MCNK header parsed: flags={header['flags']}, area_id={header.get('layer_texture_id', 0)}")
+        
         subchunks = self._find_mcnk_subchunks(data)
+        self.logger.debug(f"Found subchunks: {[name.decode('ascii') for name in subchunks.keys()]}")
         
         # Process subchunks
         processed_subchunks = {}
@@ -171,18 +176,50 @@ class RetailADTParser(ADTParserBase):
                     pos += 16
                 processed_subchunks['layers'] = layers
         
-        return MCNKInfo(
+        # Create MCNK data structure
+        mcnk_data = {
+            'flags': header['flags'],
+            'area_id': header.get('layer_texture_id', 0),  # In retail, area_id is stored in layer_texture_id
+            'holes': header['holes'],
+            'position': header['position'],
+            'liquid_type': header['liquid_type'],
+            'has_mcvt': self.MCVT_CHUNK in subchunks,
+            'has_mcnr': self.MCNR_CHUNK in subchunks,
+            'has_mclq': self.MCLQ_CHUNK in subchunks,
+            'x': header['index_x'],
+            'y': header['index_y']
+        }
+
+        # Add processed subchunk data
+        if 'heights' in processed_subchunks:
+            mcnk_data['heights'] = processed_subchunks['heights']
+        if 'layers' in processed_subchunks:
+            mcnk_data['layers'] = processed_subchunks['layers']
+
+        # Add raw subchunks for debugging
+        mcnk_data['raw_subchunks'] = {
+            name.decode('ascii'): {
+                'offset': chunk.offset,
+                'size': chunk.size
+            } for name, chunk in subchunks.items()
+        }
+
+        # Create MCNKInfo with processed data
+        mcnk_info = MCNKInfo(
             index=header['index_x'] + header['index_y'] * 16,
             x=header['index_x'],
             y=header['index_y'],
             flags=header['flags'],
-            area_id=0,  # Not used in Retail
+            area_id=header.get('layer_texture_id', 0),
             holes=header['holes'],
-            subchunks=processed_subchunks,
+            subchunks=mcnk_data,  # Store the complete data structure
             liquid_type=header['liquid_type'],
             position=header['position'],
             num_layers=header['layers']
         )
+
+        self.logger.debug(f"Created MCNKInfo with flags={mcnk_info.flags}, area_id={mcnk_info.area_id}, x={mcnk_info.x}, y={mcnk_info.y}, subchunks={list(mcnk_data['raw_subchunks'].keys())}")
+        return mcnk_info
 
     def parse_textures(self):
         """Parse Retail format texture information"""
