@@ -131,33 +131,37 @@ class McnkChunk:
         offset += 8 + 448  # chunk header (8) + data size (448)
 
         # MCLY (only if we have layers)
-        has_mcly = bool(self.n_layers > 0)
+        has_mcly = bool(self.n_layers > 0 and self.mcly_data)
         mcly_offset = offset if has_mcly else 0
         if has_mcly:
             offset += 8 + len(self.mcly_data)
 
         # MCRF (only if we have doodads or WMOs)
-        has_mcrf = bool(self.n_doodad_refs > 0 or self.n_mapobj_refs > 0)
+        has_mcrf = bool((self.n_doodad_refs > 0 or self.n_mapobj_refs > 0) and self.mcrf_data)
         mcrf_offset = offset if has_mcrf else 0
         if has_mcrf:
             offset += 8 + len(self.mcrf_data)
 
         # MCSH comes before MCAL in retail
-        has_mcsh = bool(self.mcsh_data and any(b != 0 for b in self.mcsh_data))  # Check for non-zero bytes
+        has_mcsh = bool(self.flags & 0x1 and self.mcsh_data)  # Check has_mcsh flag
         mcsh_offset = offset if has_mcsh else 0
         mcsh_size = len(self.mcsh_data) if has_mcsh else 0
         if has_mcsh:
             offset += 8 + len(self.mcsh_data)
 
         # MCAL comes after MCSH
-        has_mcal = bool(self.mcal_data and any(b != 0 for b in self.mcal_data))  # Check for non-zero bytes
+        has_mcal = bool(self.mcal_size > 0 and self.mcal_data)  # Check size in header
         mcal_offset = offset if has_mcal else 0
         mcal_size = len(self.mcal_data) + 8 if has_mcal else 0  # Include header size only if we have data
         if has_mcal:
             offset += 8 + len(self.mcal_data)
 
-        mclq_offset = offset if len(self.mclq_data) > 0 else 0
-        mclq_size = len(self.mclq_data) + 8 if len(self.mclq_data) > 0 else 0
+        # MCLQ (only if we have liquid flags)
+        has_mclq = bool(self.flags & 0x0E and self.mclq_data)  # Check liquid flags (ocean/river/magma)
+        mclq_offset = offset if has_mclq else 0
+        mclq_size = len(self.mclq_data) + 8 if has_mclq else 0
+        if has_mclq:
+            offset += 8 + len(self.mclq_data)
 
         # Create new header (128 bytes)
         header = bytearray(128)
@@ -221,20 +225,20 @@ class McnkChunk:
             data.extend(struct.pack('<I', len(self.mcrf_data)))
             data.extend(self.mcrf_data)
 
-        # MCSH (only if it has non-zero data)
+        # MCSH (only if has_mcsh flag is set)
         if has_mcsh:
             data.extend(b'HSCM')
             data.extend(struct.pack('<I', mcsh_size))
             data.extend(self.mcsh_data)
 
-        # MCAL (only if it has non-zero data)
+        # MCAL (only if we have alpha data)
         if has_mcal:
             data.extend(b'LACM')
             data.extend(struct.pack('<I', len(self.mcal_data)))
             data.extend(self.mcal_data)
 
-        # MCLQ (optional)
-        if len(self.mclq_data) > 0:
+        # MCLQ (only if we have liquid flags)
+        if has_mclq:
             data.extend(b'QLCM')
             data.extend(struct.pack('<I', len(self.mclq_data)))
             data.extend(self.mclq_data)

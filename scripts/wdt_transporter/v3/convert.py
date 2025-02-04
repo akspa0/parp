@@ -24,7 +24,7 @@ def read_alpha_wdt(path: Path) -> Tuple[AlphaRevmChunk, AlphaDhpmChunk, AlphaNia
                 break
             chunks[chunk.letters] = chunk
 
-    # Validate required chunks
+    # Validate required chunks (in reverse order)
     if 'REVM' not in chunks:
         raise ValueError("Missing REVM chunk")
     if 'DHPM' not in chunks:
@@ -40,12 +40,25 @@ def read_alpha_wdt(path: Path) -> Tuple[AlphaRevmChunk, AlphaDhpmChunk, AlphaNia
     return revm, dhpm, niam
 
 
+def write_empty_chunk(f: BinaryIO, letters: str) -> None:
+    """Write empty chunk with given letters."""
+    chunk = Chunk(letters=letters, size=0, data=b'')
+    chunk.write(f)
+
+
 def write_wotlk_wdt(path: Path, revm: WotlkRevmChunk, dhpm: WotlkDhpmChunk, niam: WotlkNiamChunk) -> None:
     """Write WotLK WDT file."""
     with open(path, 'wb') as f:
+        # Write required chunks
         revm.to_chunk().write(f)
         dhpm.to_chunk().write(f)
         niam.to_chunk().write(f)
+
+        # Write empty chunks
+        write_empty_chunk(f, 'XDMM')  # MMDX
+        write_empty_chunk(f, 'DIMM')  # MMID
+        write_empty_chunk(f, 'OMWM')  # MWMO
+        write_empty_chunk(f, 'DIWM')  # MWID
 
 
 def convert_wdt(input_path: Path, output_dir: Path) -> None:
@@ -69,14 +82,15 @@ def convert_wdt(input_path: Path, output_dir: Path) -> None:
         wotlk_cells.append(row)
     wotlk_niam = WotlkNiamChunk(cells=wotlk_cells)
 
-    # Write WotLK WDT
-    output_path = output_dir / input_path.name
+    # Create map directory
+    map_dir = output_dir / input_path.stem
+    map_dir.mkdir(exist_ok=True)
+
+    # Write WotLK WDT in map directory
+    output_path = map_dir / input_path.name
     write_wotlk_wdt(output_path, wotlk_revm, wotlk_dhpm, wotlk_niam)
 
     # Convert ADTs
-    adt_dir = output_dir / input_path.stem
-    adt_dir.mkdir(exist_ok=True)
-
     # Get list of ADTs to convert
     adt_cells = alpha_niam.get_adt_cells()
     if not adt_cells:
@@ -97,7 +111,7 @@ def convert_wdt(input_path: Path, output_dir: Path) -> None:
 
         # Write ADT
         adt_name = alpha_adt.get_name(input_path.name)
-        adt_path = adt_dir / adt_name
+        adt_path = map_dir / adt_name
         wotlk_adt.write(adt_path)
 
 

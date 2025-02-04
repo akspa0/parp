@@ -31,7 +31,7 @@ class Chunk:
         if not header or len(header) < 8:
             return None
 
-        # Get magic letters directly from file (no reversal)
+        # Get magic letters directly from file
         letters = header[:4].decode('ascii')
         size = struct.unpack('<I', header[4:8])[0]
 

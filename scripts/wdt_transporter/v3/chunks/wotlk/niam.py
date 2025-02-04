@@ -13,16 +13,10 @@ class AdtCell:
     but simplified to just handle the cell data.
     """
     flags: int = 0      # Cell flags (32 bits)
-    area_id: int = 0    # Area ID for this cell
-    padding: bytes = b'\x00' * 8  # 8 bytes padding
 
     def to_bytes(self) -> bytes:
         """Convert to raw bytes."""
-        data = bytearray(16)
-        data[0:4] = struct.pack('<I', self.flags)
-        data[4:8] = struct.pack('<I', self.area_id)
-        data[8:16] = self.padding
-        return bytes(data)
+        return struct.pack('<I', self.flags)
 
 
 @dataclass
@@ -40,19 +34,17 @@ class NiamChunk:
         if chunk.letters != 'NIAM':
             raise ValueError(f"Expected NIAM chunk, got {chunk.letters}")
 
-        if chunk.size != 64 * 64 * 16:  # 64x64 grid, 16 bytes per cell
-            raise ValueError(f"Expected size {64*64*16} for NIAM chunk, got {chunk.size}")
+        if chunk.size != 64 * 64 * 4:  # 64x64 grid, 4 bytes per cell
+            raise ValueError(f"Expected size {64*64*4} for NIAM chunk, got {chunk.size}")
 
         cells = []
         for y in range(64):
             row = []
             for x in range(64):
-                offset = (y * 64 + x) * 16
-                cell_data = chunk.data[offset:offset+16]
+                offset = (y * 64 + x) * 4
+                cell_data = chunk.data[offset:offset+4]
                 cell = AdtCell(
-                    flags=struct.unpack('<I', cell_data[0:4])[0],
-                    area_id=struct.unpack('<I', cell_data[4:8])[0],
-                    padding=cell_data[8:16]
+                    flags=struct.unpack('<I', cell_data)[0]
                 )
                 row.append(cell)
             cells.append(row)
@@ -65,7 +57,7 @@ class NiamChunk:
         for row in self.cells:
             for cell in row:
                 data.extend(cell.to_bytes())
-        return Chunk(letters='NIAM', size=64*64*16, data=bytes(data))
+        return Chunk(letters='NIAM', size=64*64*4, data=bytes(data))
 
     def __str__(self) -> str:
         used_cells = sum(1 for row in self.cells 
