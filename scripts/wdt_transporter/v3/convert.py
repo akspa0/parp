@@ -3,8 +3,8 @@ import argparse
 from datetime import datetime
 from pathlib import Path
 import struct
-import sys
 from typing import BinaryIO, List, Optional, Tuple
+import sys
 
 from chunks.base import Chunk
 from chunks import (
@@ -41,8 +41,12 @@ def read_alpha_wdt(path: Path) -> Tuple[AlphaRevmChunk, AlphaDhpmChunk, AlphaNia
 
 
 def write_empty_chunk(f: BinaryIO, letters: str) -> None:
-    """Write empty chunk with given letters."""
-    chunk = Chunk(letters=letters, size=0, data=b'')
+    """Write empty chunk with given letters.
+    
+    Empty chunks in WDT files have size=4 with zero data.
+    """
+    data = struct.pack('<I', 0)  # 4 bytes of zeros
+    chunk = Chunk(letters=letters, size=4, data=data)
     chunk.write(f)
 
 

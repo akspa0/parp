@@ -13,7 +13,7 @@ class WotlkAdt:
     
     This follows the structure from noggit-red MapTile.h and MapHeaders.h.
     Key differences:
-    - Uses raw chunk names (e.g. 'REVM' not 'MVER')
+    - Uses raw chunk names in big-endian order (e.g. 'REVM' for MVER chunk)
     - Stores raw chunk data until needed
     """
     mver: Chunk  # REVM (MVER) chunk
@@ -121,11 +121,11 @@ class WotlkAdt:
 
         mcin = Chunk(letters='NICM', size=16 * 256, data=bytes(mcin_data))
 
-        # Copy remaining chunks
-        mtex = alpha_adt.mtex
-        mddf = alpha_adt.mddf
-        modf = alpha_adt.modf
-        mcnk = alpha_adt.mcnk
+        # Copy remaining chunks with updated letters
+        mtex = Chunk(letters='XETM', size=alpha_adt.mtex.size, data=alpha_adt.mtex.data)
+        mddf = Chunk(letters='FDDM', size=alpha_adt.mddf.size, data=alpha_adt.mddf.data)
+        modf = Chunk(letters='FDOM', size=alpha_adt.modf.size, data=alpha_adt.modf.data)
+        mcnk = [Chunk(letters='KNCM', size=chunk.size, data=chunk.data) for chunk in alpha_adt.mcnk]
 
         return cls(
             mver=mver,
@@ -149,6 +149,8 @@ class WotlkAdt:
         
         MVER, MHDR, MCIN, MTEX, MMDX, MMID, MWMO, MWID,
         MDDF, MODF, MCNK[256], MFBO?, MTXF?
+        
+        Note: Chunk letters are stored in big-endian order (e.g. 'REVM' for MVER).
         """
         with open(path, 'wb') as f:
             self.mver.write(f)
