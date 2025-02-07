@@ -45,9 +45,11 @@ class McnkChunk:
     mcsh_data: bytes = b''    # Shadow data
     mcal_data: bytes = b''    # Alpha data
     mclq_data: bytes = b''    # Liquid data
+    adt_x: int = 0           # ADT X coordinate (0-63)
+    adt_y: int = 0           # ADT Y coordinate (0-63)
 
     @classmethod
-    def from_chunk(cls, chunk: Chunk) -> 'McnkChunk':
+    def from_chunk(cls, chunk: Chunk, adt_x: int, adt_y: int) -> 'McnkChunk':
         """Create MCNK chunk from raw chunk data."""
         if chunk.letters != 'KNCM':
             raise ValueError(f"Expected KNCM chunk, got {chunk.letters}")
@@ -109,7 +111,9 @@ class McnkChunk:
             mcrf_data=mcrf_data,
             mcsh_data=mcsh_data,
             mcal_data=mcal_data,
-            mclq_data=mclq_data
+            mclq_data=mclq_data,
+            adt_x=adt_x,
+            adt_y=adt_y
         )
 
     def to_wotlk(self) -> Chunk:
@@ -120,48 +124,42 @@ class McnkChunk:
         - Add new fields for WotLK format
         - Preserve subchunk data with proper offsets
         """
-        # Start with header size
-        offset = 136  # Header size (128) + padding (8)
-
         # Calculate subchunk offsets including chunk headers (8 bytes each)
-        mcvt_offset = offset  # Offsets are absolute from start of chunk
-        offset += 8 + 580  # chunk header (8) + data size (580)
-
-        mcnr_offset = offset
-        offset += 8 + 448  # chunk header (8) + data size (448)
+        mcvt_offset = 128  # Start after header
+        mcnr_offset = mcvt_offset + 8 + 580  # MCVT header + data
+        mcly_offset = mcnr_offset + 8 + 448  # MCNR header + data
 
         # MCLY (only if we have layers)
         has_mcly = bool(self.n_layers > 0 and self.mcly_data)
-        mcly_offset = offset if has_mcly else 0
-        if has_mcly:
-            offset += 8 + len(self.mcly_data)
+        if not has_mcly:
+            mcly_offset = 0
 
         # MCRF (only if we have doodads or WMOs)
         has_mcrf = bool((self.n_doodad_refs > 0 or self.n_mapobj_refs > 0) and self.mcrf_data)
-        mcrf_offset = offset if has_mcrf else 0
-        if has_mcrf:
-            offset += 8 + len(self.mcrf_data)
+        mcrf_offset = mcly_offset + (8 + len(self.mcly_data) if has_mcly else 0)
+        if not has_mcrf:
+            mcrf_offset = 0
 
         # MCSH comes before MCAL in retail
         has_mcsh = bool(self.flags & 0x1 and self.mcsh_data)  # Check has_mcsh flag
-        mcsh_offset = offset if has_mcsh else 0
+        mcsh_offset = mcrf_offset + (8 + len(self.mcrf_data) if has_mcrf else 0)
         mcsh_size = len(self.mcsh_data) if has_mcsh else 0
-        if has_mcsh:
-            offset += 8 + len(self.mcsh_data)
+        if not has_mcsh:
+            mcsh_offset = 0
 
         # MCAL comes after MCSH
         has_mcal = bool(self.mcal_size > 0 and self.mcal_data)  # Check size in header
-        mcal_offset = offset if has_mcal else 0
-        mcal_size = len(self.mcal_data) + 8 if has_mcal else 0  # Include header size only if we have data
-        if has_mcal:
-            offset += 8 + len(self.mcal_data)
+        mcal_offset = mcsh_offset + (8 + len(self.mcsh_data) if has_mcsh else 0)
+        mcal_size = len(self.mcal_data) + 8 if has_mcal else 0  # Include header size
+        if not has_mcal:
+            mcal_offset = 0
 
         # MCLQ (only if we have liquid flags)
         has_mclq = bool(self.flags & 0x0E and self.mclq_data)  # Check liquid flags (ocean/river/magma)
-        mclq_offset = offset if has_mclq else 0
-        mclq_size = len(self.mclq_data) + 8 if has_mclq else 0
-        if has_mclq:
-            offset += 8 + len(self.mclq_data)
+        mclq_offset = mcal_offset + (8 + len(self.mcal_data) if has_mcal else 0)
+        mclq_size = len(self.mclq_data) + 8 if has_mclq else 0  # Include header size
+        if not has_mclq:
+            mclq_offset = 0
 
         # Create new header (128 bytes)
         header = bytearray(128)
@@ -191,8 +189,13 @@ class McnkChunk:
         header[76:80] = struct.pack('<I', 0)  # nSndEmitters
         header[80:84] = struct.pack('<I', mclq_offset)
         header[84:88] = struct.pack('<I', mclq_size)
-        header[88:92] = struct.pack('<f', -10000)  # posY
-        header[92:96] = struct.pack('<f', -10000)  # posX
+
+        # Calculate ADT position
+        pos_y = ((((533.33333 / 16) * self.ix) + (533.33333 * self.adt_x)) - (533.33333 * 32)) * -1
+        pos_x = ((((533.33333 / 16) * self.iy) + (533.33333 * self.adt_y)) - (533.33333 * 32)) * -1
+
+        header[88:92] = struct.pack('<f', pos_y)  # posY
+        header[92:96] = struct.pack('<f', pos_x)  # posX
         header[96:100] = struct.pack('<f', 0)  # posZ
         header[100:104] = struct.pack('<I', 0)  # mccvOffset
         header[104:108] = struct.pack('<I', 0)  # mclvOffset
@@ -200,10 +203,9 @@ class McnkChunk:
 
         # Build chunk data with subchunks
         data = bytearray()
-        data.extend(header)  # Header
-        data.extend(b'\0' * 8)  # Padding to align with retail
+        data.extend(header)  # Header (128 bytes)
 
-        # MCVT (required)
+        # MCVT (required) - starts immediately after header
         data.extend(b'TVCM')
         data.extend(struct.pack('<I', 580))
         data.extend(self.mcvt_data)
@@ -228,7 +230,7 @@ class McnkChunk:
         # MCSH (only if has_mcsh flag is set)
         if has_mcsh:
             data.extend(b'HSCM')
-            data.extend(struct.pack('<I', mcsh_size))
+            data.extend(struct.pack('<I', len(self.mcsh_data)))
             data.extend(self.mcsh_data)
 
         # MCAL (only if we have alpha data)
@@ -243,4 +245,8 @@ class McnkChunk:
             data.extend(struct.pack('<I', len(self.mclq_data)))
             data.extend(self.mclq_data)
 
-        return Chunk(letters='KNCM', size=len(data) - 8, data=bytes(data))  # Subtract padding from size
+        # Subtract chunk header (8 bytes) from size since it's included in data
+        return Chunk(letters='KNCM', size=len(data) - 8, data=bytes(data))
+
+    def __str__(self) -> str:
+        return f"MCNK Chunk ({self.ix}, {self.iy})"

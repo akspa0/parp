@@ -8,12 +8,12 @@ import sys
 
 from chunks.base import Chunk
 from chunks import (
-    AlphaRevmChunk, AlphaDhpmChunk, AlphaNiamChunk, AlphaAdt,
-    WotlkRevmChunk, WotlkDhpmChunk, WotlkNiamChunk, WotlkAdt, WotlkAdtCell
+    AlphaRevmChunk, AlphaMphdChunk, AlphaNiamChunk, AlphaAdt,
+    AlphaMdnmChunk, AlphaMonmChunk,
+    WotlkRevmChunk, WotlkMphdChunk, WotlkNiamChunk, WotlkAdt, WotlkAdtCell
 )
 
-
-def read_alpha_wdt(path: Path) -> Tuple[AlphaRevmChunk, AlphaDhpmChunk, AlphaNiamChunk]:
+def read_alpha_wdt(path: Path) -> Tuple[AlphaRevmChunk, AlphaMphdChunk, AlphaNiamChunk, AlphaMdnmChunk, AlphaMonmChunk, Optional[Chunk]]:
     """Read an Alpha WDT file and parse its chunks."""
     chunks = {}
     
@@ -32,47 +32,89 @@ def read_alpha_wdt(path: Path) -> Tuple[AlphaRevmChunk, AlphaDhpmChunk, AlphaNia
     if 'NIAM' not in chunks:
         raise ValueError("Missing NIAM chunk")
 
-    # Parse chunks
+    # Parse required chunks
     revm = AlphaRevmChunk.from_chunk(chunks['REVM'])
-    dhpm = AlphaDhpmChunk.from_chunk(chunks['DHPM'])
+    mphd = AlphaMphdChunk.from_chunk(chunks['DHPM'])
     niam = AlphaNiamChunk.from_chunk(chunks['NIAM'])
 
-    return revm, dhpm, niam
+    # Parse optional chunks (with empty defaults)
+    mdnm = AlphaMdnmChunk.from_chunk(chunks['MNMD']) if 'MNMD' in chunks else AlphaMdnmChunk(filenames=[])
+    monm = AlphaMonmChunk.from_chunk(chunks['MNOM']) if 'MNOM' in chunks else AlphaMonmChunk(filenames=[])
+    modf = chunks.get('FDOM')  # Get MODF chunk if it exists
+
+    return revm, mphd, niam, mdnm, monm, modf
 
 
-def write_empty_chunk(f: BinaryIO, letters: str) -> None:
-    """Write empty chunk with given letters.
+def write_string_chunk(f: BinaryIO, letters: str, strings: List[str]) -> None:
+    """Write chunk containing null-terminated strings.
     
-    Empty chunks in WDT files have size=4 with zero data.
+    The strings are concatenated with null bytes between them,
+    and a final null byte at the end.
     """
-    data = struct.pack('<I', 0)  # 4 bytes of zeros
-    chunk = Chunk(letters=letters, size=4, data=data)
+    # Convert strings to bytes and join with null bytes
+    data = b'\0'.join(s.encode('ascii') for s in strings)
+    if data:  # Add final null byte if we have data
+        data += b'\0'
+    
+    chunk = Chunk(letters=letters, size=len(data), data=data)
     chunk.write(f)
 
 
-def write_wotlk_wdt(path: Path, revm: WotlkRevmChunk, dhpm: WotlkDhpmChunk, niam: WotlkNiamChunk) -> None:
+def write_indices_chunk(f: BinaryIO, letters: str, count: int) -> None:
+    """Write chunk containing sequential indices.
+    
+    Creates a chunk with indices from 0 to count-1 as 32-bit integers.
+    """
+    if count == 0:
+        # Write empty chunk if no indices
+        data = struct.pack('<I', 0)
+    else:
+        # Pack indices as 32-bit integers
+        data = b''.join(struct.pack('<I', i) for i in range(count))
+    
+    chunk = Chunk(letters=letters, size=len(data), data=data)
+    chunk.write(f)
+
+
+def write_wotlk_wdt(path: Path, revm: WotlkRevmChunk, mphd: WotlkMphdChunk, niam: WotlkNiamChunk,
+                   mdnm: AlphaMdnmChunk, monm: AlphaMonmChunk, modf: Optional[Chunk] = None) -> None:
     """Write WotLK WDT file."""
     with open(path, 'wb') as f:
         # Write required chunks
         revm.to_chunk().write(f)
-        dhpm.to_chunk().write(f)
+        mphd.to_chunk().write(f)
         niam.to_chunk().write(f)
 
-        # Write empty chunks
-        write_empty_chunk(f, 'XDMM')  # MMDX
-        write_empty_chunk(f, 'DIMM')  # MMID
-        write_empty_chunk(f, 'OMWM')  # MWMO
-        write_empty_chunk(f, 'DIWM')  # MWID
+        # Write model chunks
+        write_string_chunk(f, 'XDMM', mdnm.filenames)  # MMDX
+        write_indices_chunk(f, 'DIMM', len(mdnm.filenames))  # MMID
+
+        # Write WMO chunks - only use WMO names if WMO-based
+        if mphd.is_wmo_based():
+            write_string_chunk(f, 'OMWM', monm.filenames)  # MWMO
+            write_indices_chunk(f, 'DIWM', len(monm.filenames))  # MWID
+            # Write MODF chunk if WMO-based
+            if modf:
+                modf.write(f)
+        else:
+            # Write empty WMO chunks
+            data = struct.pack('<I', 0)  # 4 bytes of zeros
+            Chunk(letters='OMWM', size=4, data=data).write(f)  # MWMO
+            Chunk(letters='DIWM', size=4, data=data).write(f)  # MWID
+
+        # Write empty MH2O chunk (required by noggit-red)
+        data = bytearray(8)  # 8 bytes of zeros
+        Chunk(letters='O2HM', size=8, data=bytes(data)).write(f)
 
 
 def convert_wdt(input_path: Path, output_dir: Path) -> None:
     """Convert Alpha WDT to WotLK format."""
     # Read alpha WDT
-    alpha_revm, alpha_dhpm, alpha_niam = read_alpha_wdt(input_path)
+    alpha_revm, alpha_mphd, alpha_niam, alpha_mdnm, alpha_monm, alpha_modf = read_alpha_wdt(input_path)
 
     # Convert to WotLK format
     wotlk_revm = WotlkRevmChunk(version=18)  # Always 18 in WotLK
-    wotlk_dhpm = WotlkDhpmChunk(flags=1 if alpha_dhpm.is_wmo_based() else 0)
+    wotlk_mphd = WotlkMphdChunk.from_alpha(alpha_mphd)
 
     # Convert NIAM - initialize empty grid
     wotlk_cells = []
@@ -92,7 +134,7 @@ def convert_wdt(input_path: Path, output_dir: Path) -> None:
 
     # Write WotLK WDT in map directory
     output_path = map_dir / input_path.name
-    write_wotlk_wdt(output_path, wotlk_revm, wotlk_dhpm, wotlk_niam)
+    write_wotlk_wdt(output_path, wotlk_revm, wotlk_mphd, wotlk_niam, alpha_mdnm, alpha_monm, alpha_modf)
 
     # Convert ADTs
     # Get list of ADTs to convert
@@ -109,9 +151,8 @@ def convert_wdt(input_path: Path, output_dir: Path) -> None:
         adt_num = y * 64 + x
         alpha_adt = AlphaAdt.read_from_wdt(input_path, offset, adt_num)
 
-        # Convert to WotLK format
-        # TODO: Get model/object names from MDNM/MONM chunks
-        wotlk_adt = WotlkAdt.from_alpha_adt(alpha_adt, [], [])
+        # Convert to WotLK format using model/WMO names from WDT
+        wotlk_adt = WotlkAdt.from_alpha_adt(alpha_adt, alpha_mdnm.filenames, alpha_monm.filenames)
 
         # Write ADT
         adt_name = alpha_adt.get_name(input_path.name)
@@ -167,13 +208,16 @@ def main() -> int:
 
     try:
         # Read input WDT
-        revm, dhpm, niam = read_alpha_wdt(args.input_file)
+        revm, mphd, niam, mdnm, monm, modf = read_alpha_wdt(args.input_file)
         
         if args.debug:
             print(f"Input WDT: {args.input_file}")
             print(f"Version: {revm.version}")
-            print(f"Flags: 0x{dhpm.flags:08x}")
+            print(f"WMO-based: {mphd.is_wmo_based()}")
             print(f"ADT cells: {sum(1 for row in niam.cells for cell in row if cell.offset > 0)}")
+            print(f"Models: {len(mdnm.filenames)}")
+            print(f"WMOs: {len(monm.filenames)}")
+            print(f"Has MODF: {modf is not None}")
 
         # Convert WDT and ADTs
         convert_wdt(args.input_file, output_dir)

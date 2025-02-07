@@ -1,0 +1,6 @@
+pytest>=7.0.0
+pytest-cov>=4.0.0
+black>=22.0.0  # Code formatting
+isort>=5.0.0   # Import sorting
+flake8>=4.0.0  # Code linting
+mypy>=1.0.0    # Type checking
