@@ -125,7 +125,8 @@ class McnkChunk:
         - Preserve subchunk data with proper offsets
         """
         # Calculate subchunk offsets including chunk headers (8 bytes each)
-        mcvt_offset = 128  # Start after header
+        base_offset = 128  # Start after MCNK header
+        mcvt_offset = base_offset  # MCVT starts immediately after header
         mcnr_offset = mcvt_offset + 8 + 580  # MCVT header + data
         mcly_offset = mcnr_offset + 8 + 448  # MCNR header + data
 
@@ -157,9 +158,14 @@ class McnkChunk:
         # MCLQ (only if we have liquid flags)
         has_mclq = bool(self.flags & 0x0E and self.mclq_data)  # Check liquid flags (ocean/river/magma)
         mclq_offset = mcal_offset + (8 + len(self.mcal_data) if has_mcal else 0)
-        mclq_size = len(self.mclq_data) + 8 if has_mclq else 0  # Include header size
-        if not has_mclq:
+        if has_mclq:
+            # Calculate MCLQ size as remaining data after offset
+            mclq_size = len(self.mclq_data) + 8  # Include header size
+            # Add MCLQ data size to total subchunks size
+            subchunks_size += 8 + len(self.mclq_data)  # header (8) + data
+        else:
             mclq_offset = 0
+            mclq_size = 0
 
         # Create new header (128 bytes)
         header = bytearray(128)
@@ -201,52 +207,92 @@ class McnkChunk:
         header[104:108] = struct.pack('<I', 0)  # mclvOffset
         header[108:112] = struct.pack('<I', 0)  # unused
 
-        # Build chunk data with subchunks
+        # Calculate total size of all subchunks (including their headers)
+        subchunks_size = 0
+
+        # Helper to calculate subchunk size including header
+        def subchunk_size(chunk_data: bytes) -> int:
+            return 8 + len(chunk_data)  # header (8) + data
+
+        # Add required chunks
+        subchunks_size += subchunk_size(self.mcvt_data)  # MCVT (580 + 8)
+        subchunks_size += subchunk_size(self.mcnr_data)  # MCNR (448 + 8)
+
+        # Add optional chunks
+        if has_mcly:
+            subchunks_size += subchunk_size(self.mcly_data)  # MCLY
+        if has_mcrf:
+            subchunks_size += subchunk_size(self.mcrf_data)  # MCRF
+        if has_mcsh:
+            subchunks_size += subchunk_size(self.mcsh_data)  # MCSH
+        if has_mcal:
+            subchunks_size += subchunk_size(self.mcal_data)  # MCAL
+        if has_mclq:
+            subchunks_size += subchunk_size(self.mclq_data)  # MCLQ
+
+        # Update mcnkChunksSize in header (at offset 0x5C)
+        header[0x5C:0x60] = struct.pack('<I', subchunks_size)
+
+        # Build chunk data
         data = bytearray()
         data.extend(header)  # Header (128 bytes)
 
-        # MCVT (required) - starts immediately after header
-        data.extend(b'TVCM')
-        data.extend(struct.pack('<I', 580))
-        data.extend(self.mcvt_data)
+        # Helper to write subchunk
+        def write_subchunk(letters: bytes, chunk_data: bytes) -> None:
+            data.extend(letters)  # 4 bytes magic
+            data.extend(struct.pack('<I', len(chunk_data)))  # 4 bytes size
+            data.extend(chunk_data)  # chunk data
 
-        # MCNR (required)
-        data.extend(b'RNCM')
-        data.extend(struct.pack('<I', 448))
-        data.extend(self.mcnr_data)
+        # Write subchunks in order
+        write_subchunk(b'TVCM', self.mcvt_data)  # MCVT (required)
+        write_subchunk(b'RNCM', self.mcnr_data)  # MCNR (required)
 
-        # MCLY (only if we have layers)
         if has_mcly:
-            data.extend(b'YLCM')
-            data.extend(struct.pack('<I', len(self.mcly_data)))
-            data.extend(self.mcly_data)
-
-        # MCRF (only if we have doodads or WMOs)
+            write_subchunk(b'YLCM', self.mcly_data)
         if has_mcrf:
-            data.extend(b'FRCM')
-            data.extend(struct.pack('<I', len(self.mcrf_data)))
-            data.extend(self.mcrf_data)
-
-        # MCSH (only if has_mcsh flag is set)
+            write_subchunk(b'FRCM', self.mcrf_data)
         if has_mcsh:
-            data.extend(b'HSCM')
-            data.extend(struct.pack('<I', len(self.mcsh_data)))
-            data.extend(self.mcsh_data)
-
-        # MCAL (only if we have alpha data)
+            write_subchunk(b'HSCM', self.mcsh_data)
         if has_mcal:
-            data.extend(b'LACM')
-            data.extend(struct.pack('<I', len(self.mcal_data)))
-            data.extend(self.mcal_data)
-
-        # MCLQ (only if we have liquid flags)
+            write_subchunk(b'LACM', self.mcal_data)
         if has_mclq:
-            data.extend(b'QLCM')
-            data.extend(struct.pack('<I', len(self.mclq_data)))
-            data.extend(self.mclq_data)
+            write_subchunk(b'QLCM', self.mclq_data)
 
-        # Subtract chunk header (8 bytes) from size since it's included in data
-        return Chunk(letters='KNCM', size=len(data) - 8, data=bytes(data))
+        # Create chunk with total size
+        # Size should be subchunks_size + 128 (MCNK header)
+        # This matches the C++ implementation where:
+        # - mcnkChunksSize is subchunks_size (all subchunks with headers)
+        # - givenSize is subchunks_size + 128 (all data including MCNK header)
+        # - chunk header (8 bytes) is not included in size
+        return Chunk(letters='KNCM', size=subchunks_size + 128, data=bytes(data))
+
+        # Build chunk data
+        data = bytearray()
+        data.extend(header)  # Header (128 bytes)
+
+        # Helper to write subchunk
+        def write_subchunk(letters: bytes, chunk_data: bytes) -> None:
+            data.extend(letters)  # 4 bytes magic
+            data.extend(struct.pack('<I', len(chunk_data)))  # 4 bytes size
+            data.extend(chunk_data)  # chunk data
+
+        # Write subchunks in order
+        write_subchunk(b'TVCM', self.mcvt_data)  # MCVT (required)
+        write_subchunk(b'RNCM', self.mcnr_data)  # MCNR (required)
+
+        if has_mcly:
+            write_subchunk(b'YLCM', self.mcly_data)
+        if has_mcrf:
+            write_subchunk(b'FRCM', self.mcrf_data)
+        if has_mcsh:
+            write_subchunk(b'HSCM', self.mcsh_data)
+        if has_mcal:
+            write_subchunk(b'LACM', self.mcal_data)
+        if has_mclq:
+            write_subchunk(b'QLCM', self.mclq_data)
+
+        # Create chunk with data only (no header)
+        return Chunk(letters='KNCM', size=len(data), data=bytes(data))
 
     def __str__(self) -> str:
         return f"MCNK Chunk ({self.ix}, {self.iy})"
