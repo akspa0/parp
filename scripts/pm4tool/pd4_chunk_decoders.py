@@ -13,7 +13,7 @@ from common_helpers import (
     decode_C3Vector_i,
     decode_RGBA
 )
-from chunk_decoders import (
+from pm4_chunk_decoders import (
     decode_MVER_chunk,
     decode_MCRC_chunk,
     decode_MSHD_chunk,
