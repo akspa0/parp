@@ -16,13 +16,22 @@ from wmo_root_chunk_decoders import wmo_root_chunk_decoders
 from wmo_group_chunk_decoders import wmo_group_chunk_decoders
 from common_helpers import ensure_folder_exists, reverse_chunk_id
 
+# Inline helper to save JSON files
+def save_json(data, output_file):
+    with open(output_file, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+
 # Setup logging with a timestamped log file
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 log_file = f'processing_{timestamp}.log'
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s:%(message)s', handlers=[
-    logging.FileHandler(log_file),
-    logging.StreamHandler()
-])
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s %(levelname)s:%(message)s',
+    handlers=[
+        logging.FileHandler(log_file),
+        logging.StreamHandler()
+    ]
+)
 
 def read_chunks(file_path):
     """Read file and return a list of chunks with id, size, data (in hex), and a count for each chunk id."""
@@ -81,7 +90,7 @@ def create_database(db_path):
 
 def insert_chunk_field_batch(cursor, batch):
     formatted_batch = [
-        (file_name, chunk_id, record_index, field_name, convert_to_json(field_value), field_type)
+        (file_name, chunk_id, record_index, field_name, json.dumps(field_value), field_type)
         for file_name, chunk_id, record_index, field_name, field_value, field_type in batch
     ]
     cursor.executemany("""
@@ -184,7 +193,8 @@ def process_file(input_file, output_dir, output_json):
             chunk_id = chunk['id']
             fields = parse_and_split_fields(chunk['data'], record_index)
             for field_name, field_value in fields:
-                field_type = analyze_data_type(field_value)
+                # Inline analysis: use the Python type name
+                field_type = type(field_value).__name__
                 batch.append((file_name, chunk_id, record_index, field_name, field_value, field_type))
             if len(batch) >= 1000:
                 insert_chunk_field_batch(cursor, batch)
