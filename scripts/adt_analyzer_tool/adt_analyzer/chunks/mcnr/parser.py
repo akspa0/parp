@@ -1,7 +1,6 @@
-# adt_analyzer/chunks/mcnr.py
 from typing import Dict, Any, List
 import struct
-from .base import BaseChunk, ChunkParsingError
+from ..base import BaseChunk, ChunkParsingError
 
 class McnrChunk(BaseChunk):
     """MCNR (Normal Map) chunk parser.

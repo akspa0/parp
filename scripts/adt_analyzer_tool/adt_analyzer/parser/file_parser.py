@@ -1,4 +1,4 @@
-# adt_analyzer/parser/file_parser.py
+"""ADT file parser."""
 from typing import Dict, Any, Optional, BinaryIO, List
 import logging
 import struct
@@ -21,13 +21,7 @@ from .constants import ChunkProcessingPhase
 logger = logging.getLogger(__name__)
 
 class AdtFileParser:
-    """Main parser for ADT files.
-    
-    Handles:
-    - Chunk order and dependencies
-    - Name orientation detection
-    - Data validation and linking
-    """
+    """Main parser for ADT files."""
     
     def __init__(self):
         self.chunks: Dict[str, Any] = {}
@@ -129,16 +123,16 @@ class AdtFileParser:
                         self.chunks['textures'] = chunk.parse()
                     elif chunk_name == b'MMDX':
                         chunk = MmdxChunk(header=None, data=chunk_data)
-                        self.chunks['m2_models'] = chunk.parse()
+                        self.chunks['m2_models'] = chunk.parse_filenames()  # Use structured format
                     elif chunk_name == b'MMID':
                         chunk = MmidChunk(header=None, data=chunk_data)
-                        self.chunks['m2_indices'] = chunk.parse()
+                        self.chunks['m2_indices'] = chunk.parse_structured()  # Use structured format
                     elif chunk_name == b'MWMO':
                         chunk = MwmoChunk(header=None, data=chunk_data)
-                        self.chunks['wmo_models'] = chunk.parse()
+                        self.chunks['wmo_models'] = chunk.parse_filenames()  # Use structured format
                     elif chunk_name == b'MWID':
                         chunk = MwidChunk(header=None, data=chunk_data)
-                        self.chunks['wmo_indices'] = chunk.parse()
+                        self.chunks['wmo_indices'] = chunk.parse_structured()  # Use structured format
                     else:
                         break
                         
@@ -214,6 +208,18 @@ class AdtFileParser:
             logger.error(error_msg)
             self.errors.append(error_msg)
     
+    def _prepare_for_json(self, data: Any) -> Any:
+        """Convert data to JSON-serializable format."""
+        if isinstance(data, bytes):
+            return data.hex()  # Convert bytes to hex string
+        elif isinstance(data, dict):
+            return {k: self._prepare_for_json(v) for k, v in data.items()}
+        elif isinstance(data, list):
+            return [self._prepare_for_json(item) for item in data]
+        elif isinstance(data, tuple):
+            return [self._prepare_for_json(item) for item in data]
+        return data
+    
     def parse_file(self, file_path: Path) -> Dict[str, Any]:
         """Parse an ADT file and return structured data."""
         try:
@@ -232,9 +238,12 @@ class AdtFileParser:
             # Process model references
             self._process_model_references()
             
+            # Convert data to JSON-serializable format
+            json_chunks = self._prepare_for_json(self.chunks)
+            
             return {
                 'file_path': str(file_path),
-                'chunks': self.chunks,
+                'chunks': json_chunks,
                 'errors': self.errors
             }
             
@@ -246,24 +255,3 @@ class AdtFileParser:
                 'file_path': str(file_path),
                 'errors': self.errors
             }
-
-if __name__ == "__main__":
-    # Example usage
-    parser = AdtFileParser()
-    result = parser.parse_file(Path("test.adt"))
-    
-    if result['errors']:
-        print("\nErrors encountered:")
-        for error in result['errors']:
-            print(f"- {error}")
-    
-    if 'version' in result['chunks']:
-        print(f"\nADT Version: {result['chunks']['version']['version']}")
-        
-    if 'models' in result['chunks']:
-        print("\nM2 Models:")
-        for model in result['chunks']['models'][:5]:  # First 5 for brevity
-            print(f"- {model['name']}")
-            
-    if 'terrain_chunks' in result['chunks']:
-        print(f"\nTerrain Chunks: {len(result['chunks']['terrain_chunks'])}")

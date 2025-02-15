@@ -1,7 +1,6 @@
-# adt_analyzer/chunks/mcvt.py
 from typing import Dict, Any, List
 import struct
-from .base import BaseChunk, ChunkParsingError
+from ..base import BaseChunk, ChunkParsingError
 
 class McvtChunk(BaseChunk):
     """MCVT (Height Map) chunk parser.

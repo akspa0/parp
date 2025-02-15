@@ -1,7 +1,6 @@
-# adt_analyzer/chunks/mver.py
 from typing import Dict, Any
 import struct
-from .base import BaseChunk, ChunkParsingError
+from ..base import BaseChunk, ChunkParsingError
 
 class MverChunk(BaseChunk):
     """MVER (Version) chunk parser."""

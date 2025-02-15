@@ -1,7 +1,7 @@
-# adt_analyzer/chunks/mcly.py
 from typing import Dict, Any, List
 import struct
-from .base import BaseChunk, ChunkParsingError
+from ..base import BaseChunk, ChunkParsingError
+from .entry import MclyEntry
 
 class MclyChunk(BaseChunk):
     """MCLY (Texture Layer) chunk parser.
@@ -26,14 +26,15 @@ class MclyChunk(BaseChunk):
             entry_data = self.data[i*self.ENTRY_SIZE:(i+1)*self.ENTRY_SIZE]
             
             # Unpack the entry
-            (textureId, flags, offsetInMCAL, effectId) = struct.unpack('<4I', entry_data)
+            texture_id, flags, mcal_offset, effect_id = struct.unpack('<4I', entry_data)
             
-            entries.append({
-                'texture_id': textureId,
-                'flags': flags,
-                'mcal_offset': offsetInMCAL,
-                'effect_id': effectId
-            })
+            entry = MclyEntry(
+                texture_id=texture_id,
+                flags=flags,
+                mcal_offset=mcal_offset,
+                effect_id=effect_id
+            )
+            entries.append(entry.to_dict())
         
         return {
             'layers': entries,
