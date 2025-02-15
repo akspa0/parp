@@ -1,17 +1,18 @@
-from typing import Dict, Any, List
+"""MCSH (Shadow Map) chunk parser."""
+from typing import Dict, Any, List, Tuple
+import logging
 from ..base import BaseChunk, ChunkParsingError
+
+logger = logging.getLogger(__name__)
 
 class McshChunk(BaseChunk):
     """MCSH (Shadow Map) chunk parser.
     
-    Contains shadow map information for the terrain chunk.
-    The shadow map is a 64x64 grid where each byte represents
-    the shadow intensity for a cell.
+    Contains shadow map data for terrain.
+    Expected size is 64x64 = 4096 bytes.
     """
     
-    WIDTH = 64
-    HEIGHT = 64
-    EXPECTED_SIZE = WIDTH * HEIGHT
+    EXPECTED_SIZE = 64 * 64  # 64x64 shadow map
     
     def parse(self) -> Dict[str, Any]:
         """Parse MCSH chunk data.
@@ -19,27 +20,31 @@ class McshChunk(BaseChunk):
         Returns:
             Dictionary containing:
             - shadow_map: List of shadow values (0-255)
-            - dimensions: (width, height) of the shadow map
-            - complete: Whether the shadow map is complete (correct size)
-            
-        Note:
-            Some ADT files may contain incomplete shadow maps.
-            In these cases, the available data is still returned
-            but marked as incomplete.
+            - dimensions: Tuple of (width, height)
+            - complete: True if shadow map is complete
         """
-        shadow_data = list(self.data)
-        is_complete = len(shadow_data) == self.EXPECTED_SIZE
+        # Handle empty chunks
+        if not self.data:
+            return {
+                'shadow_map': [0] * self.EXPECTED_SIZE,
+                'dimensions': (64, 64),
+                'complete': False
+            }
         
-        if not is_complete:
-            # Log warning but don't raise error - partial data might still be useful
-            from logging import getLogger
-            logger = getLogger(__name__)
-            logger.warning(
-                f"MCSH chunk incomplete: {len(shadow_data)} != {self.EXPECTED_SIZE}"
-            )
+        # Check if shadow map is complete
+        if len(self.data) != self.EXPECTED_SIZE:
+            logger.warning(f"MCSH chunk incomplete: {len(self.data)} != {self.EXPECTED_SIZE}")
+            # Pad with zeros if too small
+            if len(self.data) < self.EXPECTED_SIZE:
+                shadow_map = list(self.data) + [0] * (self.EXPECTED_SIZE - len(self.data))
+            else:
+                # Truncate if too large
+                shadow_map = list(self.data[:self.EXPECTED_SIZE])
+        else:
+            shadow_map = list(self.data)
         
         return {
-            'shadow_map': shadow_data,
-            'dimensions': (self.WIDTH, self.HEIGHT),
-            'complete': is_complete
+            'shadow_map': shadow_map,
+            'dimensions': (64, 64),
+            'complete': len(self.data) == self.EXPECTED_SIZE
         }

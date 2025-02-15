@@ -20,6 +20,26 @@ from .constants import ChunkProcessingPhase
 
 logger = logging.getLogger(__name__)
 
+def read_c_string_list(data: bytes) -> List[str]:
+    """Read a list of null-terminated strings."""
+    strings = data.split(b'\0')
+    return [s.decode('utf-8', 'replace') for s in strings if s]
+
+def load_name_list(base_block: bytes, offsets: List[int]) -> List[str]:
+    """Load a list of names from a data block using offsets."""
+    names = []
+    for off in offsets:
+        if off >= len(base_block):
+            names.append("<invalid offset>")
+            continue
+        end = base_block.find(b'\0', off)
+        if end == -1:
+            name = base_block[off:].decode('utf-8', 'replace')
+        else:
+            name = base_block[off:end].decode('utf-8', 'replace')
+        names.append(name)
+    return names
+
 class AdtFileParser:
     """Main parser for ADT files."""
     
@@ -90,13 +110,20 @@ class AdtFileParser:
                       phase: ChunkProcessingPhase,
                       offset: int = 0) -> int:
         """Process chunks for a specific phase, returns next offset."""
-        while offset < len(data):
+        size = len(data)
+        while offset < size:
             header = self._read_chunk_header(data, offset)
             if not header:
                 break
                 
             chunk_name = header['name']
             chunk_size = header['size']
+            
+            # Validate chunk size
+            if offset + 8 + chunk_size > size:
+                logger.error(f"Chunk {chunk_name} extends beyond file size. Corrupt file?")
+                break
+                
             chunk_data = data[offset+8:offset+8+chunk_size]
             
             try:
@@ -119,30 +146,29 @@ class AdtFileParser:
                         
                 elif phase == ChunkProcessingPhase.REFERENCES:
                     if chunk_name == b'MTEX':
-                        chunk = MtexChunk(header=None, data=chunk_data)
-                        self.chunks['textures'] = chunk.parse()
+                        self.chunks['textures'] = read_c_string_list(chunk_data)
                     elif chunk_name == b'MMDX':
-                        chunk = MmdxChunk(header=None, data=chunk_data)
-                        self.chunks['m2_models'] = chunk.parse_filenames()  # Use structured format
+                        self.chunks['mmdx_block'] = chunk_data
                     elif chunk_name == b'MMID':
                         chunk = MmidChunk(header=None, data=chunk_data)
-                        self.chunks['m2_indices'] = chunk.parse_structured()  # Use structured format
+                        self.chunks['m2_indices'] = chunk.parse()
                     elif chunk_name == b'MWMO':
-                        chunk = MwmoChunk(header=None, data=chunk_data)
-                        self.chunks['wmo_models'] = chunk.parse_filenames()  # Use structured format
+                        self.chunks['mwmo_block'] = chunk_data
                     elif chunk_name == b'MWID':
                         chunk = MwidChunk(header=None, data=chunk_data)
-                        self.chunks['wmo_indices'] = chunk.parse_structured()  # Use structured format
+                        self.chunks['wmo_indices'] = chunk.parse()
                     else:
                         break
                         
                 elif phase == ChunkProcessingPhase.PLACEMENTS:
                     if chunk_name == b'MDDF':
                         chunk = MddfChunk(header=None, data=chunk_data)
-                        self.chunks['m2_placements'] = chunk.parse()
+                        result = chunk.parse()
+                        self.chunks['m2_placements'] = result['entries']
                     elif chunk_name == b'MODF':
                         chunk = ModfChunk(header=None, data=chunk_data)
-                        self.chunks['wmo_placements'] = chunk.parse()
+                        result = chunk.parse()
+                        self.chunks['wmo_placements'] = result['entries']
                     else:
                         break
                         
@@ -167,41 +193,43 @@ class AdtFileParser:
     def _process_model_references(self):
         """Process and validate model references."""
         try:
-            # Combine M2 model data
-            if 'm2_models' in self.chunks and 'm2_indices' in self.chunks:
-                m2_data = self.chunks['m2_models']
-                index_data = self.chunks['m2_indices']
-                
-                models = []
-                mmdx_models = {m['offset']: m['name'] for m in m2_data['models']}
-                
-                for entry in index_data['offsets']:
-                    offset = entry['offset']
-                    models.append({
-                        'index': entry['index'],
-                        'offset': offset,
-                        'name': mmdx_models.get(offset, f"<invalid offset: {offset}>")
-                    })
-                    
-                self.chunks['models'] = models
+            # Process M2 model names
+            if 'mmdx_block' in self.chunks and 'm2_indices' in self.chunks:
+                mmdx_block = self.chunks['mmdx_block']
+                mmid_offsets = self.chunks['m2_indices']['offsets']
+                m2_names = load_name_list(mmdx_block, mmid_offsets)
+                self.chunks['m2_models'] = m2_names
             
-            # Combine WMO data
-            if 'wmo_models' in self.chunks and 'wmo_indices' in self.chunks:
-                wmo_data = self.chunks['wmo_models']
-                index_data = self.chunks['wmo_indices']
-                
-                wmos = []
-                mwmo_entries = {w['offset']: w['name'] for w in wmo_data['wmos']}
-                
-                for entry in index_data['offsets']:
-                    offset = entry['offset']
-                    wmos.append({
-                        'index': entry['index'],
-                        'offset': offset,
-                        'name': mwmo_entries.get(offset, f"<invalid offset: {offset}>")
-                    })
-                    
-                self.chunks['wmos'] = wmos
+            # Process WMO names
+            if 'mwmo_block' in self.chunks and 'wmo_indices' in self.chunks:
+                mwmo_block = self.chunks['mwmo_block']
+                mwid_offsets = self.chunks['wmo_indices']['offsets']
+                wmo_names = load_name_list(mwmo_block, mwid_offsets)
+                self.chunks['wmo_models'] = wmo_names
+            
+            # Add model names to placements
+            if 'm2_models' in self.chunks and 'm2_placements' in self.chunks:
+                m2_names = self.chunks['m2_models']
+                for m in self.chunks['m2_placements']:
+                    if 'error' in m:
+                        continue
+                    name_id = m.get('nameId', -1)
+                    if isinstance(name_id, int) and 0 <= name_id < len(m2_names):
+                        m['model_name'] = m2_names[name_id]
+                    else:
+                        m['model_name'] = ""
+            
+            # Add WMO names to placements
+            if 'wmo_models' in self.chunks and 'wmo_placements' in self.chunks:
+                wmo_names = self.chunks['wmo_models']
+                for w in self.chunks['wmo_placements']:
+                    if 'error' in w:
+                        continue
+                    name_id = w.get('nameId', -1)
+                    if isinstance(name_id, int) and 0 <= name_id < len(wmo_names):
+                        w['wmo_name'] = wmo_names[name_id]
+                    else:
+                        w['wmo_name'] = ""
                 
         except Exception as e:
             error_msg = f"Failed to process model references: {e}"
@@ -237,6 +265,12 @@ class AdtFileParser:
             
             # Process model references
             self._process_model_references()
+            
+            # Clean up temporary data
+            if 'mmdx_block' in self.chunks:
+                del self.chunks['mmdx_block']
+            if 'mwmo_block' in self.chunks:
+                del self.chunks['mwmo_block']
             
             # Convert data to JSON-serializable format
             json_chunks = self._prepare_for_json(self.chunks)

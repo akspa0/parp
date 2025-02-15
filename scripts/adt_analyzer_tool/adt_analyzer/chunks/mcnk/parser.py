@@ -26,8 +26,6 @@ class McnkChunk(BaseChunk):
     """
     
     HEADER_SIZE = 128
-    MCVT_SIZE = 145 * 4  # 145 vertices * 4 bytes per float
-    MCNR_SIZE = 145 * 3  # 145 normals * 3 bytes per normal
     
     def parse(self) -> Dict[str, Any]:
         """Parse MCNK chunk data."""
@@ -45,7 +43,8 @@ class McnkChunk(BaseChunk):
                 'area_id': header.area_id,
                 'holes': header.holes,
                 'liquid_level': header.liquid_level
-            }
+            },
+            'errors': []  # Track subchunk errors
         }
         
         # Parse mandatory subchunks
@@ -61,28 +60,52 @@ class McnkChunk(BaseChunk):
         # Parse MCVT (heights) - always first after header
         mcvt_data = self._get_chunk_data(self.HEADER_SIZE)
         if mcvt_data:
-            from ..mcvt import McvtChunk
-            mcvt = McvtChunk(header=self.header, data=mcvt_data)
-            mcvt_result = mcvt.parse()
-            result['heights'] = mcvt_result['heights']
+            try:
+                from ..mcvt import McvtChunk
+                mcvt = McvtChunk(header=self.header, data=mcvt_data)
+                mcvt_result = mcvt.parse()
+                result['heights'] = mcvt_result['heights']
+            except Exception as e:
+                error_msg = f"Failed to parse MCVT chunk: {e}"
+                logger.error(error_msg)
+                result['errors'].append(error_msg)
+                result['heights'] = [0.0] * 145  # Default heights
         
         # Parse MCNR (normals) - always after MCVT
-        mcnr_offset = self.HEADER_SIZE + self.MCVT_SIZE + 8  # Add MCVT chunk header
+        if mcvt_data:
+            mcnr_offset = self.HEADER_SIZE + len(mcvt_data) + 8  # Add MCVT chunk header
+        else:
+            mcnr_offset = self.HEADER_SIZE + 580 + 8  # Default MCVT size
+            
         mcnr_data = self._get_chunk_data(mcnr_offset)
         if mcnr_data:
-            from ..mcnr import McnrChunk
-            mcnr = McnrChunk(header=self.header, data=mcnr_data)
-            mcnr_result = mcnr.parse()
-            result['normals'] = mcnr_result['normals']
+            try:
+                from ..mcnr import McnrChunk
+                mcnr = McnrChunk(header=self.header, data=mcnr_data)
+                mcnr_result = mcnr.parse()
+                result['normals'] = mcnr_result['normals']
+            except Exception as e:
+                error_msg = f"Failed to parse MCNR chunk: {e}"
+                logger.error(error_msg)
+                result['errors'].append(error_msg)
+                result['normals'] = [(0.0, 0.0, 1.0)] * 145  # Default normals
         
         # Parse MCLY (texture layers)
         if header.offset_mcly:
             mcly_data = self._get_chunk_data(header.offset_mcly)
             if mcly_data:
-                from ..mcly import MclyChunk
-                mcly = MclyChunk(header=self.header, data=mcly_data)
-                mcly_result = mcly.parse()
-                result['layers'] = mcly_result['layers']
+                try:
+                    from ..mcly import MclyChunk
+                    mcly = MclyChunk(header=self.header, data=mcly_data)
+                    mcly_result = mcly.parse()
+                    result['layers'] = mcly_result['layers']
+                    if 'error' in mcly_result:
+                        result['errors'].append(mcly_result['error'])
+                except Exception as e:
+                    error_msg = f"Failed to parse MCLY chunk: {e}"
+                    logger.error(error_msg)
+                    result['errors'].append(error_msg)
+                    result['layers'] = []  # Empty layer list
 
     def _parse_optional_subchunks(self, header: McnkHeader, result: Dict[str, Any]):
         """Parse optional subchunks based on flags."""
@@ -90,47 +113,74 @@ class McnkChunk(BaseChunk):
         if header.flags & MCNKFlags.HAS_DOODAD_REFS and header.offset_mcrf:
             mcrf_data = self._get_chunk_data(header.offset_mcrf)
             if mcrf_data:
-                from ..mcrf import McrfChunk
-                mcrf = McrfChunk(header=self.header, data=mcrf_data)
-                mcrf_result = mcrf.parse()
-                result['doodad_refs'] = mcrf_result['doodad_refs']
+                try:
+                    from ..mcrf import McrfChunk
+                    mcrf = McrfChunk(header=self.header, data=mcrf_data)
+                    mcrf_result = mcrf.parse()
+                    result['doodad_refs'] = mcrf_result['doodad_refs']
+                except Exception as e:
+                    error_msg = f"Failed to parse MCRF chunk: {e}"
+                    logger.error(error_msg)
+                    result['errors'].append(error_msg)
         
         # Parse MCSH (shadows)
         if header.flags & MCNKFlags.HAS_MCSH and header.offset_mcsh:
-            mcsh_data = self._get_chunk_data(header.offset_mcsh, header.size_mcsh)
+            mcsh_data = self._get_chunk_data(header.offset_mcsh)
             if mcsh_data:
-                from ..mcsh import McshChunk
-                mcsh = McshChunk(header=self.header, data=mcsh_data)
-                mcsh_result = mcsh.parse()
-                result['shadow_map'] = mcsh_result['shadow_map']
-                result['dimensions'] = mcsh_result['dimensions']
+                try:
+                    from ..mcsh import McshChunk
+                    mcsh = McshChunk(header=self.header, data=mcsh_data)
+                    mcsh_result = mcsh.parse()
+                    result['shadow_map'] = mcsh_result['shadow_map']
+                    result['dimensions'] = mcsh_result['dimensions']
+                    if not mcsh_result.get('complete', True):
+                        result['errors'].append("Incomplete shadow map")
+                except Exception as e:
+                    error_msg = f"Failed to parse MCSH chunk: {e}"
+                    logger.error(error_msg)
+                    result['errors'].append(error_msg)
         
         # Parse MCCV (vertex colors)
         if header.flags & MCNKFlags.HAS_MCCV and header.offset_mccv:
             mccv_data = self._get_chunk_data(header.offset_mccv)
             if mccv_data:
-                from ..mccv import MccvChunk
-                mccv = MccvChunk(header=self.header, data=mccv_data)
-                mccv_result = mccv.parse()
-                result['vertex_colors'] = mccv_result['colors']
+                try:
+                    from ..mccv import MccvChunk
+                    mccv = MccvChunk(header=self.header, data=mccv_data)
+                    mccv_result = mccv.parse()
+                    result['vertex_colors'] = mccv_result['colors']
+                except Exception as e:
+                    error_msg = f"Failed to parse MCCV chunk: {e}"
+                    logger.error(error_msg)
+                    result['errors'].append(error_msg)
         
         # Parse MCLV (lighting)
         if header.flags & MCNKFlags.HAS_MCLV and header.offset_mclv:
             mclv_data = self._get_chunk_data(header.offset_mclv)
             if mclv_data:
-                from ..mclv import MclvChunk
-                mclv = MclvChunk(header=self.header, data=mclv_data)
-                mclv_result = mclv.parse()
-                result['light_values'] = mclv_result['light_values']
+                try:
+                    from ..mclv import MclvChunk
+                    mclv = MclvChunk(header=self.header, data=mclv_data)
+                    mclv_result = mclv.parse()
+                    result['light_values'] = mclv_result['light_values']
+                except Exception as e:
+                    error_msg = f"Failed to parse MCLV chunk: {e}"
+                    logger.error(error_msg)
+                    result['errors'].append(error_msg)
         
         # Parse MCAL (alpha maps)
         if header.offset_mcal:
-            mcal_data = self._get_chunk_data(header.offset_mcal, header.size_mcal)
+            mcal_data = self._get_chunk_data(header.offset_mcal)
             if mcal_data:
-                from ..mcal import McalChunk
-                mcal = McalChunk(header=self.header, data=mcal_data)
-                mcal_result = mcal.parse()
-                result['alpha_maps'] = mcal_result['alpha_map_data']
+                try:
+                    from ..mcal import McalChunk
+                    mcal = McalChunk(header=self.header, data=mcal_data)
+                    mcal_result = mcal.parse()
+                    result['alpha_maps'] = mcal_result['alpha_map_data']
+                except Exception as e:
+                    error_msg = f"Failed to parse MCAL chunk: {e}"
+                    logger.error(error_msg)
+                    result['errors'].append(error_msg)
 
     def _get_chunk_data(self, offset: int, size: Optional[int] = None) -> Optional[bytes]:
         """Get chunk data using stored offset and optional size."""
@@ -141,14 +191,20 @@ class McnkChunk(BaseChunk):
         if offset + 8 > len(self.data):
             return None
             
+        chunk_name = self.data[offset:offset+4]
         chunk_size = struct.unpack('<I', self.data[offset+4:offset+8])[0]
+        
+        # Validate chunk size
         if size is not None and chunk_size != size:
             logger.warning(f"Chunk size mismatch at offset {offset}: {chunk_size} != {size}")
         
         # Get chunk data
         data_start = offset + 8
         data_end = data_start + chunk_size
+        
+        # Handle truncated chunks
         if data_end > len(self.data):
-            return None
+            logger.warning(f"Chunk at offset {offset} extends beyond file size. Truncating.")
+            data_end = len(self.data)
             
         return self.data[data_start:data_end]
