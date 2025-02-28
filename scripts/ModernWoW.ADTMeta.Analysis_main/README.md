@@ -18,6 +18,7 @@ The tool is built on top of the Warcraft.NET library for parsing ADT files and p
 ### Prerequisites
 
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) or later
+- ModernWoWTools/ADTMeta (git submodule init && git submodule update)
 
 ### Building from Source
 
