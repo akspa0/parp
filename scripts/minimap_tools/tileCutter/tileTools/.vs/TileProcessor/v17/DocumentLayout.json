@@ -1,0 +1,87 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "H:\\WoWDev\\parp\\parp\\scripts\\minimap_tools\\tileCutter\\tileTools\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A4F6C2F5-3E7D-4D12-B281-B5562923FA26}|TileProcessor.UI\\TileProcessor.UI.csproj|h:\\wowdev\\parp\\parp\\scripts\\minimap_tools\\tilecutter\\tiletools\\tileprocessor.ui\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{A4F6C2F5-3E7D-4D12-B281-B5562923FA26}|TileProcessor.UI\\TileProcessor.UI.csproj|solutionrelative:tileprocessor.ui\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A4F6C2F5-3E7D-4D12-B281-B5562923FA26}|TileProcessor.UI\\TileProcessor.UI.csproj|h:\\wowdev\\parp\\parp\\scripts\\minimap_tools\\tilecutter\\tiletools\\tileprocessor.ui\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A4F6C2F5-3E7D-4D12-B281-B5562923FA26}|TileProcessor.UI\\TileProcessor.UI.csproj|solutionrelative:tileprocessor.ui\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A4F6C2F5-3E7D-4D12-B281-B5562923FA26}|TileProcessor.UI\\TileProcessor.UI.csproj|h:\\wowdev\\parp\\parp\\scripts\\minimap_tools\\tilecutter\\tiletools\\tileprocessor.ui\\app.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A4F6C2F5-3E7D-4D12-B281-B5562923FA26}|TileProcessor.UI\\TileProcessor.UI.csproj|solutionrelative:tileprocessor.ui\\app.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{17CF4A81-31C7-4F9E-B4F2-C3FDC3E92020}|TileProcessor\\TileProcessor.csproj|h:\\wowdev\\parp\\parp\\scripts\\minimap_tools\\tilecutter\\tiletools\\tileprocessor\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{17CF4A81-31C7-4F9E-B4F2-C3FDC3E92020}|TileProcessor\\TileProcessor.csproj|solutionrelative:tileprocessor\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "MainWindow.xaml",
+              "DocumentMoniker": "H:\\WoWDev\\parp\\parp\\scripts\\minimap_tools\\tileCutter\\tileTools\\TileProcessor.UI\\MainWindow.xaml",
+              "RelativeDocumentMoniker": "TileProcessor.UI\\MainWindow.xaml",
+              "ToolTip": "H:\\WoWDev\\parp\\parp\\scripts\\minimap_tools\\tileCutter\\tileTools\\TileProcessor.UI\\MainWindow.xaml",
+              "RelativeToolTip": "TileProcessor.UI\\MainWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2025-03-01T18:41:36.958Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "MainWindow.xaml.cs",
+              "DocumentMoniker": "H:\\WoWDev\\parp\\parp\\scripts\\minimap_tools\\tileCutter\\tileTools\\TileProcessor.UI\\MainWindow.xaml.cs",
+              "RelativeDocumentMoniker": "TileProcessor.UI\\MainWindow.xaml.cs",
+              "ToolTip": "H:\\WoWDev\\parp\\parp\\scripts\\minimap_tools\\tileCutter\\tileTools\\TileProcessor.UI\\MainWindow.xaml.cs",
+              "RelativeToolTip": "TileProcessor.UI\\MainWindow.xaml.cs",
+              "ViewState": "AgIAAF0BAAAAAAAAAAAiwHsBAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-01T18:25:46.549Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Program.cs",
+              "DocumentMoniker": "H:\\WoWDev\\parp\\parp\\scripts\\minimap_tools\\tileCutter\\tileTools\\TileProcessor\\Program.cs",
+              "RelativeDocumentMoniker": "TileProcessor\\Program.cs",
+              "ToolTip": "H:\\WoWDev\\parp\\parp\\scripts\\minimap_tools\\tileCutter\\tileTools\\TileProcessor\\Program.cs",
+              "RelativeToolTip": "TileProcessor\\Program.cs",
+              "ViewState": "AgIAAGQAAAAAAAAAAAAAAGQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-01T17:58:39.548Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "App.xaml.cs",
+              "DocumentMoniker": "H:\\WoWDev\\parp\\parp\\scripts\\minimap_tools\\tileCutter\\tileTools\\TileProcessor.UI\\App.xaml.cs",
+              "RelativeDocumentMoniker": "TileProcessor.UI\\App.xaml.cs",
+              "ToolTip": "H:\\WoWDev\\parp\\parp\\scripts\\minimap_tools\\tileCutter\\tileTools\\TileProcessor.UI\\App.xaml.cs",
+              "RelativeToolTip": "TileProcessor.UI\\App.xaml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAA5AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-01T18:17:11.89Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

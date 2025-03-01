@@ -1,0 +1,86 @@
+<Window x:Class="TileProcessor.UI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TileProcessor.UI"
+        mc:Ignorable="d"
+        Title="Tile Processor" Height="700" Width="900" 
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Mode Selection -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <Label x:Name="lblMode" Content="Cut Image Mode" FontWeight="Bold" FontSize="16"/>
+            <StackPanel Orientation="Horizontal" Margin="0,5,0,10">
+                <RadioButton x:Name="radioCut" Content="Cut Image into Tiles" IsChecked="True" Margin="0,0,15,0" Checked="RadioCut_Checked"/>
+                <RadioButton x:Name="radioJoin" Content="Join Tiles into Image" Checked="RadioJoin_Checked"/>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Options Panel -->
+        <Grid Grid.Row="1" Margin="0,0,0,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Input Path -->
+            <Label Grid.Row="0" Grid.Column="0" x:Name="lblPrimaryInput" Content="Input Image:" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="0" Grid.Column="1" x:Name="txtInputPath" Margin="5" Padding="3"/>
+            <Button Grid.Row="0" Grid.Column="2" x:Name="btnBrowseInput" Content="Browse Image..." Margin="5" Padding="10,3" Click="BtnBrowseInput_Click"/>
+
+            <!-- Output Path -->
+            <Label Grid.Row="1" Grid.Column="0" Content="Output:" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="1" Grid.Column="1" x:Name="txtOutputPath" Margin="5" Padding="3"/>
+            <Button Grid.Row="1" Grid.Column="2" x:Name="btnBrowseOutput" Content="Browse..." Margin="5" Padding="10,3" Click="BtnBrowseOutput_Click"/>
+
+            <!-- Tile Size -->
+            <Label Grid.Row="2" Grid.Column="0" Content="Tile Size:" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="2" Grid.Column="1" x:Name="txtTileSize" Text="128" Margin="5" Padding="3" Grid.ColumnSpan="2"/>
+
+            <!-- Prefix -->
+            <Label Grid.Row="3" Grid.Column="0" x:Name="lblPrefix" Content="Prefix:" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="3" Grid.Column="1" x:Name="txtPrefix" Margin="5" Padding="3" Grid.ColumnSpan="2"/>
+
+            <!-- Checkboxes -->
+            <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,10,0,0">
+                <CheckBox x:Name="chkCreateKrita" Content="Create Krita File" Margin="5,0,15,0" IsChecked="True"/>
+                <CheckBox x:Name="chkCombineOutput" Content="Combine Output" Margin="5,0,15,0" IsChecked="True"/>
+                <CheckBox x:Name="chkVCol" Content="Generate Vertex Color Maps" Margin="5,0,15,0"/>
+                <CheckBox x:Name="chkIncludeAlpha" Content="Include Alpha Layers" Margin="5,0,15,0" IsChecked="True" Visibility="Collapsed"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Process Button and Output -->
+        <Grid Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Button Grid.Row="0" x:Name="btnProcess" Content="Process" Height="35" Margin="0,0,0,10" Click="BtnProcess_Click"/>
+
+            <Border Grid.Row="1" BorderBrush="#DDDDDD" BorderThickness="1">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                    <TextBox x:Name="txtOutput" IsReadOnly="True" TextWrapping="Wrap"
+                         Background="#F5F5F5" FontFamily="Consolas" Padding="5" 
+                         MinHeight="300" AcceptsReturn="True" VerticalScrollBarVisibility="Visible"/>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

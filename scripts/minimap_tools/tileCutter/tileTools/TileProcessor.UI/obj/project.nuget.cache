@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "ww98ZqSUlaw=",
+  "success": true,
+  "projectFilePath": "H:\\WoWDev\\parp\\parp\\scripts\\minimap_tools\\tileCutter\\tileTools\\TileProcessor.UI\\TileProcessor.UI.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\akspa\\.nuget\\packages\\microsoft.win32.systemevents\\8.0.0\\microsoft.win32.systemevents.8.0.0.nupkg.sha512",
+    "C:\\Users\\akspa\\.nuget\\packages\\system.commandline\\2.0.0-beta4.22272.1\\system.commandline.2.0.0-beta4.22272.1.nupkg.sha512",
+    "C:\\Users\\akspa\\.nuget\\packages\\system.drawing.common\\8.0.2\\system.drawing.common.8.0.2.nupkg.sha512"
+  ],
+  "logs": []
+}
