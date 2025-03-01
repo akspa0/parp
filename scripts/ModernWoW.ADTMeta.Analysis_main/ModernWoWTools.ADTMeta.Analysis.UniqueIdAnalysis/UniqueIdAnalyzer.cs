@@ -45,7 +45,16 @@ namespace ModernWoWTools.ADTMeta.Analysis.UniqueIdAnalysis
                 Directory.CreateDirectory(_outputDirectory);
             }
         }
-        
+
+        /// <summary>
+        /// Gets the ADT files processed by the analyzer.
+        /// </summary>
+        /// <returns>The list of processed ADT files.</returns>
+        public List<AdtInfo> GetAdtFiles()
+        {
+            return _adtFiles;
+        }
+
         /// <summary>
         /// Runs the unique ID analysis.
         /// </summary>
