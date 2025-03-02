@@ -99,6 +99,26 @@ namespace ModernWoWTools.ADTMeta.Analysis.Services
                     summary.TotalWmoReferences += result.WmoReferences.Count;
                     summary.TotalModelPlacements += result.ModelPlacements.Count;
                     summary.TotalWmoPlacements += result.WmoPlacements.Count;
+                    summary.TotalTerrainChunks += result.TerrainChunks.Count;
+                    summary.ParsingErrors += result.Errors.Count;
+                    
+                    // Count texture layers and doodad references
+                    foreach (var chunk in result.TerrainChunks)
+                    {
+                        summary.TotalTextureLayers += chunk.TextureLayers.Count;
+                        summary.TotalDoodadReferences += chunk.DoodadRefs.Count;
+                        
+                        // Track area IDs
+                        if (chunk.AreaId > 0)
+                        {
+                            if (!summary.AreaIdMap.TryGetValue(chunk.AreaId, out var areaFiles))
+                            {
+                                areaFiles = new HashSet<string>();
+                                summary.AreaIdMap[chunk.AreaId] = areaFiles;
+                            }
+                            areaFiles.Add(result.FileName);
+                        }
+                    }
 
                     // Track missing references
                     foreach (var reference in result.AllReferences.Where(r => !r.IsValid))

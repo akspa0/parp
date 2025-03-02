@@ -20,6 +20,9 @@ namespace ModernWoWTools.ADTMeta.Analysis.UniqueIdAnalysis
         private List<AdtInfo> _adtFiles = new List<AdtInfo>();
         private Dictionary<string, List<UniqueIdCluster>> _mapClusters = new Dictionary<string, List<UniqueIdCluster>>();
         private List<UniqueIdCluster> _globalClusters = new List<UniqueIdCluster>();
+        private List<int> _nonClusteredIds = new List<int>();
+        private Dictionary<int, List<AssetReference>> _nonClusteredAssets = new Dictionary<int, List<AssetReference>>();
+        private bool _generateComprehensiveReport = true;
         
         /// <summary>
         /// Creates a new instance of the UniqueIdAnalyzer class.
@@ -28,16 +31,19 @@ namespace ModernWoWTools.ADTMeta.Analysis.UniqueIdAnalysis
         /// <param name="outputDirectory">Directory to write analysis results to</param>
         /// <param name="clusterThreshold">Minimum number of IDs to form a cluster</param>
         /// <param name="clusterGapThreshold">Maximum gap between IDs to be considered part of the same cluster</param>
+        /// <param name="generateComprehensiveReport">Whether to generate a comprehensive report with all assets</param>
         public UniqueIdAnalyzer(
             string resultsDirectory,
             string outputDirectory,
             int clusterThreshold = 10,
-            int clusterGapThreshold = 1000)
+            int clusterGapThreshold = 1000,
+            bool generateComprehensiveReport = true)
         {
             _resultsDirectory = resultsDirectory;
             _outputDirectory = outputDirectory;
             _clusterThreshold = clusterThreshold;
             _clusterGapThreshold = clusterGapThreshold;
+            _generateComprehensiveReport = generateComprehensiveReport;
             
             // Create output directory if it doesn't exist
             if (!Directory.Exists(_outputDirectory))
@@ -58,7 +64,8 @@ namespace ModernWoWTools.ADTMeta.Analysis.UniqueIdAnalysis
         /// <summary>
         /// Runs the unique ID analysis.
         /// </summary>
-        public async Task AnalyzeAsync()
+        /// <param name="generateComprehensiveReport">Whether to generate a comprehensive report with all assets</param>
+        public async Task AnalyzeAsync(bool generateComprehensiveReport = true)
         {
             Console.WriteLine("Starting UniqueID analysis...");
             
@@ -71,10 +78,23 @@ namespace ModernWoWTools.ADTMeta.Analysis.UniqueIdAnalysis
             // Identify global clusters across all maps
             IdentifyGlobalClusters();
             
+            // Identify non-clustered IDs if generating comprehensive report
+            if (generateComprehensiveReport)
+            {
+                IdentifyNonClusteredIds();
+            }
+            
             // Generate reports
-            await GenerateTextReportAsync();
-            await ReportGenerator.GenerateExcelReportAsync(_adtFiles, _mapClusters, _globalClusters, 
-                _clusterGapThreshold, _outputDirectory);
+            // Create and use the text report generator
+            var textReportGenerator = new TextReportGenerator(
+                _adtFiles, _mapClusters, _globalClusters, _nonClusteredIds, _nonClusteredAssets,
+                _outputDirectory, generateComprehensiveReport);
+            await textReportGenerator.GenerateAsync();
+            
+            // Create and use the Excel report generator
+            var excelReportGenerator = new ExcelReportGenerator(
+                _adtFiles, _mapClusters, _globalClusters, _clusterGapThreshold, _outputDirectory, generateComprehensiveReport);
+            await excelReportGenerator.GenerateAsync();
             
             Console.WriteLine("UniqueID analysis complete!");
         }
@@ -122,13 +142,24 @@ namespace ModernWoWTools.ADTMeta.Analysis.UniqueIdAnalysis
                             {
                                 string modelPath = placement.Name;
                                 
+                                // Extract position data
+                                double posX = 0, posY = 0, posZ = 0;
+                                if (placement.Position != null)
+                                {
+                                    placement.Position.TryGetValue("X", out posX);
+                                    placement.Position.TryGetValue("Y", out posY);
+                                    placement.Position.TryGetValue("Z", out posZ);
+                                }
+                                
                                 // Create asset reference
                                 var assetRef = new AssetReference(
                                     modelPath, 
                                     "Model", 
                                     placement.UniqueId, 
                                     result.FileName,
-                                    mapName);
+                                    mapName,
+                                    posX, posY, posZ,
+                                    placement.Scale);
                                 
                                 // Add to the AdtInfo
                                 if (!adtInfo.AssetsByUniqueId.TryGetValue(placement.UniqueId, out var assetList))
@@ -148,13 +179,23 @@ namespace ModernWoWTools.ADTMeta.Analysis.UniqueIdAnalysis
                             {
                                 string wmoPath = placement.Name;
                                 
+                                // Extract position data
+                                double posX = 0, posY = 0, posZ = 0;
+                                if (placement.Position != null)
+                                {
+                                    placement.Position.TryGetValue("X", out posX);
+                                    placement.Position.TryGetValue("Y", out posY);
+                                    placement.Position.TryGetValue("Z", out posZ);
+                                }
+                                
                                 // Create asset reference
                                 var assetRef = new AssetReference(
                                     wmoPath, 
                                     "WMO", 
                                     placement.UniqueId, 
                                     result.FileName,
-                                    mapName);
+                                    mapName,
+                                    posX, posY, posZ);
                                 
                                 // Add to the AdtInfo
                                 if (!adtInfo.AssetsByUniqueId.TryGetValue(placement.UniqueId, out var assetList))
@@ -291,194 +332,58 @@ namespace ModernWoWTools.ADTMeta.Analysis.UniqueIdAnalysis
         }
         
         /// <summary>
-        /// Generates a text report of the analysis.
+        /// Identifies uniqueIDs that don't belong to any cluster.
         /// </summary>
-        private async Task GenerateTextReportAsync()
+        private void IdentifyNonClusteredIds()
         {
-            Console.WriteLine("Generating text report...");
+            Console.WriteLine("Identifying non-clustered uniqueIDs...");
             
-            var reportPath = Path.Combine(_outputDirectory, "unique_id_analysis.txt");
+            // Get all uniqueIDs
+            var allIds = _adtFiles
+                .SelectMany(adt => adt.UniqueIds)
+                .Distinct()
+                .OrderBy(id => id)
+                .ToList();
             
-            using (var writer = new StreamWriter(reportPath))
+            // Get all IDs that are part of global clusters
+            var clusteredIds = new HashSet<int>();
+            foreach (var cluster in _globalClusters)
             {
-                await writer.WriteLineAsync($"ADT UniqueID Analysis Report - {DateTime.Now}");
-                await writer.WriteLineAsync("=========================================");
-                await writer.WriteLineAsync();
-                
-                // Write global clusters
-                await writer.WriteLineAsync("GLOBAL CLUSTERS");
-                await writer.WriteLineAsync("==============");
-                
-                foreach (var cluster in _globalClusters.OrderBy(c => c.MinId))
+                for (int id = cluster.MinId; id <= cluster.MaxId; id++)
                 {
-                    await writer.WriteLineAsync($"Cluster: {cluster.MinId} - {cluster.MaxId}");
-                    await writer.WriteLineAsync($"Count: {cluster.Count} unique IDs");
-                    await writer.WriteLineAsync($"Span: {cluster.MaxId - cluster.MinId + 1} potential IDs");
-                    await writer.WriteLineAsync($"Density: {cluster.Density:F2}");
-                    await writer.WriteLineAsync($"Present in {cluster.AdtFiles.Count} ADT files");
-                    await writer.WriteLineAsync($"Contains {cluster.Assets.Count} unique assets");
-                    
-                    // Group ADTs by map
-                    var adtsByMap = cluster.AdtFiles
-                        .Select(file => _adtFiles.FirstOrDefault(a => a.FileName == file))
-                        .Where(a => a != null)
-                        .GroupBy(a => a.MapName)
-                        .OrderBy(g => g.Key);
-                    
-                    await writer.WriteLineAsync("Maps and ADTs:");
-                    foreach (var mapGroup in adtsByMap)
+                    if (allIds.Contains(id))
                     {
-                        await writer.WriteLineAsync($"  {mapGroup.Key}: {mapGroup.Count()} ADTs");
-                        
-                        foreach (var adt in mapGroup.OrderBy(a => a.FileName))
-                        {
-                            if (cluster.IdCountsByAdt.TryGetValue(adt.FileName, out var count))
-                            {
-                                await writer.WriteLineAsync($"    {adt.FileName}: {count} IDs");
-                            }
-                        }
-                    }
-                    
-                    // Write asset information
-                    await writer.WriteLineAsync("Assets:");
-                    
-                    // Group assets by type
-                    var assetsByType = cluster.Assets.GroupBy(a => a.Type);
-                    foreach (var typeGroup in assetsByType.OrderBy(g => g.Key))
-                    {
-                        await writer.WriteLineAsync($"  {typeGroup.Key}s ({typeGroup.Count()}):");
-                        
-                        // List most common assets (limited to top 20)
-                        var topAssets = typeGroup
-                            .GroupBy(a => a.AssetPath)
-                            .Select(g => new { Path = g.Key, Count = g.Count() })
-                            .OrderByDescending(a => a.Count)
-                            .Take(20);
-                        
-                        foreach (var asset in topAssets)
-                        {
-                            await writer.WriteLineAsync($"    {asset.Path} (used {asset.Count} times)");
-                        }
-                        
-                        // If there are more assets, note how many more
-                        if (typeGroup.Count() > 20)
-                        {
-                            await writer.WriteLineAsync($"    ... and {typeGroup.Count() - 20} more {typeGroup.Key}s");
-                        }
-                    }
-                    
-                    await writer.WriteLineAsync();
-                }
-                
-                // Write per-map clusters
-                await writer.WriteLineAsync();
-                await writer.WriteLineAsync("PER-MAP CLUSTERS");
-                await writer.WriteLineAsync("===============");
-                
-                foreach (var mapEntry in _mapClusters.OrderBy(m => m.Key))
-                {
-                    var mapName = mapEntry.Key;
-                    var clusters = mapEntry.Value;
-                    
-                    await writer.WriteLineAsync();
-                    await writer.WriteLineAsync($"MAP: {mapName}");
-                    await writer.WriteLineAsync($"{new string('=', mapName.Length + 5)}");
-                    
-                    foreach (var cluster in clusters.OrderBy(c => c.MinId))
-                    {
-                        await writer.WriteLineAsync($"Cluster: {cluster.MinId} - {cluster.MaxId}");
-                        await writer.WriteLineAsync($"Count: {cluster.Count} unique IDs");
-                        await writer.WriteLineAsync($"Span: {cluster.MaxId - cluster.MinId + 1} potential IDs");
-                        await writer.WriteLineAsync($"Density: {cluster.Density:F2}");
-                        await writer.WriteLineAsync($"Present in {cluster.AdtFiles.Count} ADT files");
-                        await writer.WriteLineAsync($"Contains {cluster.Assets.Count} unique assets");
-                        
-                        // ADT files in this cluster
-                        await writer.WriteLineAsync("ADT Files:");
-                        foreach (var adtFile in cluster.AdtFiles.OrderBy(f => f))
-                        {
-                            if (cluster.IdCountsByAdt.TryGetValue(adtFile, out var count))
-                            {
-                                await writer.WriteLineAsync($"  {adtFile}: {count} IDs");
-                            }
-                        }
-                        
-                        // Write asset information
-                        await writer.WriteLineAsync("Assets:");
-                        
-                        // Group assets by type
-                        var assetsByType = cluster.Assets.GroupBy(a => a.Type);
-                        foreach (var typeGroup in assetsByType.OrderBy(g => g.Key))
-                        {
-                            await writer.WriteLineAsync($"  {typeGroup.Key}s ({typeGroup.Count()}):");
-                            
-                            // List most common assets (limited to top 10 for map clusters)
-                            var topAssets = typeGroup
-                                .GroupBy(a => a.AssetPath)
-                                .Select(g => new { Path = g.Key, Count = g.Count() })
-                                .OrderByDescending(a => a.Count)
-                                .Take(10);
-                            
-                            foreach (var asset in topAssets)
-                            {
-                                await writer.WriteLineAsync($"    {asset.Path} (used {asset.Count} times)");
-                            }
-                            
-                            // If there are more assets, note how many more
-                            if (typeGroup.Count() > 10)
-                            {
-                                await writer.WriteLineAsync($"    ... and {typeGroup.Count() - 10} more {typeGroup.Key}s");
-                            }
-                        }
-                        
-                        await writer.WriteLineAsync();
+                        clusteredIds.Add(id);
                     }
                 }
-                
-                // Write individual ADT data
-                await writer.WriteLineAsync();
-                await writer.WriteLineAsync("INDIVIDUAL ADT DATA");
-                await writer.WriteLineAsync("==================");
-                
-                foreach (var mapGroup in _adtFiles.GroupBy(a => a.MapName).OrderBy(g => g.Key))
-                {
-                    await writer.WriteLineAsync();
-                    await writer.WriteLineAsync($"MAP: {mapGroup.Key}");
-                    await writer.WriteLineAsync($"{new string('=', mapGroup.Key.Length + 5)}");
-                    
-                    foreach (var adt in mapGroup.OrderBy(a => a.FileName))
-                    {
-                        await writer.WriteLineAsync($"{adt.FileName}: {adt.UniqueIds.Count} IDs, {adt.AssetsByUniqueId.Values.SelectMany(a => a).Count()} assets");
-                        
-                        // Calculate some basic statistics
-                        var minId = adt.UniqueIds.Min();
-                        var maxId = adt.UniqueIds.Max();
-                        var ranges = ClusterAnalyzer.GetIdRanges(adt.UniqueIds, _clusterGapThreshold);
-                        
-                        await writer.WriteLineAsync($"  Range: {minId} - {maxId} (span: {maxId - minId + 1})");
-                        
-                        // Group assets by type
-                        var assetsByType = adt.AssetsByUniqueId.Values
-                            .SelectMany(a => a)
-                            .GroupBy(a => a.Type);
-                            
-                        await writer.WriteLineAsync($"  Assets: {string.Join(", ", assetsByType.Select(g => $"{g.Count()} {g.Key}s"))}");
-                        
-                        if (ranges.Count > 1)
-                        {
-                            await writer.WriteLineAsync($"  Major ranges ({ranges.Count}):");
-                            foreach (var range in ranges.OrderBy(r => r.Item1))
-                            {
-                                await writer.WriteLineAsync($"    {range.Item1} - {range.Item2} ({range.Item2 - range.Item1 + 1} span, {range.Item3} IDs)");
-                            }
-                        }
-                        
-                        await writer.WriteLineAsync();
-                    }
-                }
-                
-                Console.WriteLine($"Text report written to {reportPath}");
             }
+            
+            // Find IDs that aren't in any cluster
+            _nonClusteredIds = allIds
+                .Where(id => !clusteredIds.Contains(id))
+                .OrderBy(id => id)
+                .ToList();
+            
+            // Find assets associated with non-clustered IDs
+            foreach (var id in _nonClusteredIds)
+            {
+                var assetsForId = new List<AssetReference>();
+                
+                foreach (var adt in _adtFiles)
+                {
+                    if (adt.AssetsByUniqueId.TryGetValue(id, out var assets))
+                    {
+                        assetsForId.AddRange(assets);
+                    }
+                }
+                
+                if (assetsForId.Count > 0)
+                {
+                    _nonClusteredAssets[id] = assetsForId;
+                }
+            }
+            
+            Console.WriteLine($"Found {_nonClusteredIds.Count} non-clustered uniqueIDs with {_nonClusteredAssets.Values.Sum(a => a.Count)} assets");
         }
     }
 }

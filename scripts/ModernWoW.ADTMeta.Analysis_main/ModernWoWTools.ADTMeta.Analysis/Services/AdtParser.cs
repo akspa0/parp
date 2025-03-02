@@ -56,6 +56,22 @@ namespace ModernWoWTools.ADTMeta.Analysis.Services
                 var adtData = await Task.Run(() => new Terrain(File.ReadAllBytes(filePath)));
                 result.AdtVersion = adtData.Version?.Version ?? 0;
 
+                // Extract header information
+                if (adtData.Header != null)
+                {
+                    result.Header.Flags = adtData.Header.Flags;
+                    
+                    // Count references and placements
+                    result.Header.TextureLayerCount = adtData.Textures?.Filenames?.Count ?? 0;
+                    result.Header.ModelReferenceCount = adtData.Models?.Filenames?.Count ?? 0;
+                    result.Header.WmoReferenceCount = adtData.WorldModelObjects?.Filenames?.Count ?? 0;
+                    result.Header.ModelPlacementCount = adtData.ModelPlacementInfo?.MDDFEntries?.Count ?? 0;
+                    result.Header.WmoPlacementCount = adtData.WorldModelObjectPlacementInfo?.MODFEntries?.Count ?? 0;
+                    
+                    // Count terrain chunks
+                    result.Header.TerrainChunkCount = adtData.MapChunks?.Count ?? 0;
+                }
+
                 // Process textures
                 if (adtData.Textures?.Filenames != null)
                 {
@@ -180,10 +196,106 @@ namespace ModernWoWTools.ADTMeta.Analysis.Services
                     }
                 }
 
+                // Process terrain chunks
+                if (adtData.MapChunks != null)
+                {
+                    for (int i = 0; i < adtData.MapChunks.Count; i++)
+                    {
+                        var chunk = adtData.MapChunks[i];
+                        if (chunk == null)
+                            continue;
+
+                        // Calculate chunk position in the grid (0-15, 0-15)
+                        int chunkX = i % 16;
+                        int chunkY = i / 16;
+
+                        var terrainChunk = new TerrainChunk
+                        {
+                            Position = new Vector2(chunkX, chunkY),
+                            WorldPosition = new Vector3(chunk.Header.Position.X, chunk.Header.Position.Y, chunk.Header.Position.Z),
+                            AreaId = (int)chunk.Header.AreaId,
+                            Flags = chunk.Header.Flags,
+                            Holes = chunk.Header.Holes,
+                            LiquidLevel = chunk.Header.LiquidLevel,
+                            
+                        };
+
+                        // Extract height data
+                        if (chunk.HeightMap != null)
+                        {
+                            foreach (var height in chunk.HeightMap.Heights)
+                            {
+                                terrainChunk.Heights.Add(height);
+                            }
+                        }
+
+                        // Extract normal data if available
+                        if (chunk.NormalMap != null && chunk.NormalMap.Normals != null)
+                        {
+                            foreach (var normal in chunk.NormalMap.Normals)
+                            {
+                                terrainChunk.Normals.Add(new Vector3(normal.X, normal.Y, normal.Z));
+                            }
+                        }
+
+                        // Extract texture layers
+                        if (chunk.TextureLayers != null)
+                        {
+                            foreach (var layer in chunk.TextureLayers)
+                            {
+                                var textureLayer = new TextureLayer
+                                {
+                                    TextureId = (int)layer.TextureId,
+                                    Flags = layer.Flags,
+                                    EffectId = (int)layer.EffectId,
+                                    AlphaMapOffset = (int)layer.AlphaMapOffset,
+                                    AlphaMapSize = (int)layer.AlphaMapSize
+                                };
+                                
+                                // Get texture name if available
+                                if ((int)layer.TextureId >= 0 && result.TextureReferences.Count > (int)layer.TextureId)
+                                {
+                                    textureLayer.TextureName = result.TextureReferences[(int)layer.TextureId].OriginalPath;
+                                }
+                                else
+                                {
+                                    textureLayer.TextureName = $"<unknown texture {(int)layer.TextureId}>";
+                                }
+
+                                terrainChunk.TextureLayers.Add(textureLayer);
+                            }
+                        }
+                        
+                        // Extract alpha maps if available
+                        if (chunk.AlphaMaps != null && chunk.AlphaMaps.Count > 0)
+                        {
+                            for (int i = 0; i < Math.Min(terrainChunk.TextureLayers.Count, chunk.AlphaMaps.Count); i++)
+                            {
+                                if (i < terrainChunk.TextureLayers.Count && chunk.AlphaMaps[i] != null)
+                                {
+                                    terrainChunk.TextureLayers[i].AlphaMap = chunk.AlphaMaps[i];
+                                }
+                            }
+                        }
+
+                        // Extract doodad references
+                        if (chunk.DoodadReferences != null && chunk.DoodadReferences.Indices != null)
+                        {
+                            foreach (var doodadRef in chunk.DoodadReferences.Indices)
+                            {
+                                terrainChunk.DoodadRefs.Add((int)doodadRef);
+                            }
+                        }
+
+                        result.TerrainChunks.Add(terrainChunk);
+                    }
+                }
+
                 _logger.LogInfo($"Successfully parsed {result.FileName}: " +
                                $"{result.TextureReferences.Count} textures, " +
                                $"{result.ModelReferences.Count} models, " +
                                $"{result.WmoReferences.Count} WMOs, " +
+                               $"{result.TerrainChunks.Count} terrain chunks, " +
                                $"{result.UniqueIds.Count} unique IDs");
 
                 return result;
@@ -191,7 +303,8 @@ namespace ModernWoWTools.ADTMeta.Analysis.Services
             catch (Exception ex)
             {
                 _logger.LogError($"Error parsing {result.FileName}: {ex.Message}");
-                throw;
+                result.Errors.Add(ex.Message);
+                return result;
             }
         }
     }

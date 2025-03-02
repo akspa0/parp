@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ADTMeta\ADTMeta.csproj" />
+    <ProjectReference Include="..\..\ADTMeta\ADTMeta.csproj" />
   </ItemGroup>
 
 </Project>

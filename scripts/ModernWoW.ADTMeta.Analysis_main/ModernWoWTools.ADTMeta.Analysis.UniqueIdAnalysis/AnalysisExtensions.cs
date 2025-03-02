@@ -25,7 +25,6 @@ namespace ModernWoWTools.ADTMeta.Analysis.UniqueIdAnalysis
             Console.WriteLine("Generating advanced analysis reports...");
             
             var idCollisionsPath = Path.Combine(outputDirectory, "id_collisions.xlsx");
-            var uniqueAssetsPath = Path.Combine(outputDirectory, "unique_assets.xlsx");
             var timelinePath = Path.Combine(outputDirectory, "development_timeline.xlsx");
             
             // Set license context for EPPlus
@@ -33,9 +32,6 @@ namespace ModernWoWTools.ADTMeta.Analysis.UniqueIdAnalysis
             
             // Generate ID collisions report
             await GenerateIdCollisionsReportAsync(adtFiles, idCollisionsPath);
-            
-            // Generate unique assets report
-            await GenerateUniqueAssetsReportAsync(adtFiles, uniqueAssetsPath);
             
             // Generate development timeline report
             await GenerateDevelopmentTimelineAsync(adtFiles, timelinePath);
@@ -231,142 +227,6 @@ namespace ModernWoWTools.ADTMeta.Analysis.UniqueIdAnalysis
                 await package.SaveAsAsync(new FileInfo(outputPath));
                 
                 Console.WriteLine($"Collision report written to {outputPath}");
-            }
-        }
-        
-        /// <summary>
-        /// Creates a report of assets that appear exactly once across all maps
-        /// </summary>
-        private static async Task GenerateUniqueAssetsReportAsync(List<AdtInfo> adtFiles, string outputPath)
-        {
-            Console.WriteLine("Analyzing unique assets (assets that appear only once)...");
-            
-            using (var package = new ExcelPackage())
-            {
-                var uniqueSheet = package.Workbook.Worksheets.Add("Unique Assets");
-                int row = 1;
-                
-                // Header
-                uniqueSheet.Cells[row, 1].Value = "Asset Path";
-                uniqueSheet.Cells[row, 2].Value = "Asset Type";
-                uniqueSheet.Cells[row, 3].Value = "Map";
-                uniqueSheet.Cells[row, 4].Value = "ADT File";
-                uniqueSheet.Cells[row, 5].Value = "UniqueID";
-                uniqueSheet.Cells[row, 1, row, 5].Style.Font.Bold = true;
-                uniqueSheet.Cells[row, 1, row, 5].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                uniqueSheet.Cells[row, 1, row, 5].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
-                
-                row++;
-                
-                // Collect all assets across all ADTs
-                var assetCounts = new Dictionary<string, int>();
-                var assetDetails = new Dictionary<string, List<AssetReference>>();
-                
-                foreach (var adt in adtFiles)
-                {
-                    foreach (var entry in adt.AssetsByUniqueId)
-                    {
-                        foreach (var asset in entry.Value)
-                        {
-                            string key = $"{asset.Type}:{asset.AssetPath}";
-                            
-                            // Count occurrences
-                            if (!assetCounts.TryGetValue(key, out int count))
-                            {
-                                count = 0;
-                                assetCounts[key] = 0;
-                            }
-                            assetCounts[key] = count + 1;
-                            
-                            // Store details
-                            if (!assetDetails.TryGetValue(key, out var details))
-                            {
-                                details = new List<AssetReference>();
-                                assetDetails[key] = details;
-                            }
-                            details.Add(asset);
-                        }
-                    }
-                }
-                
-                // Find assets that appear only once
-                var uniqueAssets = assetCounts
-                    .Where(kvp => kvp.Value == 1)
-                    .Select(kvp => kvp.Key)
-                    .OrderBy(k => k)
-                    .ToList();
-                    
-                if (uniqueAssets.Count == 0)
-                {
-                    uniqueSheet.Cells[row, 1].Value = "No assets that appear exactly once were found";
-                    uniqueSheet.Cells[row, 1, row, 5].Merge = true;
-                    uniqueSheet.Cells[row, 1, row, 5].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-                    row++;
-                }
-                else
-                {
-                    // Write unique asset data
-                    foreach (var assetKey in uniqueAssets)
-                    {
-                        var asset = assetDetails[assetKey].First();
-                        
-                        uniqueSheet.Cells[row, 1].Value = asset.AssetPath;
-                        uniqueSheet.Cells[row, 2].Value = asset.Type;
-                        uniqueSheet.Cells[row, 3].Value = asset.MapName;
-                        uniqueSheet.Cells[row, 4].Value = asset.AdtFile;
-                        uniqueSheet.Cells[row, 5].Value = asset.UniqueId;
-                        
-                        row++;
-                    }
-                    
-                    // Add summary row
-                    row++;
-                    uniqueSheet.Cells[row, 1].Value = "Total Unique Assets:";
-                    uniqueSheet.Cells[row, 2].Value = uniqueAssets.Count;
-                    uniqueSheet.Cells[row, 1, row, 2].Style.Font.Bold = true;
-                }
-                
-                // Add summary sheet by map and asset type
-                var summarySheet = package.Workbook.Worksheets.Add("Unique Assets Summary");
-                row = 1;
-                
-                // Header
-                summarySheet.Cells[row, 1].Value = "Map";
-                summarySheet.Cells[row, 2].Value = "Asset Type";
-                summarySheet.Cells[row, 3].Value = "Count";
-                summarySheet.Cells[row, 1, row, 3].Style.Font.Bold = true;
-                summarySheet.Cells[row, 1, row, 3].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                summarySheet.Cells[row, 1, row, 3].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
-                
-                row++;
-                
-                // Group unique assets by map and type
-                var uniqueByMapAndType = uniqueAssets
-                    .Select(key => assetDetails[key].First())
-                    .GroupBy(a => new { a.MapName, a.Type })
-                    .Select(g => new {
-                        Map = g.Key.MapName,
-                        Type = g.Key.Type,
-                        Count = g.Count()
-                    })
-                    .OrderBy(g => g.Map)
-                    .ThenBy(g => g.Type);
-                    
-                foreach (var group in uniqueByMapAndType)
-                {
-                    summarySheet.Cells[row, 1].Value = group.Map;
-                    summarySheet.Cells[row, 2].Value = group.Type;
-                    summarySheet.Cells[row, 3].Value = group.Count;
-                    row++;
-                }
-                
-                uniqueSheet.Cells.AutoFitColumns();
-                summarySheet.Cells.AutoFitColumns();
-                
-                // Save the Excel file
-                await package.SaveAsAsync(new FileInfo(outputPath));
-                
-                Console.WriteLine($"Unique assets report written to {outputPath}");
             }
         }
         

@@ -35,6 +35,11 @@ namespace ModernWoWTools.ADTMeta.Analysis.Models
         public uint AdtVersion { get; set; }
 
         /// <summary>
+        /// Gets or sets the header information for the ADT file.
+        /// </summary>
+        public AdtHeader Header { get; set; } = new AdtHeader();
+
+        /// <summary>
         /// Gets or sets the list of texture references found in the ADT file.
         /// </summary>
         public List<FileReference> TextureReferences { get; set; } = new List<FileReference>();
@@ -65,6 +70,16 @@ namespace ModernWoWTools.ADTMeta.Analysis.Models
         public HashSet<int> UniqueIds { get; set; } = new HashSet<int>();
 
         /// <summary>
+        /// Gets or sets the list of terrain chunks in the ADT file.
+        /// </summary>
+        public List<TerrainChunk> TerrainChunks { get; set; } = new List<TerrainChunk>();
+
+        /// <summary>
+        /// Gets or sets the list of errors encountered during parsing.
+        /// </summary>
+        public List<string> Errors { get; set; } = new List<string>();
+
+        /// <summary>
         /// Gets all file references (textures, models, and WMOs) as a single collection.
         /// </summary>
         public IEnumerable<FileReference> AllReferences
@@ -85,6 +100,7 @@ namespace ModernWoWTools.ADTMeta.Analysis.Models
                    $"{TextureReferences.Count} textures, " +
                    $"{ModelReferences.Count} models, " +
                    $"{WmoReferences.Count} WMOs, " +
+                   $"{TerrainChunks.Count} terrain chunks, " +
                    $"{UniqueIds.Count} unique IDs";
         }
     }

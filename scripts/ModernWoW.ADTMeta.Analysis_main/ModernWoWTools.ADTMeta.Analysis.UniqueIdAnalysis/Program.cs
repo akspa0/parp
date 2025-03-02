@@ -21,6 +21,7 @@ namespace ModernWoWTools.ADTMeta.Analysis.UniqueIdAnalysis
             int clusterThreshold = 10;
             int gapThreshold = 1000;
             bool runAdvancedAnalysis = true;
+            bool generateComprehensiveReport = true;
 
             if (args.Length < 2)
             {
@@ -52,6 +53,13 @@ namespace ModernWoWTools.ADTMeta.Analysis.UniqueIdAnalysis
                 {
                     runAdvancedAnalysis = false;
                 }
+                
+                Console.Write("Generate comprehensive report with all assets and non-clustered IDs? (Y/n): ");
+                var comprehensiveInput = Console.ReadLine();
+                if (!string.IsNullOrEmpty(comprehensiveInput) && comprehensiveInput.Trim().ToLower() == "n")
+                {
+                    generateComprehensiveReport = false;
+                }
             }
             else
             {
@@ -73,11 +81,17 @@ namespace ModernWoWTools.ADTMeta.Analysis.UniqueIdAnalysis
                 {
                     runAdvancedAnalysis = false;
                 }
+                
+                // Check for -nocomprehensive flag
+                if (args.Length > 5 && args[5].ToLower() == "-nocomprehensive")
+                {
+                    generateComprehensiveReport = false;
+                }
             }
 
             // Run the analyzer
-            var analyzer = new UniqueIdAnalyzer(resultsDir, outputDir, clusterThreshold, gapThreshold);
-            await analyzer.AnalyzeAsync();
+            var analyzer = new UniqueIdAnalyzer(resultsDir, outputDir, clusterThreshold, gapThreshold, generateComprehensiveReport);
+            await analyzer.AnalyzeAsync(generateComprehensiveReport);
 
             // Run advanced analysis if requested
             if (runAdvancedAnalysis)

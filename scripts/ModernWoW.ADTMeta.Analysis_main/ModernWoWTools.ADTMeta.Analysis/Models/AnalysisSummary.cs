@@ -49,6 +49,21 @@ namespace ModernWoWTools.ADTMeta.Analysis.Models
         public int TotalWmoPlacements { get; set; }
 
         /// <summary>
+        /// Gets or sets the total number of terrain chunks found.
+        /// </summary>
+        public int TotalTerrainChunks { get; set; }
+
+        /// <summary>
+        /// Gets or sets the total number of texture layers found.
+        /// </summary>
+        public int TotalTextureLayers { get; set; }
+
+        /// <summary>
+        /// Gets or sets the total number of doodad references found.
+        /// </summary>
+        public int TotalDoodadReferences { get; set; }
+
+        /// <summary>
         /// Gets or sets the number of missing references found.
         /// </summary>
         public int MissingReferences { get; set; }
@@ -67,6 +82,11 @@ namespace ModernWoWTools.ADTMeta.Analysis.Models
         /// Gets or sets the maximum unique ID found.
         /// </summary>
         public int MaxUniqueId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the number of parsing errors encountered.
+        /// </summary>
+        public int ParsingErrors { get; set; }
 
         /// <summary>
         /// Gets or sets the duration of the analysis.
@@ -102,6 +122,11 @@ namespace ModernWoWTools.ADTMeta.Analysis.Models
         /// Gets or sets the map of duplicate unique IDs to the ADT files that contain them.
         /// </summary>
         public Dictionary<int, HashSet<string>> DuplicateIdMap { get; set; } = new Dictionary<int, HashSet<string>>();
+
+        /// <summary>
+        /// Gets or sets the map of area IDs to the ADT files that contain them.
+        /// </summary>
+        public Dictionary<int, HashSet<string>> AreaIdMap { get; set; } = new Dictionary<int, HashSet<string>>();
 
         /// <summary>
         /// Completes the summary by setting the end time and calculating the duration.

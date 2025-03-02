@@ -56,6 +56,10 @@ namespace ModernWoWTools.ADTMeta.Analysis.UniqueIdAnalysis
         public int UniqueId { get; set; }
         public string AdtFile { get; set; }
         public string MapName { get; set; }
+        public double PositionX { get; set; }
+        public double PositionY { get; set; }
+        public double PositionZ { get; set; }
+        public float Scale { get; set; }
         
         public AssetReference(string assetPath, string type, int uniqueId, string adtFile, string mapName)
         {
@@ -64,6 +68,16 @@ namespace ModernWoWTools.ADTMeta.Analysis.UniqueIdAnalysis
             UniqueId = uniqueId;
             AdtFile = adtFile;
             MapName = mapName;
+        }
+
+        public AssetReference(string assetPath, string type, int uniqueId, string adtFile, string mapName, 
+            double posX, double posY, double posZ, float scale = 1.0f)
+            : this(assetPath, type, uniqueId, adtFile, mapName)
+        {
+            PositionX = posX;
+            PositionY = posY;
+            PositionZ = posZ;
+            Scale = scale;
         }
         
         // Override Equals and GetHashCode to ensure proper HashSet behavior based on asset path
