@@ -185,7 +185,6 @@
           "CascLib": "1.0.0",
           "DBCD": "1.0.0",
           "Newtonsoft.Json": "13.0.3",
-          "SixLabors.ImageSharp": "2.1.9",
           "Warcraft.NET": "1.0.1"
         },
         "runtime": {
