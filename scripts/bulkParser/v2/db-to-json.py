@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-DB to JSON Converter
-Converts SQLite database files from the ADT analyzer to JSON format
+Memory-Efficient DB to JSON Converter
+Converts SQLite database files from the ADT analyzer to JSON format with low memory usage
 
 Usage:
     python db_to_json.py <input_directory> [options]
@@ -13,10 +13,11 @@ Options:
     --output FILE          Output JSON file path (default: master_export.json in input directory)
     --format FORMAT        Output format: 'pretty' or 'compact' (default: pretty)
     --tables TABLES        Comma-separated list of tables to extract (default: all)
-    --limit N              Limit number of rows per table (default: no limit)
+    --batch-size N         Number of rows to process in each batch (default: 1000)
     --skip-blobs           Skip binary blob fields to reduce output size
     --workers N            Number of worker threads to use (default: CPU count)
     --summary-only         Only include summary information, not actual row data
+    --incremental          Process one database at a time to reduce memory usage
 """
 
 import os
@@ -27,13 +28,13 @@ import argparse
 import base64
 import threading
 import concurrent.futures
+import gc
 import logging
 from datetime import datetime
 from collections import defaultdict
 
 def setup_logging():
     """Set up basic logging"""
-    # Create a timestamped output directory for this run
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     log_filename = f"db_to_json_{timestamp}.log"
     
@@ -90,26 +91,35 @@ def get_table_schema(db_path, table_name):
         logging.error(f"Error getting schema for table {table_name} in {db_path}: {e}")
         return {}
 
-def get_table_data(db_path, table_name, limit=None, skip_blobs=False):
-    """Get all data from a table with column names"""
+def get_table_row_count(db_path, table_name):
+    """Get the total number of rows in a table"""
     try:
         conn = sqlite3.connect(db_path)
-        conn.row_factory = sqlite3.Row  # Return rows as dictionaries
+        cursor = conn.cursor()
+        cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count
+    except sqlite3.Error as e:
+        logging.error(f"Error getting row count for table {table_name} in {db_path}: {e}")
+        return 0
+
+def get_table_batch(db_path, table_name, batch_size, offset, skip_blobs=False):
+    """Get a batch of rows from a table"""
+    try:
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         
-        # Get column information including types
+        # Get column information
         cursor.execute(f"PRAGMA table_info({table_name})")
         columns_info = [dict(row) for row in cursor.fetchall()]
         column_types = {col['name']: col['type'].upper() for col in columns_info}
         column_names = [col['name'] for col in columns_info]
         
-        # Prepare the query
-        query = f"SELECT * FROM {table_name}"
-        if limit:
-            query += f" LIMIT {limit}"
-        
-        cursor.execute(query)
-        results = []
+        # Fetch batch of rows
+        cursor.execute(f"SELECT * FROM {table_name} LIMIT {batch_size} OFFSET {offset}")
+        rows = []
         
         for row in cursor.fetchall():
             row_dict = {}
@@ -126,27 +136,13 @@ def get_table_data(db_path, table_name, limit=None, skip_blobs=False):
                 
                 row_dict[key] = value
             
-            results.append(row_dict)
-        
-        # Get row count (may be different from results if limit is used)
-        cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
-        total_rows = cursor.fetchone()[0]
+            rows.append(row_dict)
         
         conn.close()
-        return {
-            'column_types': column_types,
-            'column_names': column_names,
-            'total_rows': total_rows,
-            'rows': results
-        }
+        return rows, column_names, column_types
     except sqlite3.Error as e:
-        logging.error(f"Error getting data from table {table_name} in {db_path}: {e}")
-        return {
-            'column_types': {},
-            'column_names': [],
-            'total_rows': 0,
-            'rows': []
-        }
+        logging.error(f"Error getting batch from table {table_name} in {db_path}: {e}")
+        return [], [], {}
 
 def get_table_summary(db_path, table_name):
     """Get summary information about a table without retrieving all rows"""
@@ -188,8 +184,78 @@ def get_table_summary(db_path, table_name):
             'create_sql': ""
         }
 
-def process_database(db_path, tables_to_extract=None, limit=None, skip_blobs=False, summary_only=False):
-    """Process a single database and extract its tables"""
+def process_table_in_batches(db_path, table_name, batch_size, skip_blobs=False, json_file=None):
+    """Process a table in batches to minimize memory usage"""
+    logger = logging.getLogger('db_to_json')
+    
+    # Get total row count
+    total_rows = get_table_row_count(db_path, table_name)
+    logger.info(f"Processing table {table_name} in {os.path.basename(db_path)} - {total_rows} total rows")
+    
+    if total_rows == 0:
+        return {
+            'table_name': table_name,
+            'column_types': {},
+            'column_names': [],
+            'total_rows': 0,
+            'rows': []
+        }
+    
+    # Process first batch to get column information
+    first_batch, column_names, column_types = get_table_batch(db_path, table_name, 1, 0, skip_blobs)
+    
+    # Initialize result
+    result = {
+        'table_name': table_name,
+        'column_types': column_types,
+        'column_names': column_names,
+        'total_rows': total_rows,
+        'rows': []
+    }
+    
+    # If writing directly to a JSON file
+    is_writing_to_file = json_file is not None
+    if is_writing_to_file:
+        # Write the table header
+        with open(json_file, 'w') as f:
+            # Write table info but with empty rows array
+            result_header = result.copy()
+            result_header['rows'] = []  # Empty rows list for header
+            json.dump(result_header, f)
+            f.write('\n')  # Line-delimited JSON
+    
+    # Process in batches
+    offset = 0
+    processed_rows = 0
+    
+    while offset < total_rows:
+        # Get batch of rows
+        rows, _, _ = get_table_batch(db_path, table_name, batch_size, offset, skip_blobs)
+        processed_rows += len(rows)
+        
+        # If writing to a file, append this batch
+        if is_writing_to_file:
+            with open(json_file, 'a') as f:
+                for row in rows:
+                    f.write(json.dumps(row) + '\n')
+        else:
+            # If accumulating in memory, add to result
+            result['rows'].extend(rows)
+        
+        logger.info(f"Processed {processed_rows}/{total_rows} rows from table {table_name}")
+        
+        # Force garbage collection to free memory
+        rows = None
+        gc.collect()
+        
+        # Move to next batch
+        offset += batch_size
+    
+    return result
+
+def process_database_in_batches(db_path, output_dir, tables_to_extract=None, batch_size=1000, 
+                              skip_blobs=False, summary_only=False, incremental=False):
+    """Process a single database in memory-efficient batches"""
     logger = logging.getLogger('db_to_json')
     
     db_name = os.path.basename(db_path)
@@ -206,6 +272,11 @@ def process_database(db_path, tables_to_extract=None, limit=None, skip_blobs=Fal
         tables = [t for t in all_tables if t in tables_to_extract]
     else:
         tables = all_tables
+    
+    # Create output directory for this database
+    db_output_dir = os.path.join(output_dir, os.path.splitext(db_name)[0])
+    if incremental:
+        os.makedirs(db_output_dir, exist_ok=True)
     
     # Process each table
     db_data = {
@@ -226,14 +297,36 @@ def process_database(db_path, tables_to_extract=None, limit=None, skip_blobs=Fal
                 "sample_row": summary['sample_row']
             }
         else:
-            # Get full table data
-            table_data = get_table_data(db_path, table, limit, skip_blobs)
-            db_data["tables"][table] = {
-                "column_types": table_data['column_types'],
-                "column_names": table_data['column_names'],
-                "total_rows": table_data['total_rows'],
-                "rows": table_data['rows']
-            }
+            # Process in batches
+            if incremental:
+                # Write directly to a file
+                table_file = os.path.join(db_output_dir, f"{table}.json")
+                table_data = process_table_in_batches(db_path, table, batch_size, skip_blobs, table_file)
+                # Store just the metadata
+                db_data["tables"][table] = {
+                    "column_types": table_data['column_types'],
+                    "column_names": table_data['column_names'],
+                    "total_rows": table_data['total_rows'],
+                    "file_path": table_file
+                }
+            else:
+                # Accumulate in memory
+                table_data = process_table_in_batches(db_path, table, batch_size, skip_blobs)
+                db_data["tables"][table] = {
+                    "column_types": table_data['column_types'],
+                    "column_names": table_data['column_names'],
+                    "total_rows": table_data['total_rows'],
+                    "rows": table_data['rows']
+                }
+        
+        # Force garbage collection
+        gc.collect()
+    
+    # Write database metadata
+    if incremental:
+        db_meta_file = os.path.join(db_output_dir, "_metadata.json")
+        with open(db_meta_file, 'w') as f:
+            json.dump(db_data, f, indent=2)
     
     return db_data
 
@@ -257,7 +350,8 @@ def write_json_output(data, output_path, indent=2):
         return False
 
 def process_directory(input_dir, output_path, format='pretty', tables_to_extract=None, 
-                     limit=None, skip_blobs=False, workers=None, summary_only=False):
+                     batch_size=1000, skip_blobs=False, workers=None, summary_only=False,
+                     incremental=False):
     """Process all database files in a directory and combine them into a single JSON file"""
     logger = logging.getLogger('db_to_json')
     
@@ -270,7 +364,45 @@ def process_directory(input_dir, output_path, format='pretty', tables_to_extract
     
     logger.info(f"Found {len(db_files)} database files to process")
     
-    # Set up a thread pool to process databases in parallel
+    # Create output directory for intermediate files if using incremental mode
+    if incremental:
+        output_dir = os.path.dirname(output_path)
+        if not output_dir:
+            output_dir = "."
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Create index file
+        index_data = {
+            "export_date": datetime.now().isoformat(),
+            "databases": [os.path.basename(db) for db in db_files],
+            "directory_structure": "Each database has its own directory. Tables are stored in individual JSON files."
+        }
+        
+        index_path = os.path.join(output_dir, "index.json")
+        with open(index_path, 'w') as f:
+            json.dump(index_data, f, indent=2)
+        
+        logger.info(f"Created index file at {index_path}")
+        
+        # Process each database sequentially to save memory
+        for db_path in db_files:
+            process_database_in_batches(
+                db_path,
+                output_dir,
+                tables_to_extract,
+                batch_size,
+                skip_blobs,
+                summary_only,
+                incremental
+            )
+            
+            # Force garbage collection
+            gc.collect()
+        
+        logger.info(f"Completed incremental processing of {len(db_files)} databases")
+        return True
+    
+    # Set up a thread pool to process databases in parallel (non-incremental mode)
     num_workers = workers if workers else min(os.cpu_count(), len(db_files))
     logger.info(f"Using {num_workers} worker threads")
     
@@ -284,7 +416,14 @@ def process_directory(input_dir, output_path, format='pretty', tables_to_extract
         # Submit tasks
         future_to_db = {
             executor.submit(
-                process_database, db_path, tables_to_extract, limit, skip_blobs, summary_only
+                process_database_in_batches, 
+                db_path, 
+                None,  # No output directory for non-incremental mode
+                tables_to_extract, 
+                batch_size, 
+                skip_blobs, 
+                summary_only,
+                False  # Not incremental within this execution
             ): db_path for db_path in db_files
         }
         
@@ -298,6 +437,10 @@ def process_directory(input_dir, output_path, format='pretty', tables_to_extract
                 if db_data:
                     combined_data["databases"][db_name] = db_data
                     logger.info(f"Added {db_name} to master JSON")
+                    
+                    # Force garbage collection after each database is processed
+                    db_data = None
+                    gc.collect()
             except Exception as e:
                 logger.error(f"Error processing {db_name}: {e}")
     
@@ -317,12 +460,15 @@ def main():
     parser.add_argument("--format", choices=["pretty", "compact"], default="pretty", 
                         help="Output format: 'pretty' or 'compact' (default: pretty)")
     parser.add_argument("--tables", help="Comma-separated list of tables to extract (default: all)")
-    parser.add_argument("--limit", type=int, help="Limit number of rows per table (default: no limit)")
+    parser.add_argument("--batch-size", type=int, default=1000, 
+                        help="Number of rows to process in each batch (default: 1000)")
     parser.add_argument("--skip-blobs", action="store_true", 
                         help="Skip binary blob fields to reduce output size")
     parser.add_argument("--workers", type=int, help="Number of worker threads to use (default: CPU count)")
     parser.add_argument("--summary-only", action="store_true",
                         help="Only include summary information, not actual row data")
+    parser.add_argument("--incremental", action="store_true",
+                        help="Process one database at a time to reduce memory usage")
     
     args = parser.parse_args()
     
@@ -349,10 +495,11 @@ def main():
         args.output,
         args.format,
         tables_to_extract,
-        args.limit,
+        args.batch_size,
         args.skip_blobs,
         args.workers,
-        args.summary_only
+        args.summary_only,
+        args.incremental
     )
     
     if success:

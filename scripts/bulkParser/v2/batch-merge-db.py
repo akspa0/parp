@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Batch Merge DB
+Memory-Efficient Batch Merge DB
 High-performance, multi-threaded tool to merge multiple SQLite databases into a master database
+with minimal memory usage through proper batching and resource management
 
 Usage:
     python batch_merge_db.py <input_directory> [options]
@@ -11,11 +12,12 @@ Arguments:
 
 Options:
     --output FILE          Output master database file path (default: master.db in input directory)
-    --batch-size N         Number of records to process in each batch (default: 5000)
+    --batch-size N         Number of records to process in each batch (default: 1000)
     --workers N            Number of worker threads to use (default: CPU count)
     --skip-tables TABLES   Comma-separated list of tables to skip
     --only-tables TABLES   Comma-separated list of tables to include (overrides skip-tables)
     --skip-blobs           Skip tables with BLOB columns to reduce processing time
+    --sequential           Process databases one at a time to reduce memory usage
     --vacuum               Run VACUUM on the master database after merging
     --clean                Delete existing master database if it exists
     --dry-run              Show what would be done without actually merging
@@ -28,6 +30,7 @@ import argparse
 import logging
 import threading
 import time
+import gc
 import queue
 import concurrent.futures
 from datetime import datetime
@@ -86,8 +89,17 @@ def setup_master_database(master_db_path, schema, skip_tables=None, only_tables=
     conn = sqlite3.connect(master_db_path)
     cursor = conn.cursor()
     
-    # Enable foreign keys
+    # Enable foreign keys but turn off for initial import
     cursor.execute("PRAGMA foreign_keys = OFF")
+    
+    # Set journal mode to WAL for better performance
+    cursor.execute("PRAGMA journal_mode = WAL")
+    
+    # Set synchronous mode for better performance
+    cursor.execute("PRAGMA synchronous = NORMAL")
+    
+    # Increase cache size for better performance
+    cursor.execute("PRAGMA cache_size = 10000")
     
     # Determine which tables to include
     tables_to_create = []
@@ -164,6 +176,10 @@ def insert_batch(master_db_path, table, column_names, batch_data, lock):
     conn = sqlite3.connect(master_db_path)
     cursor = conn.cursor()
     
+    # Optimize connection for bulk inserts
+    cursor.execute("PRAGMA synchronous = OFF")
+    cursor.execute("PRAGMA journal_mode = MEMORY")
+    
     # Skip 'id' column for inserts if it exists and is an integer primary key
     columns = column_names.copy()
     if 'id' in columns:
@@ -236,6 +252,10 @@ def process_table(db_path, master_db_path, table, batch_size, db_lock):
         rows_inserted = insert_batch(master_db_path, table, column_names, batch, db_lock)
         total_inserted += rows_inserted
         
+        # Free memory by clearing batch
+        batch = None
+        gc.collect()
+        
         logging.info(f"Inserted {rows_inserted} rows into {table} ({total_inserted}/{row_count})")
         offset += batch_size
     
@@ -260,9 +280,63 @@ def worker_function(task_queue, result_queue, master_db_path, batch_size, db_loc
             logging.error(f"Error in worker: {e}")
             task_queue.task_done()
 
-def merge_databases(input_dir, master_db_path, batch_size=5000, workers=None, 
-                    skip_tables=None, only_tables=None, skip_blobs=False, vacuum=False,
-                    dry_run=False):
+def create_master_indexes(master_db_path, schema, skip_tables=None, only_tables=None):
+    """Create indexes on the master database to improve query performance"""
+    logger = logging.getLogger('batch_merge')
+    logger.info("Creating indexes on master database...")
+    
+    conn = sqlite3.connect(master_db_path)
+    cursor = conn.cursor()
+    
+    # Create indexes on foreign key columns
+    for table, table_schema in schema.items():
+        # Skip tables if specified
+        if skip_tables and table in skip_tables:
+            continue
+        
+        # Only include specific tables if specified
+        if only_tables and table not in only_tables:
+            continue
+        
+        foreign_keys = table_schema['foreign_keys']
+        for fk in foreign_keys:
+            from_col = fk[3]  # Column in this table
+            to_table = fk[2]  # Referenced table
+            
+            # Create an index on the foreign key column
+            try:
+                index_name = f"idx_{table}_{from_col}"
+                cursor.execute(f"CREATE INDEX IF NOT EXISTS {index_name} ON {table}({from_col})")
+                logger.info(f"Created index {index_name} on {table}({from_col})")
+            except sqlite3.Error as e:
+                logger.error(f"Error creating index on {table}({from_col}): {e}")
+    
+    # Commit and optimize
+    conn.commit()
+    conn.close()
+
+def process_database_sequentially(db_path, master_db_path, tables_to_create, batch_size):
+    """Process a single database completely before moving to the next one"""
+    logger = logging.getLogger('batch_merge')
+    db_name = os.path.basename(db_path)
+    logger.info(f"Processing database: {db_name}")
+    
+    # Create a lock for thread safety (not used in sequential mode, but needed for API compatibility)
+    db_lock = threading.Lock()
+    
+    total_rows_inserted = 0
+    
+    # Process each table
+    for table, _ in tables_to_create:
+        rows_inserted = process_table(db_path, master_db_path, table, batch_size, db_lock)
+        total_rows_inserted += rows_inserted
+    
+    logger.info(f"Completed processing database {db_name}: inserted {total_rows_inserted} rows")
+    return total_rows_inserted
+
+def merge_databases(input_dir, master_db_path, batch_size=1000, workers=None, 
+                    skip_tables=None, only_tables=None, skip_blobs=False, 
+                    sequential=False, vacuum=False, dry_run=False):
     """Merge multiple databases into a master database using multi-threading"""
     logger = logging.getLogger('batch_merge')
     
@@ -304,67 +378,84 @@ def merge_databases(input_dir, master_db_path, batch_size=5000, workers=None,
         logger.info(f"Would use batch size of {batch_size} records")
         logger.info(f"Would use {workers if workers else os.cpu_count()} worker threads")
         logger.info(f"Output would be written to {master_db_path}")
+        logger.info(f"Sequential mode: {sequential}")
         
         # Show estimated row counts
         for table in tables_to_process:
-            total_rows = sum(get_row_count(db, table) for db in db_files)
-            logger.info(f"Table {table}: approximately {total_rows} rows would be processed")
+            total_rows = sum(get_row_count(db, table) for db in db_files[:5])  # Sample first 5 databases
+            avg_rows = total_rows / min(5, len(db_files))
+            estimated_total = int(avg_rows * len(db_files))
+            logger.info(f"Table {table}: approximately {estimated_total} rows would be processed")
         
         return True
     
     # Create the master database with the schema
-    if not os.path.exists(os.path.dirname(master_db_path)):
-        os.makedirs(os.path.dirname(master_db_path), exist_ok=True)
+    output_dir = os.path.dirname(master_db_path)
+    if output_dir:  # Only create directory if a path is specified
+        os.makedirs(output_dir, exist_ok=True)
     
     tables_to_create = setup_master_database(master_db_path, schema, skip_tables, only_tables, skip_blobs)
     if not tables_to_create:
         logger.error("No tables to create in master database")
         return False
     
-    # Set up task queue
-    task_queue = queue.Queue()
-    result_queue = queue.Queue()
-    
-    # Add tasks to the queue
-    for db_path in db_files:
-        for table, _ in tables_to_create:
-            task_queue.put((db_path, table))
-    
-    # Create a lock for database access
-    db_lock = threading.Lock()
-    
-    # Create worker threads
-    num_workers = workers if workers else os.cpu_count()
-    threads = []
-    
     start_time = time.time()
     
-    for _ in range(num_workers):
-        thread = threading.Thread(
-            target=worker_function,
-            args=(task_queue, result_queue, master_db_path, batch_size, db_lock)
-        )
-        thread.start()
-        threads.append(thread)
-    
-    # Add termination tasks
-    for _ in range(num_workers):
-        task_queue.put(None)
-    
-    # Wait for all tasks to complete
-    for thread in threads:
-        thread.join()
-    
-    # Process results
-    results = {}
-    while not result_queue.empty():
-        db_path, table, rows = result_queue.get()
-        if (db_path, table) not in results:
-            results[(db_path, table)] = 0
-        results[(db_path, table)] += rows
+    if sequential:
+        # Process databases one at a time
+        logger.info("Using sequential mode to reduce memory usage")
+        total_rows = 0
+        
+        for db_path in db_files:
+            rows_inserted = process_database_sequentially(db_path, master_db_path, tables_to_create, batch_size)
+            total_rows += rows_inserted
+            
+            # Force garbage collection
+            gc.collect()
+    else:
+        # Set up task queue for parallel processing
+        task_queue = queue.Queue()
+        result_queue = queue.Queue()
+        
+        # Add tasks to the queue
+        for db_path in db_files:
+            for table, _ in tables_to_create:
+                task_queue.put((db_path, table))
+        
+        # Create a lock for database access
+        db_lock = threading.Lock()
+        
+        # Create worker threads
+        num_workers = workers if workers else os.cpu_count()
+        threads = []
+        
+        for _ in range(num_workers):
+            thread = threading.Thread(
+                target=worker_function,
+                args=(task_queue, result_queue, master_db_path, batch_size, db_lock)
+            )
+            thread.start()
+            threads.append(thread)
+        
+        # Add termination tasks
+        for _ in range(num_workers):
+            task_queue.put(None)
+        
+        # Wait for all tasks to complete
+        for thread in threads:
+            thread.join()
+        
+        # Process results
+        results = {}
+        total_rows = 0
+        while not result_queue.empty():
+            db_path, table, rows = result_queue.get()
+            if (db_path, table) not in results:
+                results[(db_path, table)] = 0
+            results[(db_path, table)] += rows
+            total_rows += rows
     
     # Calculate statistics
-    total_rows = sum(rows for rows in results.values())
     elapsed_time = time.time() - start_time
     
     logger.info(f"Merged {len(db_files)} databases into {master_db_path}")
@@ -372,36 +463,14 @@ def merge_databases(input_dir, master_db_path, batch_size=5000, workers=None,
     logger.info(f"Operation completed in {elapsed_time:.2f} seconds")
     
     # Create indexes on the master database
-    conn = sqlite3.connect(master_db_path)
-    cursor = conn.cursor()
-    
-    try:
-        # Create indexes on foreign key columns
-        for table, table_schema in schema.items():
-            if skip_tables and table in skip_tables:
-                continue
-            if only_tables and table not in only_tables:
-                continue
-            
-            foreign_keys = table_schema['foreign_keys']
-            for fk in foreign_keys:
-                from_col = fk[3]  # Column in this table
-                to_table = fk[2]  # Referenced table
-                
-                # Create an index on the foreign key column
-                index_name = f"idx_{table}_{from_col}"
-                cursor.execute(f"CREATE INDEX IF NOT EXISTS {index_name} ON {table}({from_col})")
-                logger.info(f"Created index {index_name} on {table}({from_col})")
-    except sqlite3.Error as e:
-        logger.error(f"Error creating indexes: {e}")
+    create_master_indexes(master_db_path, schema, skip_tables, only_tables)
     
     # Run VACUUM if requested
     if vacuum:
         logger.info("Running VACUUM on master database...")
-        cursor.execute("VACUUM")
-    
-    conn.commit()
-    conn.close()
+        conn = sqlite3.connect(master_db_path)
+        conn.execute("VACUUM")
+        conn.close()
     
     return True
 
@@ -410,13 +479,15 @@ def main():
     parser = argparse.ArgumentParser(description="Merge multiple SQLite databases into a master database")
     parser.add_argument("input_directory", help="Directory containing SQLite database (.db) files to merge")
     parser.add_argument("--output", help="Output master database file path (default: master.db in input directory)")
-    parser.add_argument("--batch-size", type=int, default=5000, 
-                        help="Number of records to process in each batch (default: 5000)")
+    parser.add_argument("--batch-size", type=int, default=1000, 
+                        help="Number of records to process in each batch (default: 1000)")
     parser.add_argument("--workers", type=int, help="Number of worker threads to use (default: CPU count)")
     parser.add_argument("--skip-tables", help="Comma-separated list of tables to skip")
     parser.add_argument("--only-tables", help="Comma-separated list of tables to include (overrides skip-tables)")
     parser.add_argument("--skip-blobs", action="store_true", 
                         help="Skip tables with BLOB columns to reduce processing time")
+    parser.add_argument("--sequential", action="store_true",
+                        help="Process databases one at a time to reduce memory usage")
     parser.add_argument("--vacuum", action="store_true", 
                         help="Run VACUUM on the master database after merging")
     parser.add_argument("--clean", action="store_true", 
@@ -437,6 +508,11 @@ def main():
     # Set default output path if not specified
     if not args.output:
         args.output = os.path.join(args.input_directory, "master.db")
+    
+    # Make sure output has .db extension
+    if not args.output.endswith('.db'):
+        args.output = args.output + '.db'
+        logger.info(f"Added .db extension to output filename: {args.output}")
     
     # Parse table lists if provided
     skip_tables = None
@@ -465,6 +541,7 @@ def main():
         skip_tables,
         only_tables,
         args.skip_blobs,
+        args.sequential,
         args.vacuum,
         args.dry_run
     )
