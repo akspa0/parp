@@ -119,17 +119,12 @@ def process_map_folder(params):
         'stderr': stderr
     }
 
-def get_create_table_sql(db_file):
-    """Get CREATE TABLE statements from a database file"""
-    conn = sqlite3.connect(db_file)
+def get_table_schema(conn, table_name):
+    """Get the schema for a specific table"""
     cursor = conn.cursor()
-    
-    # Get all table creation statements
-    cursor.execute("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
-    tables = cursor.fetchall()
-    
-    conn.close()
-    return tables
+    cursor.execute(f"PRAGMA table_info({table_name})")
+    columns = cursor.fetchall()
+    return columns
 
 def create_tables_in_master(master_conn, create_statements):
     """Create tables in the master database from CREATE statements"""
@@ -151,17 +146,34 @@ def merge_databases(master_db, db_list, logger):
     """Merge multiple SQLite databases into a master database"""
     logger.info(f"Merging {len(db_list)} databases into {master_db}")
     
+    if not db_list:
+        logger.error("No databases to merge")
+        return
+    
     # Make sure the master database exists and has the right schema
     master_conn = sqlite3.connect(master_db)
     
-    # Create tables using schema from the first database
-    if db_list:
-        create_statements = get_create_table_sql(db_list[0])
-        create_tables_in_master(master_conn, create_statements)
-    else:
-        logger.error("No databases to merge")
-        master_conn.close()
-        return
+    # Get CREATE TABLE statements from the first database
+    source_conn = sqlite3.connect(db_list[0])
+    source_cur = source_conn.cursor()
+    source_cur.execute("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
+    tables = source_cur.fetchall()
+    source_conn.close()
+    
+    # Create tables in master database
+    create_tables_in_master(master_conn, tables)
+    
+    # Build a schema map for each table
+    schema_map = {}
+    master_cur = master_conn.cursor()
+    
+    for table_name, _ in tables:
+        if table_name == 'chunks':
+            continue
+        
+        master_cur.execute(f"PRAGMA table_info({table_name})")
+        columns = [col[1] for col in master_cur.fetchall()]
+        schema_map[table_name] = columns
     
     # Process each database
     for db_file in db_list:
@@ -177,7 +189,7 @@ def merge_databases(master_db, db_list, logger):
             source_cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
             tables = [table[0] for table in source_cur.fetchall()]
             
-            # Skip the chunks table to reduce database size
+            # Skip the chunks table 
             if 'chunks' in tables:
                 tables.remove('chunks')
             
@@ -186,12 +198,13 @@ def merge_databases(master_db, db_list, logger):
             
             # Process adt_files table first to establish foreign key references
             if 'adt_files' in tables:
-                process_adt_files_table(master_conn, source_conn, source_map_name)
+                process_adt_files_table(master_conn, source_conn, source_map_name, schema_map['adt_files'], logger)
                 tables.remove('adt_files')
             
             # Process other tables
             for table_name in tables:
-                process_table(master_conn, source_conn, table_name, source_map_name, logger)
+                if table_name in schema_map:
+                    process_table(master_conn, source_conn, table_name, source_map_name, schema_map[table_name], logger)
             
             # Commit the transaction
             master_conn.commit()
@@ -211,20 +224,22 @@ def merge_databases(master_db, db_list, logger):
     master_conn.close()
     logger.info("Database merge complete")
 
-def process_adt_files_table(master_conn, source_conn, source_map_name):
+def process_adt_files_table(master_conn, source_conn, source_map_name, columns, logger):
     """Process the adt_files table to establish foreign key references"""
     master_cur = master_conn.cursor()
     source_cur = source_conn.cursor()
     
-    # Get column names for adt_files table
-    source_cur.execute("PRAGMA table_info(adt_files)")
-    columns = [col[1] for col in source_cur.fetchall()]
-    
     # Retrieve all records from source adt_files table
     source_cur.execute(f"SELECT * FROM adt_files")
-    for row in source_cur.fetchall():
+    rows = source_cur.fetchall()
+    
+    # Get column names from source
+    source_cur.execute("PRAGMA table_info(adt_files)")
+    source_columns = [col[1] for col in source_cur.fetchall()]
+    
+    for row in rows:
         # Create a dictionary of column name to value
-        record = {columns[i]: row[i] for i in range(len(columns))}
+        record = {source_columns[i]: row[i] for i in range(len(source_columns))}
         
         # Check if this record already exists in the master
         master_cur.execute(
@@ -234,30 +249,34 @@ def process_adt_files_table(master_conn, source_conn, source_map_name):
         existing = master_cur.fetchone()
         
         if not existing:
-            # Prepare the INSERT statement
-            column_str = ', '.join(columns[1:])  # Skip 'id' column
-            placeholder_str = ', '.join(['?'] * (len(columns) - 1))
-            values = [record[col] for col in columns[1:]]
+            # Prepare the INSERT statement using only the columns that exist in the master
+            valid_columns = [col for col in source_columns if col in columns and col != 'id']
+            column_str = ', '.join(valid_columns)
+            placeholder_str = ', '.join(['?' for _ in valid_columns])
+            values = [record[col] for col in valid_columns]
             
-            # Insert the record
-            master_cur.execute(
-                f"INSERT INTO adt_files ({column_str}) VALUES ({placeholder_str})",
-                values
-            )
+            try:
+                # Insert the record
+                master_cur.execute(
+                    f"INSERT INTO adt_files ({column_str}) VALUES ({placeholder_str})",
+                    values
+                )
+            except sqlite3.Error as e:
+                logger.error(f"Error inserting into adt_files: {e}")
+                logger.error(f"Record: {record}")
+                logger.error(f"Columns: {valid_columns}")
+                logger.error(f"Values: {values}")
+                raise
 
-def process_table(master_conn, source_conn, table_name, source_map_name, logger):
+def process_table(master_conn, source_conn, table_name, source_map_name, master_columns, logger):
     """Process a table for merging into the master database"""
     master_cur = master_conn.cursor()
     source_cur = source_conn.cursor()
     
-    # Skip the chunks table to reduce database size
-    if table_name == 'chunks':
-        return
-    
     try:
-        # Get column information
+        # Get source column information
         source_cur.execute(f"PRAGMA table_info({table_name})")
-        columns = [col[1] for col in source_cur.fetchall()]
+        source_columns = [col[1] for col in source_cur.fetchall()]
         
         # Get foreign key information
         source_cur.execute(f"PRAGMA foreign_key_list({table_name})")
@@ -273,20 +292,21 @@ def process_table(master_conn, source_conn, table_name, source_map_name, logger)
         
         # Retrieve all records from source table
         source_cur.execute(f"SELECT * FROM {table_name}")
-        records = source_cur.fetchall()
+        rows = source_cur.fetchall()
         
-        if not records:
+        if not rows:
             logger.debug(f"Table {table_name} is empty in {source_map_name}")
             return
         
         # Process each record
-        for row in records:
-            record_dict = {columns[i]: row[i] for i in range(len(columns))}
+        for row in rows:
+            # Create a dictionary of column name to value
+            record = {source_columns[i]: row[i] for i in range(len(source_columns))}
             
             # Adjust foreign keys to reference master database IDs
             for col, fk_info in fk_map.items():
-                if col in record_dict and record_dict[col] is not None:
-                    source_id = record_dict[col]
+                if col in record and record[col] is not None:
+                    source_id = record[col]
                     
                     if fk_info['table'] == 'adt_files' and fk_info['column'] == 'id':
                         # Get the adt_file details from the source
@@ -302,15 +322,19 @@ def process_table(master_conn, source_conn, table_name, source_map_name, logger)
                             master_id = master_cur.fetchone()
                             
                             if master_id:
-                                record_dict[col] = master_id[0]
+                                record[col] = master_id[0]
                             else:
                                 logger.warning(f"Could not find matching adt_file in master for {adt_info}")
                                 continue  # Skip this record if we can't resolve the foreign key
             
-            # Prepare the INSERT statement
-            column_str = ', '.join(columns)
-            placeholder_str = ', '.join(['?' if col != 'id' else 'NULL' for col in columns])  # Use NULL for id column
-            values = [record_dict[col] for col in columns]
+            # Filter out columns that don't exist in the master table
+            valid_columns = [col for col in source_columns if col in master_columns]
+            if 'id' in valid_columns:
+                valid_columns.remove('id')  # Don't include id column in insert
+            
+            column_str = ', '.join(valid_columns)
+            placeholder_str = ', '.join(['?' for _ in valid_columns])
+            values = [record[col] for col in valid_columns]
             
             try:
                 # Insert the record
@@ -320,11 +344,24 @@ def process_table(master_conn, source_conn, table_name, source_map_name, logger)
                 )
             except sqlite3.Error as e:
                 logger.error(f"Error inserting into {table_name}: {e}")
-                logger.error(f"Record: {record_dict}")
+                logger.error(f"Record: {record}")
+                logger.error(f"Columns: {valid_columns}")
+                logger.error(f"Values: {values}")
     
     except Exception as e:
         logger.error(f"Error processing table {table_name}: {e}")
         raise
+
+def get_table_create_statements(db_file):
+    """Get CREATE TABLE statements from a database file"""
+    conn = sqlite3.connect(db_file)
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
+    tables = cursor.fetchall()
+    
+    conn.close()
+    return tables
 
 def main():
     """Main entry point for the map processor"""
