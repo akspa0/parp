@@ -1,0 +1,6 @@
+H:\WoWDev\parp\parp\scripts\bulkParser\v3\WarcraftAnalyzer\WarcraftAnalyzer\obj\Debug\net9.0\WarcraftAnalyzer.csproj.AssemblyReference.cache
+H:\WoWDev\parp\parp\scripts\bulkParser\v3\WarcraftAnalyzer\WarcraftAnalyzer\obj\Debug\net9.0\WarcraftAnalyzer.GeneratedMSBuildEditorConfig.editorconfig
+H:\WoWDev\parp\parp\scripts\bulkParser\v3\WarcraftAnalyzer\WarcraftAnalyzer\obj\Debug\net9.0\WarcraftAnalyzer.AssemblyInfoInputs.cache
+H:\WoWDev\parp\parp\scripts\bulkParser\v3\WarcraftAnalyzer\WarcraftAnalyzer\obj\Debug\net9.0\WarcraftAnalyzer.AssemblyInfo.cs
+H:\WoWDev\parp\parp\scripts\bulkParser\v3\WarcraftAnalyzer\WarcraftAnalyzer\obj\Debug\net9.0\WarcraftAnalyzer.csproj.CoreCompileInputs.cache
+H:\WoWDev\parp\parp\scripts\bulkParser\v3\WarcraftAnalyzer\WarcraftAnalyzer\obj\Debug\net9.0\WarcraftAnalyzer.sourcelink.json

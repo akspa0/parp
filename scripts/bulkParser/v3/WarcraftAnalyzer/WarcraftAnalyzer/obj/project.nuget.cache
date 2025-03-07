@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "VlduNgeDE0I=",
+  "success": true,
+  "projectFilePath": "H:\\WoWDev\\parp\\parp\\scripts\\bulkParser\\v3\\WarcraftAnalyzer\\WarcraftAnalyzer\\WarcraftAnalyzer.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\akspa\\.nuget\\packages\\microsoft.netcore.platforms\\5.0.0\\microsoft.netcore.platforms.5.0.0.nupkg.sha512",
+    "C:\\Users\\akspa\\.nuget\\packages\\sixlabors.imagesharp\\2.1.9\\sixlabors.imagesharp.2.1.9.nupkg.sha512",
+    "C:\\Users\\akspa\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\5.0.0\\system.runtime.compilerservices.unsafe.5.0.0.nupkg.sha512",
+    "C:\\Users\\akspa\\.nuget\\packages\\system.text.encoding.codepages\\5.0.0\\system.text.encoding.codepages.5.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}
