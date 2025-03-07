@@ -111,18 +111,60 @@ namespace WarcraftAnalyzer.Files.PM4
         /// <inheritdoc/>
         protected override LinkData ReadEntry(BinaryReader br)
         {
-            return new LinkData
+            try
             {
-                Flag0x00 = br.ReadByte(),
-                Flag0x01 = br.ReadByte(),
-                Value0x02 = br.ReadUInt16(),
-                Value0x04 = br.ReadUInt32(),
-                MSPIFirstIndex = br.ReadUInt32(),
-                MSPIIndexCount = br.ReadByte(),
-                Value0x0c = br.ReadUInt32(),
-                Value0x10 = br.ReadUInt16(),
-                Value0x12 = br.ReadUInt16()
-            };
+                Console.WriteLine("Starting to read MSLK entry");
+                byte flag0x00 = br.ReadByte();
+                Console.WriteLine($"Read Flag0x00: {flag0x00}");
+                
+                byte flag0x01 = br.ReadByte();
+                Console.WriteLine($"Read Flag0x01: {flag0x01}");
+                
+                ushort value0x02 = br.ReadUInt16();
+                Console.WriteLine($"Read Value0x02: {value0x02}");
+                
+                uint value0x04 = br.ReadUInt32();
+                Console.WriteLine($"Read Value0x04: {value0x04}");
+                
+                uint mspiFirstIndex = br.ReadUInt32();
+                Console.WriteLine($"Read MSPIFirstIndex: {mspiFirstIndex}");
+                
+                byte mspiIndexCount = br.ReadByte();
+                Console.WriteLine($"Read MSPIIndexCount: {mspiIndexCount}");
+                
+                uint value0x0c = br.ReadUInt32();
+                Console.WriteLine($"Read Value0x0c: {value0x0c}");
+                
+                ushort value0x10 = br.ReadUInt16();
+                Console.WriteLine($"Read Value0x10: {value0x10}");
+                
+                ushort value0x12 = br.ReadUInt16();
+                Console.WriteLine($"Read Value0x12: {value0x12}");
+
+                Console.WriteLine("Successfully read MSLK entry");
+                return new LinkData
+                {
+                    Flag0x00 = flag0x00,
+                    Flag0x01 = flag0x01,
+                    Value0x02 = value0x02,
+                    Value0x04 = value0x04,
+                    MSPIFirstIndex = mspiFirstIndex,
+                    MSPIIndexCount = mspiIndexCount,
+                    Value0x0c = value0x0c,
+                    Value0x10 = value0x10,
+                    Value0x12 = value0x12
+                };
+            }
+            catch (EndOfStreamException ex)
+            {
+                Console.WriteLine($"EndOfStreamException occurred while reading MSLK entry: {ex.Message}");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred while reading MSLK entry: {ex.Message}");
+                throw;
+            }
         }
 
         /// <inheritdoc/>

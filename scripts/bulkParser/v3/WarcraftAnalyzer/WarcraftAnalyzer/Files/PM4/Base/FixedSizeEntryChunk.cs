@@ -63,9 +63,50 @@ namespace WarcraftAnalyzer.Files.PM4.Base
             using (var ms = new MemoryStream(inData))
             using (var br = new BinaryReader(ms))
             {
-                while (br.BaseStream.Position < br.BaseStream.Length)
+                long expectedSize = inData.Length;
+                long bytesRead = 0;
+                int entryCount = 0;
+
+                Console.WriteLine($"Starting to read {GetType().Name} chunk. Expected size: {expectedSize} bytes");
+
+                while (bytesRead < expectedSize)
                 {
-                    Entries.Add(ReadEntry(br));
+                    if (expectedSize - bytesRead < EntrySize)
+                    {
+                        Console.WriteLine($"Warning: Remaining data ({expectedSize - bytesRead} bytes) is less than one entry size ({EntrySize} bytes)");
+                        break;
+                    }
+
+                    long entryStartPosition = br.BaseStream.Position;
+                    try
+                    {
+                        Entries.Add(ReadEntry(br));
+                        entryCount++;
+                    }
+                    catch (EndOfStreamException ex)
+                    {
+                        Console.WriteLine($"Error reading entry {entryCount + 1}: {ex.Message}");
+                        break;
+                    }
+
+                    long entryBytesRead = br.BaseStream.Position - entryStartPosition;
+                    bytesRead += entryBytesRead;
+
+                    if (entryBytesRead != EntrySize)
+                    {
+                        Console.WriteLine($"Warning: Entry {entryCount} size ({entryBytesRead} bytes) does not match expected size ({EntrySize} bytes)");
+                    }
+                }
+
+                Console.WriteLine($"Finished reading {GetType().Name} chunk. Read {entryCount} entries, {bytesRead} bytes");
+
+                if (bytesRead < expectedSize)
+                {
+                    Console.WriteLine($"Warning: Read fewer bytes ({bytesRead}) than expected ({expectedSize})");
+                }
+                else if (bytesRead > expectedSize)
+                {
+                    Console.WriteLine($"Error: Read more bytes ({bytesRead}) than expected ({expectedSize})");
                 }
             }
         }

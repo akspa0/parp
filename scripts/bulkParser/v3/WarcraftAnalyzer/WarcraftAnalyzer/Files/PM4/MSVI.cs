@@ -14,7 +14,7 @@ namespace WarcraftAnalyzer.Files.PM4
         /// <summary>
         /// Gets the forward notation signature for this chunk.
         /// </summary>
-        protected override string ForwardSignature => "MSVI";
+        public override string ForwardSignature { get; } = "MSVI";
 
         /// <summary>
         /// Gets the reversed notation signature as it may appear in files.

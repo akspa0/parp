@@ -12,7 +12,7 @@ namespace WarcraftAnalyzer.Files.PM4.Base
         /// <summary>
         /// Gets the forward notation signature for this chunk.
         /// </summary>
-        protected abstract string ForwardSignature { get; }
+        public virtual string ForwardSignature { get; }
 
         /// <summary>
         /// Gets the reversed notation signature as it may appear in files.

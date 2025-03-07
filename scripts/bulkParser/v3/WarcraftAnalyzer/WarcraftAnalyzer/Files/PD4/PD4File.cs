@@ -86,8 +86,12 @@ namespace WarcraftAnalyzer.Files.PD4
         {
         }
 
-        /// <inheritdoc/>
-        protected override void ProcessChunk(string signature, byte[] data)
+        /// <summary>
+        /// Processes a chunk of data.
+        /// </summary>
+        /// <param name="signature">The chunk signature.</param>
+        /// <param name="data">The chunk data.</param>
+        protected void ProcessChunk(string signature, byte[] data)
         {
             switch (signature)
             {
@@ -143,8 +147,11 @@ namespace WarcraftAnalyzer.Files.PD4
             }
         }
 
-        /// <inheritdoc/>
-        public override IEnumerable<IIFFChunk> GetChunks()
+        /// <summary>
+        /// Gets the chunks in this PD4 file.
+        /// </summary>
+        /// <returns>An enumerable of IIFFChunk objects.</returns>
+        public IEnumerable<IIFFChunk> GetChunks()
         {
             if (Version != null)
                 yield return Version;

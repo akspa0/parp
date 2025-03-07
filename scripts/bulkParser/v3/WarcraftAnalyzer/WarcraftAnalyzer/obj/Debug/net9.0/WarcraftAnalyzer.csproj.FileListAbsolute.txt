@@ -4,3 +4,17 @@ H:\WoWDev\parp\parp\scripts\bulkParser\v3\WarcraftAnalyzer\WarcraftAnalyzer\obj\
 H:\WoWDev\parp\parp\scripts\bulkParser\v3\WarcraftAnalyzer\WarcraftAnalyzer\obj\Debug\net9.0\WarcraftAnalyzer.AssemblyInfo.cs
 H:\WoWDev\parp\parp\scripts\bulkParser\v3\WarcraftAnalyzer\WarcraftAnalyzer\obj\Debug\net9.0\WarcraftAnalyzer.csproj.CoreCompileInputs.cache
 H:\WoWDev\parp\parp\scripts\bulkParser\v3\WarcraftAnalyzer\WarcraftAnalyzer\obj\Debug\net9.0\WarcraftAnalyzer.sourcelink.json
+H:\WoWDev\parp\parp\scripts\bulkParser\v3\WarcraftAnalyzer\WarcraftAnalyzer\bin\Debug\net9.0\WarcraftAnalyzer.exe
+H:\WoWDev\parp\parp\scripts\bulkParser\v3\WarcraftAnalyzer\WarcraftAnalyzer\bin\Debug\net9.0\WarcraftAnalyzer.deps.json
+H:\WoWDev\parp\parp\scripts\bulkParser\v3\WarcraftAnalyzer\WarcraftAnalyzer\bin\Debug\net9.0\WarcraftAnalyzer.runtimeconfig.json
+H:\WoWDev\parp\parp\scripts\bulkParser\v3\WarcraftAnalyzer\WarcraftAnalyzer\bin\Debug\net9.0\WarcraftAnalyzer.dll
+H:\WoWDev\parp\parp\scripts\bulkParser\v3\WarcraftAnalyzer\WarcraftAnalyzer\bin\Debug\net9.0\WarcraftAnalyzer.pdb
+H:\WoWDev\parp\parp\scripts\bulkParser\v3\WarcraftAnalyzer\WarcraftAnalyzer\bin\Debug\net9.0\SixLabors.ImageSharp.dll
+H:\WoWDev\parp\parp\scripts\bulkParser\v3\WarcraftAnalyzer\WarcraftAnalyzer\bin\Debug\net9.0\Warcraft.NET.dll
+H:\WoWDev\parp\parp\scripts\bulkParser\v3\WarcraftAnalyzer\WarcraftAnalyzer\bin\Debug\net9.0\Warcraft.NET.pdb
+H:\WoWDev\parp\parp\scripts\bulkParser\v3\WarcraftAnalyzer\WarcraftAnalyzer\obj\Debug\net9.0\Warcraft.7609A2DF.Up2Date
+H:\WoWDev\parp\parp\scripts\bulkParser\v3\WarcraftAnalyzer\WarcraftAnalyzer\obj\Debug\net9.0\WarcraftAnalyzer.dll
+H:\WoWDev\parp\parp\scripts\bulkParser\v3\WarcraftAnalyzer\WarcraftAnalyzer\obj\Debug\net9.0\refint\WarcraftAnalyzer.dll
+H:\WoWDev\parp\parp\scripts\bulkParser\v3\WarcraftAnalyzer\WarcraftAnalyzer\obj\Debug\net9.0\WarcraftAnalyzer.pdb
+H:\WoWDev\parp\parp\scripts\bulkParser\v3\WarcraftAnalyzer\WarcraftAnalyzer\obj\Debug\net9.0\WarcraftAnalyzer.genruntimeconfig.cache
+H:\WoWDev\parp\parp\scripts\bulkParser\v3\WarcraftAnalyzer\WarcraftAnalyzer\obj\Debug\net9.0\ref\WarcraftAnalyzer.dll

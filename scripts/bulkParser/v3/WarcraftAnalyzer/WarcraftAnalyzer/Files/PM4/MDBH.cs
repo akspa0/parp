@@ -108,18 +108,14 @@ namespace WarcraftAnalyzer.Files.PM4
                         {
                             case "MDBI":
                             case "IBDM": // Handle reversed signature
-                                using (var mdbi = new MDBI(subChunkData))
-                                {
-                                    entry.Indices.AddRange(mdbi.BuildingIndices);
-                                }
+                                var mdbi = new MDBI(subChunkData);
+                                entry.Indices.AddRange(mdbi.BuildingIndices);
                                 break;
 
                             case "MDBF":
                             case "FBDM": // Handle reversed signature
-                                using (var mdbf = new MDBF(subChunkData))
-                                {
-                                    entry.Filenames.AddRange(mdbf.Filenames);
-                                }
+                                var mdbf = new MDBF(subChunkData);
+                                entry.Filenames.AddRange(mdbf.Filenames);
                                 break;
                         }
                     }
@@ -156,7 +152,7 @@ namespace WarcraftAnalyzer.Files.PM4
                     {
                         var mdbi = new MDBI(entry.Indices);
                         var mdbiData = mdbi.Serialize();
-                        bw.Write(Encoding.UTF8.GetBytes(MDBI.ForwardSignature));
+                        bw.Write(Encoding.UTF8.GetBytes(mdbi.ForwardSignature));
                         bw.Write((uint)mdbiData.Length);
                         bw.Write(mdbiData);
                     }
