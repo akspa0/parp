@@ -1,6 +1,6 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
-using Warcraft.NET.Files;
 using Warcraft.NET.Files.ADT.Chunks;
 using Warcraft.NET.Files.Interfaces;
 using WarcraftAnalyzer.Files.PD4.Chunks;
@@ -11,7 +11,7 @@ namespace WarcraftAnalyzer.Files.PD4
     /// Represents a PD4 file, which is the WMO equivalent of PM4 files.
     /// These files are not shipped to the client and are used by the server only.
     /// </summary>
-    public class PD4File : ChunkedFile
+    public class PD4File
     {
         /// <summary>
         /// Gets or sets the version chunk.
@@ -72,6 +72,11 @@ namespace WarcraftAnalyzer.Files.PD4
         public PM4.MSUR SurfaceData { get; set; }
 
         /// <summary>
+        /// Gets the list of errors encountered during parsing.
+        /// </summary>
+        public List<string> Errors { get; private set; } = new List<string>();
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="PD4File"/> class.
         /// </summary>
         public PD4File()
@@ -82,33 +87,43 @@ namespace WarcraftAnalyzer.Files.PD4
         /// Initializes a new instance of the <see cref="PD4File"/> class.
         /// </summary>
         /// <param name="inData">The binary data to load from.</param>
-        public PD4File(byte[] inData) : base(inData)
+        public PD4File(byte[] inData)
         {
-            using (var ms = new MemoryStream(inData))
-            using (var br = new BinaryReader(ms))
+            if (inData == null)
+                throw new ArgumentNullException(nameof(inData));
+
+            try
             {
-                while (ms.Position < ms.Length)
+                using (var ms = new MemoryStream(inData))
+                using (var br = new BinaryReader(ms))
                 {
-                    try
+                    while (ms.Position < ms.Length)
                     {
-                        // Read chunk signature (4 bytes)
-                        string signature = new string(br.ReadChars(4));
-                        
-                        // Read chunk size (4 bytes)
-                        uint size = br.ReadUInt32();
-                        
-                        // Read chunk data
-                        byte[] data = br.ReadBytes((int)size);
-                        
-                        // Process the chunk
-                        ProcessChunk(signature, data);
-                    }
-                    catch (EndOfStreamException)
-                    {
-                        // End of file reached
-                        break;
+                        try
+                        {
+                            // Read chunk signature (4 bytes)
+                            string signature = new string(br.ReadChars(4));
+                            
+                            // Read chunk size (4 bytes)
+                            uint size = br.ReadUInt32();
+                            
+                            // Read chunk data
+                            byte[] data = br.ReadBytes((int)size);
+                            
+                            // Process the chunk
+                            ProcessChunk(signature, data);
+                        }
+                        catch (EndOfStreamException)
+                        {
+                            // End of file reached
+                            break;
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Errors.Add($"Error parsing PD4 file: {ex.Message}");
             }
         }
 

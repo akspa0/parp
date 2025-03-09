@@ -7,15 +7,22 @@ using System.Numerics;
 namespace WarcraftAnalyzer.Files.WLW
 {
     /// <summary>
-    /// Represents a WLW (World Liquid Water) file, which contains liquid data for the game world.
+    /// Represents a WLW (Water Level Water) file, which contains liquid data for the game world.
     /// Also handles WLM (magma) and WLQ (quality) variants.
     /// </summary>
+    /// <remarks>
+    /// Based on specifications from:
+    /// - https://wowdev.wiki/WLW
+    /// - https://wowdev.wiki/WLM
+    /// - https://wowdev.wiki/WLQ
+    /// </remarks>
     public class WLWFile
     {
         /// <summary>
-        /// The magic number that identifies WLW/WLM/WLQ files ("*QIL").
+        /// The magic number that identifies WLW/WLM/WLQ files ("LIQ*").
         /// </summary>
-        private const string MAGIC = "*QIL"; // Note: Stored as "*QIL" in the file
+        private const string MAGIC_LIQ = "LIQ*"; // Standard format according to spec
+        private const string MAGIC_QIL = "*QIL"; // Alternative format found in some files
 
         /// <summary>
         /// Gets or sets the file version (0, 1, or 2).
@@ -32,12 +39,7 @@ namespace WarcraftAnalyzer.Files.WLW
         /// For version ≤ 1: Uses LiquidType enum
         /// For version 2: Uses DB/LiquidType ID
         /// </summary>
-        public ushort LiquidType { get; set; }
-
-        /// <summary>
-        /// Gets or sets padding bytes.
-        /// </summary>
-        public ushort Padding { get; set; }
+        public uint LiquidType { get; set; }
 
         /// <summary>
         /// Gets or sets the number of blocks.
@@ -97,7 +99,7 @@ namespace WarcraftAnalyzer.Files.WLW
 
             using (var reader = new BinaryReader(new MemoryStream(data)))
             {
-                // Read magic number (stored as "*QIL" in the file)
+                // Read magic number (can be stored as "LIQ*" or "*QIL" in the file)
                 var magic = new string(new[] {
                     (char)reader.ReadByte(),
                     (char)reader.ReadByte(),
@@ -105,23 +107,25 @@ namespace WarcraftAnalyzer.Files.WLW
                     (char)reader.ReadByte()
                 });
 
-                if (magic != MAGIC)
+                if (magic != MAGIC_LIQ && magic != MAGIC_QIL)
                 {
-                    throw new InvalidDataException($"Invalid WLW file magic: {magic}");
+                    throw new InvalidDataException($"Invalid WLW file magic: {magic}. Expected: {MAGIC_LIQ} or {MAGIC_QIL}");
                 }
 
                 // Read header
                 Version = reader.ReadUInt16();
                 Unk06 = reader.ReadUInt16();
-                LiquidType = reader.ReadUInt16();
+                
+                // Read liquid type - in the spec this is either a uint16_t or a uint32_t
+                // We'll read it as a uint32_t to be safe
+                LiquidType = reader.ReadUInt32();
 
-                // Force liquid type to magma for WLM files
+                // Force liquid type to magma for WLM files as per spec
                 if (IsMagma)
                 {
-                    LiquidType = (ushort)6; // Magma type
+                    LiquidType = 6; // Magma type
                 }
 
-                Padding = reader.ReadUInt16();
                 BlockCount = reader.ReadUInt32();
 
                 // Read blocks
@@ -153,7 +157,7 @@ namespace WarcraftAnalyzer.Files.WLW
                         continue;
                     }
 
-                    // Read 80 height values
+                    // Read 80 height values (0x50 uint16_t values as per spec)
                     for (int j = 0; j < 80; j++)
                     {
                         block.Data[j] = reader.ReadUInt16();
@@ -172,28 +176,45 @@ namespace WarcraftAnalyzer.Files.WLW
                     {
                         var block2 = new LiquidBlock2
                         {
+                            // Read C3Vector _unk00 as per spec
                             Unk00 = new Vector3(
                                 reader.ReadSingle(),
                                 reader.ReadSingle(),
                                 reader.ReadSingle()
                             ),
+                            // Read C2Vector _unk0C as per spec
                             Unk0C = new Vector2(
                                 reader.ReadSingle(),
                                 reader.ReadSingle()
                             ),
+                            // Read char _unk14[0x38] as per spec (4 floats then 0 filled)
                             Unk14 = reader.ReadBytes(0x38)
                         };
 
                         Block2s.Add(block2);
                     }
 
-                    // Read final unknown byte if version >= 1
+                    // Read final unknown byte if version >= 1 as per spec
                     if (Version >= 1 && reader.BaseStream.Position < reader.BaseStream.Length)
                     {
                         Unknown = reader.ReadByte();
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets the appropriate texture and color for the current liquid type.
+        /// </summary>
+        /// <returns>A tuple containing the texture filename and color.</returns>
+        public (string texture, Vector4 color) GetLiquidTypeInfo()
+        {
+            // Convert to ushort for dictionary lookup since our enum is based on ushort
+            ushort liquidTypeKey = (ushort)(LiquidType & 0xFFFF);
+            
+            return MeshExporter.LiquidTypeInfo.ContainsKey(liquidTypeKey)
+                ? MeshExporter.LiquidTypeInfo[liquidTypeKey]
+                : MeshExporter.LiquidTypeInfo[2]; // Default to Unknown type
         }
     }
 

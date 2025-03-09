@@ -1,7 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using Warcraft.NET.Files;
-using Warcraft.NET.Files.ADT.Chunks;
 using Warcraft.NET.Files.Interfaces;
 using MVER = Warcraft.NET.Files.ADT.Chunks.MVER;
 
@@ -11,8 +12,13 @@ namespace WarcraftAnalyzer.Files.PM4
     /// Represents a PM4 file, which is a server-side supplementary file to ADTs.
     /// These files are not shipped to the client and are used by the server only.
     /// </summary>
-    public class PM4File : ChunkedFile
+    public class PM4File
     {
+        /// <summary>
+        /// Gets or sets the underlying ChunkedFile instance.
+        /// </summary>
+        private object _chunkedFile;
+
         /// <summary>
         /// Gets or sets the version chunk.
         /// </summary>
@@ -84,6 +90,11 @@ namespace WarcraftAnalyzer.Files.PM4
         public MDSF FinalData { get; set; }
 
         /// <summary>
+        /// Gets the list of errors encountered during parsing.
+        /// </summary>
+        public List<string> Errors { get; private set; } = new List<string>();
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="PM4File"/> class.
         /// </summary>
         public PM4File()
@@ -94,33 +105,176 @@ namespace WarcraftAnalyzer.Files.PM4
         /// Initializes a new instance of the <see cref="PM4File"/> class.
         /// </summary>
         /// <param name="inData">The binary data to load from.</param>
-        public PM4File(byte[] inData) : base(inData)
+        public PM4File(byte[] inData)
         {
-            using (var ms = new MemoryStream(inData))
-            using (var br = new BinaryReader(ms))
+            if (inData == null)
+                throw new ArgumentNullException(nameof(inData));
+
+            try
             {
-                while (ms.Position < ms.Length)
+                // Create a dynamic ChunkedFile instance using reflection
+                Type chunkedFileType = typeof(ChunkedFile);
+                Type pm4ChunkedFileType = Assembly.GetExecutingAssembly().GetType("WarcraftAnalyzer.Files.PM4.PM4ChunkedFile");
+                
+                if (pm4ChunkedFileType == null)
                 {
-                    try
+                    // If PM4ChunkedFile doesn't exist, create a temporary derived class
+                    pm4ChunkedFileType = CreateDynamicPM4ChunkedFileType();
+                }
+
+                // Create an instance of the PM4ChunkedFile
+                _chunkedFile = Activator.CreateInstance(pm4ChunkedFileType);
+                
+                // Load the binary data using the LoadBinaryData method
+                MethodInfo loadBinaryDataMethod = chunkedFileType.GetMethod("LoadBinaryData");
+                loadBinaryDataMethod.Invoke(_chunkedFile, new object[] { inData });
+                
+                // Extract chunks from the ChunkedFile instance
+                ExtractChunksFromChunkedFile();
+            }
+            catch (Exception ex)
+            {
+                Errors.Add($"Error parsing PM4 file: {ex.Message}");
+                
+                // Fallback to manual chunk processing if reflection approach fails
+                ProcessManually(inData);
+            }
+        }
+
+        /// <summary>
+        /// Creates a dynamic type that inherits from ChunkedFile for PM4 files.
+        /// </summary>
+        /// <returns>The dynamic type.</returns>
+        private Type CreateDynamicPM4ChunkedFileType()
+        {
+            // This is a placeholder for dynamic type creation
+            // In a real implementation, you would use reflection emit or a similar approach
+            // For now, we'll fall back to manual processing if this is needed
+            return typeof(ChunkedFile);
+        }
+
+        /// <summary>
+        /// Extracts chunks from the ChunkedFile instance using reflection.
+        /// </summary>
+        private void ExtractChunksFromChunkedFile()
+        {
+            if (_chunkedFile == null)
+                return;
+
+            try
+            {
+                // Use reflection to get chunks from the ChunkedFile instance
+                // This is similar to how ADTFile.cs extracts data from Terrain
+                
+                // Example for MVER chunk
+                Version = GetChunkBySignature("MVER") as MVER;
+                ShadowData = GetChunkBySignature("MSHD") as MSHD;
+                VertexPositions = GetChunkBySignature("MSPV") as MSPV;
+                VertexIndices = GetChunkBySignature("MSPI") as MSPI;
+                NormalCoordinates = GetChunkBySignature("MSCN") as MSCN;
+                Links = GetChunkBySignature("MSLK") as MSLK;
+                VertexData = GetChunkBySignature("MSVT") as MSVT;
+                VertexIndices2 = GetChunkBySignature("MSVI") as MSVI;
+                SurfaceData = GetChunkBySignature("MSUR") as MSUR;
+                PositionData = GetChunkBySignature("MPRL") as MPRL;
+                ValuePairs = GetChunkBySignature("MPRR") as MPRR;
+                BuildingData = GetChunkBySignature("MDBH") as MDBH;
+                SimpleData = GetChunkBySignature("MDOS") as MDOS;
+                FinalData = GetChunkBySignature("MDSF") as MDSF;
+            }
+            catch (Exception ex)
+            {
+                Errors.Add($"Error extracting chunks: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Gets a chunk by its signature using reflection.
+        /// </summary>
+        /// <param name="signature">The chunk signature.</param>
+        /// <returns>The chunk if found, null otherwise.</returns>
+        private IIFFChunk GetChunkBySignature(string signature)
+        {
+            if (_chunkedFile == null)
+                return null;
+
+            try
+            {
+                // Get all properties of the ChunkedFile instance
+                PropertyInfo[] properties = _chunkedFile.GetType().GetProperties();
+                
+                foreach (PropertyInfo property in properties)
+                {
+                    // Check if the property is an IIFFChunk
+                    if (typeof(IIFFChunk).IsAssignableFrom(property.PropertyType))
                     {
-                        // Read chunk signature (4 bytes)
-                        string signature = new string(br.ReadChars(4));
+                        // Get the chunk
+                        IIFFChunk chunk = property.GetValue(_chunkedFile) as IIFFChunk;
                         
-                        // Read chunk size (4 bytes)
-                        uint size = br.ReadUInt32();
-                        
-                        // Read chunk data
-                        byte[] data = br.ReadBytes((int)size);
-                        
-                        // Process the chunk
-                        ProcessChunk(signature, data);
-                    }
-                    catch (EndOfStreamException)
-                    {
-                        // End of file reached
-                        break;
+                        if (chunk != null)
+                        {
+                            // Get the Signature property using reflection
+                            PropertyInfo signatureProp = chunk.GetType().GetProperty("Signature");
+                            if (signatureProp != null)
+                            {
+                                string chunkSignature = signatureProp.GetValue(chunk) as string;
+                                
+                                // Check if this is the chunk we're looking for
+                                if (chunkSignature == signature)
+                                {
+                                    return chunk;
+                                }
+                            }
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Errors.Add($"Error getting chunk {signature}: {ex.Message}");
+            }
+            
+            return null;
+        }
+
+        /// <summary>
+        /// Processes the file manually if the reflection approach fails.
+        /// </summary>
+        /// <param name="inData">The binary data to process.</param>
+        private void ProcessManually(byte[] inData)
+        {
+            try
+            {
+                using (var ms = new MemoryStream(inData))
+                using (var br = new BinaryReader(ms))
+                {
+                    while (ms.Position < ms.Length)
+                    {
+                        try
+                        {
+                            // Read chunk signature (4 bytes)
+                            string signature = new string(br.ReadChars(4));
+                            
+                            // Read chunk size (4 bytes)
+                            uint size = br.ReadUInt32();
+                            
+                            // Read chunk data
+                            byte[] data = br.ReadBytes((int)size);
+                            
+                            // Process the chunk
+                            ProcessChunk(signature, data);
+                        }
+                        catch (EndOfStreamException)
+                        {
+                            // End of file reached
+                            break;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Errors.Add($"Error in manual processing: {ex.Message}");
             }
         }
 

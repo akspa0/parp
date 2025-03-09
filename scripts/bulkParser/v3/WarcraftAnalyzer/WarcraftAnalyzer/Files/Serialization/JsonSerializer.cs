@@ -94,7 +94,7 @@ namespace WarcraftAnalyzer.Files.Serialization
                 ["Version"] = file.Version,
                 ["Unk06"] = file.Unk06,
                 ["LiquidType"] = file.LiquidType,
-                ["Padding"] = file.Padding,
+                ["LiquidTypeName"] = ((LiquidType)(file.LiquidType & 0xFFFF)).ToString(),
                 ["BlockCount"] = file.BlockCount,
                 ["Blocks"] = SerializeWLWBlocks(file.Blocks),
                 ["Block2Count"] = file.Block2Count,

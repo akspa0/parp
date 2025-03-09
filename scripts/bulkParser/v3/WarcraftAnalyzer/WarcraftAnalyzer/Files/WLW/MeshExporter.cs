@@ -10,7 +10,10 @@ namespace WarcraftAnalyzer.Files.WLW
     /// </summary>
     public class MeshExporter
     {
-        private static readonly Dictionary<ushort, (string texture, Vector4 color)> LiquidTypeInfo = new()
+        /// <summary>
+        /// Mapping of liquid types to textures and colors.
+        /// </summary>
+        public static readonly Dictionary<ushort, (string texture, Vector4 color)> LiquidTypeInfo = new()
         {
             [0] = ("WaterBlue_1.png", new Vector4(0.2f, 0.5f, 0.8f, 0.8f)), // Still
             [1] = ("Blue_1.png", new Vector4(0.1f, 0.3f, 0.7f, 0.8f)),      // Ocean
@@ -27,7 +30,8 @@ namespace WarcraftAnalyzer.Files.WLW
         /// <param name="outputPath">The output path for the OBJ file.</param>
         public static void ExportToObj(WLWFile wlw, string outputPath)
         {
-            var liquidInfo = LiquidTypeInfo.GetValueOrDefault(wlw.LiquidType, LiquidTypeInfo[2]);
+            var liquidType = (ushort)(wlw.LiquidType & 0xFFFF);
+            var liquidInfo = LiquidTypeInfo.ContainsKey(liquidType) ? LiquidTypeInfo[liquidType] : LiquidTypeInfo[2];
 
             // Write MTL file
             var mtlPath = Path.ChangeExtension(outputPath, ".mtl");
