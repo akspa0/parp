@@ -15,7 +15,7 @@ namespace WarcraftAnalyzer.Files.PM4
     public class PM4File
     {
         /// <summary>
-        /// Gets or sets the underlying ChunkedFile instance.
+        /// Gets the underlying ChunkedFile instance.
         /// </summary>
         private object _chunkedFile;
 
@@ -95,6 +95,11 @@ namespace WarcraftAnalyzer.Files.PM4
         public List<string> Errors { get; private set; } = new List<string>();
 
         /// <summary>
+        /// Gets the file name.
+        /// </summary>
+        public string FileName { get; private set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="PM4File"/> class.
         /// </summary>
         public PM4File()
@@ -105,28 +110,27 @@ namespace WarcraftAnalyzer.Files.PM4
         /// Initializes a new instance of the <see cref="PM4File"/> class.
         /// </summary>
         /// <param name="inData">The binary data to load from.</param>
-        public PM4File(byte[] inData)
+        /// <param name="fileName">Optional file name for reference.</param>
+        public PM4File(byte[] inData, string fileName = null)
         {
             if (inData == null)
                 throw new ArgumentNullException(nameof(inData));
 
+            FileName = fileName;
+
             try
             {
-                // Create a dynamic ChunkedFile instance using reflection
+                // Create a ChunkedFile instance directly
                 Type chunkedFileType = typeof(ChunkedFile);
-                Type pm4ChunkedFileType = Assembly.GetExecutingAssembly().GetType("WarcraftAnalyzer.Files.PM4.PM4ChunkedFile");
-                
-                if (pm4ChunkedFileType == null)
-                {
-                    // If PM4ChunkedFile doesn't exist, create a temporary derived class
-                    pm4ChunkedFileType = CreateDynamicPM4ChunkedFileType();
-                }
-
-                // Create an instance of the PM4ChunkedFile
-                _chunkedFile = Activator.CreateInstance(pm4ChunkedFileType);
+                _chunkedFile = Activator.CreateInstance(chunkedFileType);
                 
                 // Load the binary data using the LoadBinaryData method
                 MethodInfo loadBinaryDataMethod = chunkedFileType.GetMethod("LoadBinaryData");
+                if (loadBinaryDataMethod == null)
+                {
+                    throw new InvalidOperationException("Could not find LoadBinaryData method on ChunkedFile");
+                }
+                
                 loadBinaryDataMethod.Invoke(_chunkedFile, new object[] { inData });
                 
                 // Extract chunks from the ChunkedFile instance
@@ -135,22 +139,14 @@ namespace WarcraftAnalyzer.Files.PM4
             catch (Exception ex)
             {
                 Errors.Add($"Error parsing PM4 file: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Errors.Add($"Inner exception: {ex.InnerException.Message}");
+                }
                 
                 // Fallback to manual chunk processing if reflection approach fails
                 ProcessManually(inData);
             }
-        }
-
-        /// <summary>
-        /// Creates a dynamic type that inherits from ChunkedFile for PM4 files.
-        /// </summary>
-        /// <returns>The dynamic type.</returns>
-        private Type CreateDynamicPM4ChunkedFileType()
-        {
-            // This is a placeholder for dynamic type creation
-            // In a real implementation, you would use reflection emit or a similar approach
-            // For now, we'll fall back to manual processing if this is needed
-            return typeof(ChunkedFile);
         }
 
         /// <summary>
@@ -163,78 +159,123 @@ namespace WarcraftAnalyzer.Files.PM4
 
             try
             {
-                // Use reflection to get chunks from the ChunkedFile instance
-                // This is similar to how ADTFile.cs extracts data from Terrain
-                
-                // Example for MVER chunk
-                Version = GetChunkBySignature("MVER") as MVER;
-                ShadowData = GetChunkBySignature("MSHD") as MSHD;
-                VertexPositions = GetChunkBySignature("MSPV") as MSPV;
-                VertexIndices = GetChunkBySignature("MSPI") as MSPI;
-                NormalCoordinates = GetChunkBySignature("MSCN") as MSCN;
-                Links = GetChunkBySignature("MSLK") as MSLK;
-                VertexData = GetChunkBySignature("MSVT") as MSVT;
-                VertexIndices2 = GetChunkBySignature("MSVI") as MSVI;
-                SurfaceData = GetChunkBySignature("MSUR") as MSUR;
-                PositionData = GetChunkBySignature("MPRL") as MPRL;
-                ValuePairs = GetChunkBySignature("MPRR") as MPRR;
-                BuildingData = GetChunkBySignature("MDBH") as MDBH;
-                SimpleData = GetChunkBySignature("MDOS") as MDOS;
-                FinalData = GetChunkBySignature("MDSF") as MDSF;
-            }
-            catch (Exception ex)
-            {
-                Errors.Add($"Error extracting chunks: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Gets a chunk by its signature using reflection.
-        /// </summary>
-        /// <param name="signature">The chunk signature.</param>
-        /// <returns>The chunk if found, null otherwise.</returns>
-        private IIFFChunk GetChunkBySignature(string signature)
-        {
-            if (_chunkedFile == null)
-                return null;
-
-            try
-            {
-                // Get all properties of the ChunkedFile instance
-                PropertyInfo[] properties = _chunkedFile.GetType().GetProperties();
-                
-                foreach (PropertyInfo property in properties)
+                // Get the Chunks property from the ChunkedFile instance
+                PropertyInfo chunksProperty = _chunkedFile.GetType().GetProperty("Chunks");
+                if (chunksProperty == null)
                 {
-                    // Check if the property is an IIFFChunk
-                    if (typeof(IIFFChunk).IsAssignableFrom(property.PropertyType))
+                    Errors.Add("Could not find Chunks property on ChunkedFile");
+                    return;
+                }
+
+                // Get the chunks dictionary
+                var chunks = chunksProperty.GetValue(_chunkedFile) as System.Collections.IDictionary;
+                if (chunks == null)
+                {
+                    Errors.Add("Chunks property is not a dictionary");
+                    return;
+                }
+
+                // Extract chunks by signature
+                foreach (var key in chunks.Keys)
+                {
+                    string signature = key.ToString();
+                    var chunk = chunks[key] as IIFFChunk;
+                    
+                    if (chunk != null)
                     {
-                        // Get the chunk
-                        IIFFChunk chunk = property.GetValue(_chunkedFile) as IIFFChunk;
-                        
-                        if (chunk != null)
-                        {
-                            // Get the Signature property using reflection
-                            PropertyInfo signatureProp = chunk.GetType().GetProperty("Signature");
-                            if (signatureProp != null)
-                            {
-                                string chunkSignature = signatureProp.GetValue(chunk) as string;
-                                
-                                // Check if this is the chunk we're looking for
-                                if (chunkSignature == signature)
-                                {
-                                    return chunk;
-                                }
-                            }
-                        }
+                        AssignChunkBySignature(signature, chunk);
                     }
                 }
             }
             catch (Exception ex)
             {
-                Errors.Add($"Error getting chunk {signature}: {ex.Message}");
+                Errors.Add($"Error extracting chunks: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Errors.Add($"Inner exception: {ex.InnerException.Message}");
+                }
             }
-            
-            return null;
+        }
+
+        /// <summary>
+        /// Assigns a chunk to the appropriate property based on its signature.
+        /// </summary>
+        /// <param name="signature">The chunk signature.</param>
+        /// <param name="chunk">The chunk to assign.</param>
+        private void AssignChunkBySignature(string signature, IIFFChunk chunk)
+        {
+            switch (signature)
+            {
+                case "MVER":
+                case "REVM":
+                    Version = chunk as MVER;
+                    break;
+
+                case "MSHD":
+                case "DHSM":
+                    ShadowData = chunk as MSHD;
+                    break;
+
+                case "MSPV":
+                case "VPSM":
+                    VertexPositions = chunk as MSPV;
+                    break;
+
+                case "MSPI":
+                case "IPSM":
+                    VertexIndices = chunk as MSPI;
+                    break;
+
+                case "MSCN":
+                case "NCSM":
+                    NormalCoordinates = chunk as MSCN;
+                    break;
+
+                case "MSLK":
+                case "KLSM":
+                    Links = chunk as MSLK;
+                    break;
+
+                case "MSVT":
+                case "TVSM":
+                    VertexData = chunk as MSVT;
+                    break;
+
+                case "MSVI":
+                case "IVSM":
+                    VertexIndices2 = chunk as MSVI;
+                    break;
+
+                case "MSUR":
+                case "RUSM":
+                    SurfaceData = chunk as MSUR;
+                    break;
+
+                case "MPRL":
+                case "LRPM":
+                    PositionData = chunk as MPRL;
+                    break;
+
+                case "MPRR":
+                case "RRPM":
+                    ValuePairs = chunk as MPRR;
+                    break;
+
+                case "MDBH":
+                case "HBDM":
+                    BuildingData = chunk as MDBH;
+                    break;
+
+                case "MDOS":
+                case "SODM":
+                    SimpleData = chunk as MDOS;
+                    break;
+
+                case "MDSF":
+                case "FSDM":
+                    FinalData = chunk as MDSF;
+                    break;
+            }
         }
 
         /// <summary>
@@ -275,6 +316,10 @@ namespace WarcraftAnalyzer.Files.PM4
             catch (Exception ex)
             {
                 Errors.Add($"Error in manual processing: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Errors.Add($"Inner exception: {ex.InnerException.Message}");
+                }
             }
         }
 

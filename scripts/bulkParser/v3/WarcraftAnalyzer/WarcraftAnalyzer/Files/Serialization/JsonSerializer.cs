@@ -6,15 +6,16 @@ using System.Numerics;
 using System.Drawing;
 using System.Linq;
 using Warcraft.NET.Files.Structures;
-using ADT = WarcraftAnalyzer.Files.ADT;
 using WarcraftAnalyzer.Files.PM4;
 using WarcraftAnalyzer.Files.PD4;
 using WarcraftAnalyzer.Files.WLW;
+using WarcraftAnalyzer.Files.ADT;
+using WarcraftAnalyzer.Files.WDT;
 
 namespace WarcraftAnalyzer.Files.Serialization
 {
     /// <summary>
-    /// Provides JSON serialization for PM4, PD4, WLW, and ADT files.
+    /// Provides JSON serialization for PM4, PD4, WLW, ADT, and WDT files.
     /// </summary>
     public static class JsonSerializer
     {
@@ -292,7 +293,7 @@ namespace WarcraftAnalyzer.Files.Serialization
         /// </summary>
         /// <param name="file">The ADT file to serialize.</param>
         /// <returns>A JSON string containing the file's data.</returns>
-        public static string SerializeADT(WarcraftAnalyzer.Files.ADT.ADTFile file)
+        public static string SerializeADT(ADT.ADTFile file)
         {
             var data = new Dictionary<string, object>
             {
@@ -312,7 +313,221 @@ namespace WarcraftAnalyzer.Files.Serialization
             return System.Text.Json.JsonSerializer.Serialize(data, Options);
         }
 
-        private static object SerializeFileReferences(List<WarcraftAnalyzer.Files.ADT.FileReference> references)
+        /// <summary>
+        /// Serializes an Alpha ADT file to JSON.
+        /// </summary>
+        /// <param name="file">The Alpha ADT file to serialize.</param>
+        /// <returns>A JSON string containing the file's data.</returns>
+        public static string SerializeAlphaADT(AlphaADTFile file)
+        {
+            var data = new Dictionary<string, object>
+            {
+                ["FileName"] = file.FileName,
+                ["XCoord"] = file.XCoord,
+                ["YCoord"] = file.YCoord,
+                ["ModelReferences"] = file.ModelReferences.ToArray(),
+                ["WmoReferences"] = file.WmoReferences.ToArray(),
+                ["ModelPlacements"] = SerializeAlphaModelPlacements(file.ModelPlacements),
+                ["WmoPlacements"] = SerializeAlphaWmoPlacements(file.WmoPlacements),
+                ["TerrainData"] = SerializeAlphaTerrainData(file.TerrainData),
+                ["Errors"] = file.Errors.ToArray()
+            };
+
+            return System.Text.Json.JsonSerializer.Serialize(data, Options);
+        }
+
+        private static object SerializeAlphaModelPlacements(List<AlphaModelPlacement> placements)
+        {
+            if (placements == null || placements.Count == 0) return null;
+
+            var entries = new List<Dictionary<string, object>>();
+            foreach (var placement in placements)
+            {
+                entries.Add(new Dictionary<string, object>
+                {
+                    ["ModelIndex"] = placement.ModelIndex,
+                    ["ModelPath"] = placement.ModelPath,
+                    ["Position"] = new Dictionary<string, float>
+                    {
+                        ["X"] = placement.Position.X,
+                        ["Y"] = placement.Position.Y,
+                        ["Z"] = placement.Position.Z
+                    },
+                    ["Rotation"] = new Dictionary<string, float>
+                    {
+                        ["X"] = placement.Rotation.X,
+                        ["Y"] = placement.Rotation.Y,
+                        ["Z"] = placement.Rotation.Z
+                    },
+                    ["Scale"] = placement.Scale,
+                    ["Flags"] = placement.Flags
+                });
+            }
+            return entries;
+        }
+
+        private static object SerializeAlphaWmoPlacements(List<AlphaWmoPlacement> placements)
+        {
+            if (placements == null || placements.Count == 0) return null;
+
+            var entries = new List<Dictionary<string, object>>();
+            foreach (var placement in placements)
+            {
+                entries.Add(new Dictionary<string, object>
+                {
+                    ["WmoIndex"] = placement.WmoIndex,
+                    ["WmoPath"] = placement.WmoPath,
+                    ["Position"] = new Dictionary<string, float>
+                    {
+                        ["X"] = placement.Position.X,
+                        ["Y"] = placement.Position.Y,
+                        ["Z"] = placement.Position.Z
+                    },
+                    ["Rotation"] = new Dictionary<string, float>
+                    {
+                        ["X"] = placement.Rotation.X,
+                        ["Y"] = placement.Rotation.Y,
+                        ["Z"] = placement.Rotation.Z
+                    },
+                    ["Extents"] = new Dictionary<string, float>
+                    {
+                        ["X"] = placement.Extents.X,
+                        ["Y"] = placement.Extents.Y,
+                        ["Z"] = placement.Extents.Z
+                    }
+                });
+            }
+            return entries;
+        }
+
+        private static object SerializeAlphaTerrainData(AlphaTerrainData terrainData)
+        {
+            if (terrainData == null) return null;
+
+            var heightMap = new List<List<float>>();
+            for (int y = 0; y < 17; y++)
+            {
+                var row = new List<float>();
+                for (int x = 0; x < 17; x++)
+                {
+                    row.Add(terrainData.HeightMap[x, y]);
+                }
+                heightMap.Add(row);
+            }
+
+            return new Dictionary<string, object>
+            {
+                ["HeightMap"] = heightMap,
+                ["Flags"] = terrainData.Flags,
+                ["AreaId"] = terrainData.AreaId,
+                ["Holes"] = terrainData.Holes,
+                ["TextureLayers"] = SerializeAlphaTextureLayers(terrainData.TextureLayers),
+                ["ShadowMap"] = Convert.ToBase64String(terrainData.ShadowMap ?? Array.Empty<byte>()),
+                ["AlphaMaps"] = terrainData.AlphaMaps?.Select(map => Convert.ToBase64String(map)).ToArray(),
+                ["VertexColors"] = SerializeVectors(terrainData.VertexColors)
+            };
+        }
+
+        private static object SerializeAlphaTextureLayers(List<AlphaTextureLayer> layers)
+        {
+            if (layers == null || layers.Count == 0) return null;
+
+            var entries = new List<Dictionary<string, object>>();
+            foreach (var layer in layers)
+            {
+                entries.Add(new Dictionary<string, object>
+                {
+                    ["TextureId"] = layer.TextureId,
+                    ["EffectId"] = layer.EffectId,
+                    ["Flags"] = layer.Flags,
+                    ["OffsetX"] = layer.OffsetX,
+                    ["OffsetY"] = layer.OffsetY,
+                    ["ScaleX"] = layer.ScaleX,
+                    ["ScaleY"] = layer.ScaleY
+                });
+            }
+            return entries;
+        }
+
+        /// <summary>
+        /// Serializes a WDT file to JSON.
+        /// </summary>
+        /// <param name="file">The WDT file to serialize.</param>
+        /// <returns>A JSON string containing the file's data.</returns>
+        public static string SerializeWDT(WDTFile file)
+        {
+            var data = new Dictionary<string, object>
+            {
+                ["FileName"] = file.FileName,
+                ["Version"] = file.Version.ToString(),
+                ["MapTiles"] = SerializeMapTiles(file.MapTiles),
+                ["ModelNames"] = file.ModelNames.ToArray(),
+                ["WorldObjectNames"] = file.WorldObjectNames.ToArray(),
+                ["AdtOffsets"] = SerializeAdtOffsets(file.AdtOffsets),
+                ["AdtFiles"] = SerializeAlphaAdtFiles(file.AdtFiles),
+                ["Errors"] = file.Errors.ToArray()
+            };
+
+            return System.Text.Json.JsonSerializer.Serialize(data, Options);
+        }
+
+        private static object SerializeMapTiles(bool[,] mapTiles)
+        {
+            if (mapTiles == null) return null;
+
+            var tiles = new List<Dictionary<string, object>>();
+            for (int y = 0; y < 64; y++)
+            {
+                for (int x = 0; x < 64; x++)
+                {
+                    if (mapTiles[x, y])
+                    {
+                        tiles.Add(new Dictionary<string, object>
+                        {
+                            ["X"] = x,
+                            ["Y"] = y
+                        });
+                    }
+                }
+            }
+            return tiles;
+        }
+
+        private static object SerializeAdtOffsets(Dictionary<(int x, int y), long> offsets)
+        {
+            if (offsets == null || offsets.Count == 0) return null;
+
+            var entries = new List<Dictionary<string, object>>();
+            foreach (var offset in offsets)
+            {
+                entries.Add(new Dictionary<string, object>
+                {
+                    ["X"] = offset.Key.x,
+                    ["Y"] = offset.Key.y,
+                    ["Offset"] = offset.Value
+                });
+            }
+            return entries;
+        }
+
+        private static object SerializeAlphaAdtFiles(Dictionary<(int x, int y), ADT.AlphaADTFile> adtFiles)
+        {
+            if (adtFiles == null || adtFiles.Count == 0) return null;
+
+            var entries = new List<Dictionary<string, object>>();
+            foreach (var kvp in adtFiles)
+            {
+                entries.Add(new Dictionary<string, object>
+                {
+                    ["X"] = kvp.Key.x,
+                    ["Y"] = kvp.Key.y,
+                    ["Data"] = SerializeAlphaADT(kvp.Value)
+                });
+            }
+            return entries;
+        }
+
+        private static object SerializeFileReferences(List<ADT.FileReference> references)
         {
             if (references == null || references.Count == 0) return null;
 
@@ -331,7 +546,7 @@ namespace WarcraftAnalyzer.Files.Serialization
             return entries;
         }
 
-        private static object SerializeModelPlacements(List<WarcraftAnalyzer.Files.ADT.ModelPlacement> placements)
+        private static object SerializeModelPlacements(List<ADT.ModelPlacement> placements)
         {
             if (placements == null || placements.Count == 0) return null;
 
@@ -363,7 +578,7 @@ namespace WarcraftAnalyzer.Files.Serialization
             return entries;
         }
 
-        private static object SerializeWmoPlacements(List<WarcraftAnalyzer.Files.ADT.WmoPlacement> placements)
+        private static object SerializeWmoPlacements(List<ADT.WmoPlacement> placements)
         {
             if (placements == null || placements.Count == 0) return null;
 
@@ -394,7 +609,7 @@ namespace WarcraftAnalyzer.Files.Serialization
             return entries;
         }
 
-        private static object SerializeTerrainChunks(List<WarcraftAnalyzer.Files.ADT.TerrainChunk> chunks)
+        private static object SerializeTerrainChunks(List<ADT.TerrainChunk> chunks)
         {
             if (chunks == null || chunks.Count == 0) return null;
 
@@ -415,7 +630,7 @@ namespace WarcraftAnalyzer.Files.Serialization
             return entries;
         }
 
-        private static object SerializeTextureLayers(List<WarcraftAnalyzer.Files.ADT.TextureLayer> layers)
+        private static object SerializeTextureLayers(List<ADT.TextureLayer> layers)
         {
             if (layers == null || layers.Count == 0) return null;
 

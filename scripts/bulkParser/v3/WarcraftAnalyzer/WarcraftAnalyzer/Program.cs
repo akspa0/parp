@@ -7,6 +7,7 @@ using WarcraftAnalyzer.Files.WLW;
 using WarcraftAnalyzer.Files.PM4;
 using WarcraftAnalyzer.Files.PD4;
 using WarcraftAnalyzer.Files.ADT;
+using WarcraftAnalyzer.Files.WDT;
 using WarcraftAnalyzer.Files.Serialization;
 using Warcraft.NET.Files.ADT;
 using Warcraft.NET.Files.ADT.Terrain.Wotlk;
@@ -19,7 +20,7 @@ namespace WarcraftAnalyzer
         {
             if (args.Length < 1)
             {
-                Console.WriteLine("Usage: WarcraftAnalyzer <file.pm4|file.pd4|file.wlw|file.wlm|file.wlq|file.adt> [output.json]");
+                Console.WriteLine("Usage: WarcraftAnalyzer <file.pm4|file.pd4|file.wlw|file.wlm|file.wlq|file.adt|file.wdt> [output.json]");
                 return 1;
             }
 
@@ -144,6 +145,48 @@ namespace WarcraftAnalyzer
                         catch (Exception ex)
                         {
                             Console.WriteLine($"Error creating or serializing ADTFile: {ex.Message}");
+                            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                            return 1;
+                        }
+                        break;
+
+                    case ".wdt":
+                        Console.WriteLine("Creating WDTFile object");
+                        try
+                        {
+                            var wdt = new Files.WDT.WDTFile(fileData, inputPath);
+                            Console.WriteLine("WDTFile object created successfully");
+                            Console.WriteLine("Serializing WDT to JSON");
+                            json = JsonSerializer.SerializeWDT(wdt);
+                            Console.WriteLine("WDT serialized to JSON successfully");
+
+                            // If this is an Alpha WDT, output additional files
+                            if (wdt.Version == WDTVersion.Alpha)
+                            {
+                                var baseOutputPath = Path.Combine(
+                                    Path.GetDirectoryName(outputPath),
+                                    Path.GetFileNameWithoutExtension(outputPath)
+                                );
+
+                                // Output model and object names
+                                if (wdt.ModelNames.Count > 0)
+                                {
+                                    var mdnmPath = baseOutputPath + "_models.txt";
+                                    File.WriteAllLines(mdnmPath, wdt.ModelNames);
+                                    Console.WriteLine($"Model names written to: {mdnmPath}");
+                                }
+
+                                if (wdt.WorldObjectNames.Count > 0)
+                                {
+                                    var monmPath = baseOutputPath + "_objects.txt";
+                                    File.WriteAllLines(monmPath, wdt.WorldObjectNames);
+                                    Console.WriteLine($"World object names written to: {monmPath}");
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error creating or serializing WDTFile: {ex.Message}");
                             Console.WriteLine($"Stack trace: {ex.StackTrace}");
                             return 1;
                         }

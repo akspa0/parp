@@ -5,42 +5,13 @@
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>WarcraftAnalyzer</RootNamespace>
     <StartupObject>WarcraftAnalyzer.Program</StartupObject>
-    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableDefaultCompileItems>true</EnableDefaultCompileItems>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <ItemGroup>
     <!-- Reference to core Warcraft.NET library -->
     <ProjectReference Include="..\Warcraft.NET\Warcraft.NET\Warcraft.NET.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- Explicitly include necessary files -->
-    <Compile Include="Program.cs" />
-    <Compile Include="Files\ADT\ADTFile.cs" />
-    <Compile Include="Files\PD4\Chunks\MCRC.cs" />
-    <Compile Include="Files\PD4\PD4File.cs" />
-    <Compile Include="Files\PM4\Base\C3VectorArrayChunk.cs" />
-    <Compile Include="Files\PM4\Base\FixedSizeEntryChunk.cs" />
-    <Compile Include="Files\PM4\Base\IndexArrayChunk.cs" />
-    <Compile Include="Files\PM4\MDBF.cs" />
-    <Compile Include="Files\PM4\MDBH.cs" />
-    <Compile Include="Files\PM4\MDBI.cs" />
-    <Compile Include="Files\PM4\MDOS.cs" />
-    <Compile Include="Files\PM4\MDSF.cs" />
-    <Compile Include="Files\PM4\MPRL.cs" />
-    <Compile Include="Files\PM4\MPRR.cs" />
-    <Compile Include="Files\PM4\MSCN.cs" />
-    <Compile Include="Files\PM4\MSHD.cs" />
-    <Compile Include="Files\PM4\MSLK.cs" />
-    <Compile Include="Files\PM4\MSPI.cs" />
-    <Compile Include="Files\PM4\MSPV.cs" />
-    <Compile Include="Files\PM4\MSUR.cs" />
-    <Compile Include="Files\PM4\MSVI.cs" />
-    <Compile Include="Files\PM4\MSVT.cs" />
-    <Compile Include="Files\PM4\PM4File.cs" />
-    <Compile Include="Files\Serialization\JsonSerializer.cs" />
-    <Compile Include="Files\WLW\MeshExporter.cs" />
-    <Compile Include="Files\WLW\WLWFile.cs" />
   </ItemGroup>
 
   <!-- Copy texture resources to output directory -->
