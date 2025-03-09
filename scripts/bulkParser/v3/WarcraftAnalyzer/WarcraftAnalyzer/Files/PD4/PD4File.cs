@@ -84,6 +84,32 @@ namespace WarcraftAnalyzer.Files.PD4
         /// <param name="inData">The binary data to load from.</param>
         public PD4File(byte[] inData) : base(inData)
         {
+            using (var ms = new MemoryStream(inData))
+            using (var br = new BinaryReader(ms))
+            {
+                while (ms.Position < ms.Length)
+                {
+                    try
+                    {
+                        // Read chunk signature (4 bytes)
+                        string signature = new string(br.ReadChars(4));
+                        
+                        // Read chunk size (4 bytes)
+                        uint size = br.ReadUInt32();
+                        
+                        // Read chunk data
+                        byte[] data = br.ReadBytes((int)size);
+                        
+                        // Process the chunk
+                        ProcessChunk(signature, data);
+                    }
+                    catch (EndOfStreamException)
+                    {
+                        // End of file reached
+                        break;
+                    }
+                }
+            }
         }
 
         /// <summary>

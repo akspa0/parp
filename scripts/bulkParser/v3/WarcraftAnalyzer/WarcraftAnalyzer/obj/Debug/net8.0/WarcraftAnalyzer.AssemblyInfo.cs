@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("WarcraftAnalyzer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9c57000b1947370ab6e7035a9abd03fedb8fe09e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+82ff392de755ccba8338f0390f8c03fe677c9a6b")]
 [assembly: System.Reflection.AssemblyProductAttribute("WarcraftAnalyzer")]
 [assembly: System.Reflection.AssemblyTitleAttribute("WarcraftAnalyzer")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

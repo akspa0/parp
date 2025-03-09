@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using WarcraftAnalyzer.Files.PM4.Base;

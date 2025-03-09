@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO; // Added missing using directive
 using WarcraftAnalyzer.Files.PM4.Base;
 
 namespace WarcraftAnalyzer.Files.PM4
