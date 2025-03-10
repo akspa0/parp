@@ -1,67 +1,131 @@
 # WarcraftAnalyzer
 
-**WarcraftAnalyzer** is a C# application designed to parse and analyze various World of Warcraft binary file formats, providing insights into game data structures. It leverages the [Warcraft.NET](https://github.com/ModernWoWTools/Warcraft.NET) library to handle the intricacies of these formats.
+**WarcraftAnalyzer** is a C# command-line tool for analyzing various World of Warcraft files. It parses game data files—such as ADT (including split ADTs), PD4, PM4, water mesh files (WLW, WLQ, WLM), and WDT—and generates JSON reports. When applicable, it also exports terrain data to OBJ format for further inspection.
 
 ## Features
 
-- **Parsing Capabilities**: Supports reading and interpreting multiple World of Warcraft file formats, including:
-  - **ADT Files**: Terrain data files.
-  - **PD4 Files**: Specific data structures used in the game.
-  - **PM4 Files**: Various model and texture data files.
-
-- **Modular Design**: Organized codebase with dedicated modules for each file type, facilitating easy maintenance and expansion.
+- **ADT File Analysis**  
+  Processes both standard ADT files and split ADT files (with associated `_obj` and `_tex` components). Exports detailed JSON reports and optionally converts terrain data to OBJ format.
+  
+- **PD4 & PM4 File Analysis**  
+  Parses PD4 (and PM4) files to output their content in JSON format.
+  
+- **Water Mesh Processing**  
+  Supports water mesh files (WLW, WLQ, WLM) and automatically copies associated texture files.
+  
+- **WDT File Processing**  
+  Analyzes WDT files for World of Warcraft maps.
+  
+- **Unique ID Analysis (Optional)**  
+  When enabled, performs additional analysis on ADT files using unique identifiers, with configurable clustering and gap thresholds.
+  
+- **Recursive Directory Processing**  
+  Supports analyzing entire directories and their subdirectories.
+  
+- **Verbose Logging**  
+  Provides detailed console output for debugging and progress monitoring.
 
 ## Prerequisites
 
-- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0): Ensure that your development environment is set up with .NET 8.0, as both WarcraftAnalyzer and Warcraft.NET target this version.
+- [.NET SDK](https://dotnet.microsoft.com/download) – Ensure you have a compatible version of .NET (e.g., .NET 5/6) installed.
+- A C# development environment such as Visual Studio, JetBrains Rider, or Visual Studio Code.
 
-- **Warcraft.NET Library**: The project references the [Warcraft.NET](https://github.com/ModernWoWTools/Warcraft.NET) library, which is expected to be located in the parent directory relative to WarcraftAnalyzer:
-  ```
-  ../Warcraft.NET/Warcraft.NET.csproj
-  ```
-  Ensure that this path is correct or adjust the project reference accordingly.
+## Installation
 
-## Getting Started
+1. **Clone the Repository:**
 
-1. **Clone the Repository**:
    ```bash
    git clone https://github.com/akspa0/parp.git
-   ```
-   Navigate to the WarcraftAnalyzer directory:
-   ```bash
    cd parp/scripts/bulkParser/v3/WarcraftAnalyzer/WarcraftAnalyzer
    ```
 
-2. **Verify Warcraft.NET Reference**:
-   Ensure that the `Warcraft.NET` library is correctly referenced in your project. The `WarcraftAnalyzer.csproj` should contain:
-   ```xml
-   <ItemGroup>
-     <ProjectReference Include="..\Warcraft.NET\Warcraft.NET.csproj" />
-   </ItemGroup>
-   ```
-   Adjust the path if your directory structure differs.
+2. **Build the Project:**
 
-3. **Build the Project**:
-   Use the .NET CLI to build the project:
-   ```bash
-   dotnet build
-   ```
-   This will restore dependencies and compile the application.
+   - **Using the .NET CLI:**
+     ```bash
+     dotnet build
+     ```
+   - **Or,** open the solution (`.sln`) file in your preferred IDE and build the project.
 
-4. **Run the Application**:
-   After a successful build, execute the application:
-   ```bash
-   dotnet run
-   ```
-   Follow the on-screen instructions to analyze your World of Warcraft data files.
+## Usage
+
+WarcraftAnalyzer is driven entirely via command-line options.
+
+### Basic Command Syntax
+
+```bash
+WarcraftAnalyzer.exe [options]
+```
+
+### Options
+
+- `--input, -i <path>`  
+  **(Required)** Specifies the input file or directory to analyze.
+
+- `--output, -o <path>`  
+  Specifies the output directory for analysis results. If not provided, a subdirectory named `analysis` is created within the input's directory.
+
+- `--listfile, -l <path>`  
+  The path to a listfile used for reference validation.
+
+- `--recursive, -r`  
+  Enables recursive search for files in subdirectories (applicable when the input is a directory).
+
+- `--verbose, -v`  
+  Enables verbose logging, which prints detailed progress and debugging information to the console.
+
+- `--uniqueid, -u`  
+  Enables unique ID analysis on ADT files, which includes clustering of unique IDs.
+
+- `--cluster-threshold, -ct <int>`  
+  Sets the clustering threshold for unique ID analysis (default: 10).
+
+- `--gap-threshold, -gt <int>`  
+  Sets the gap threshold between unique IDs for analysis (default: 1000).
+
+- `--no-comprehensive, -nc`  
+  Skips generating comprehensive reports.
+
+- `--help, -h`  
+  Displays the help message with usage instructions.
+
+### Example Commands
+
+- **Analyze a Single File:**
+
+  ```bash
+  WarcraftAnalyzer.exe -i "C:\WoW\Logs\example.adt" -o "C:\WoW\Analysis" -v
+  ```
+
+- **Analyze a Directory Recursively with Unique ID Analysis:**
+
+  ```bash
+  WarcraftAnalyzer.exe -i "C:\WoW\Logs" -r -u -ct 15 -gt 1200 -v
+  ```
+
+## Output
+
+- **JSON Reports:**  
+  For every processed file, a corresponding JSON file is generated with parsed data.
+
+- **Terrain OBJ Exports:**  
+  When an ADT file contains terrain chunks, an OBJ file is exported for visualization.
+
+- **Organized Directory Structure:**  
+  The output directory will be organized into subdirectories (e.g., `ADT`, `PD4`, `PM4`, `WaterMeshes`, `WDT`, and `UniqueID` if applicable) based on the file type.
+
+## Error Handling & Logging
+
+- Errors and warnings are printed to the console.
+- In verbose mode, detailed logs help diagnose processing issues.
+- The tool maintains counts of successfully processed files and errors, which are displayed upon completion.
 
 ## Contributing
 
-Contributions are welcome! If you encounter issues or have suggestions for improvements, please open an issue or submit a pull request.
+Contributions are welcome! To contribute:
 
+1. Fork the repository.
+2. Create a new branch for your feature or bug fix.
+3. Implement your changes with clear documentation.
+4. Submit a pull request for review.
 
-## Acknowledgments
-
-- [Warcraft.NET](https://github.com/ModernWoWTools/Warcraft.NET): For providing the foundational library to interact with World of Warcraft file formats.
-- [WoWDev Wiki](https://wowdev.wiki/): For extensive documentation and resources on World of Warcraft's file structures.
-```
