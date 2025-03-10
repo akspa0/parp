@@ -485,6 +485,7 @@ namespace WarcraftAnalyzer.Files.Serialization
             {
                 ["FileName"] = file.FileName,
                 ["Version"] = file.Version.ToString(),
+                ["IsAlphaWDT"] = file.IsAlphaWDT,
                 ["MapTiles"] = SerializeMapTiles(file.MapTiles),
                 ["ModelNames"] = file.ModelNames.ToArray(),
                 ["WorldObjectNames"] = file.WorldObjectNames.ToArray(),

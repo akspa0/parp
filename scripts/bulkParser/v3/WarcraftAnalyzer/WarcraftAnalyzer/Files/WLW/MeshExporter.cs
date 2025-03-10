@@ -1,81 +1,147 @@
 using System;
 using System.IO;
-using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace WarcraftAnalyzer.Files.WLW
 {
     /// <summary>
-    /// Handles exporting liquid meshes to OBJ format.
+    /// Provides functionality to export water mesh files to OBJ format.
     /// </summary>
-    public class MeshExporter
+    public static class MeshExporter
     {
-        /// <summary>
-        /// Mapping of liquid types to textures and colors.
-        /// </summary>
-        public static readonly Dictionary<ushort, (string texture, Vector4 color)> LiquidTypeInfo = new()
-        {
-            [0] = ("WaterBlue_1.png", new Vector4(0.2f, 0.5f, 0.8f, 0.8f)), // Still
-            [1] = ("Blue_1.png", new Vector4(0.1f, 0.3f, 0.7f, 0.8f)),      // Ocean
-            [2] = ("Grey_1.png", new Vector4(0.5f, 0.5f, 0.5f, 0.8f)),      // Unknown
-            [4] = ("WaterBlue_1.png", new Vector4(0.3f, 0.6f, 0.9f, 0.8f)), // River
-            [6] = ("Red_1.png", new Vector4(0.8f, 0.2f, 0.1f, 0.8f)),       // Magma
-            [8] = ("WaterBlue_1.png", new Vector4(0.3f, 0.6f, 0.9f, 0.8f))  // Fast flowing
-        };
-
         /// <summary>
         /// Exports a WLW file to OBJ format.
         /// </summary>
         /// <param name="wlw">The WLW file to export.</param>
-        /// <param name="outputPath">The output path for the OBJ file.</param>
+        /// <param name="outputPath">The path to write the OBJ file to.</param>
         public static void ExportToObj(WLWFile wlw, string outputPath)
         {
-            var liquidType = (ushort)(wlw.LiquidType & 0xFFFF);
-            var liquidInfo = LiquidTypeInfo.ContainsKey(liquidType) ? LiquidTypeInfo[liquidType] : LiquidTypeInfo[2];
-
-            // Write MTL file
-            var mtlPath = Path.ChangeExtension(outputPath, ".mtl");
-            File.WriteAllText(mtlPath, $@"newmtl liquid
-Ka {liquidInfo.color.X:F3} {liquidInfo.color.Y:F3} {liquidInfo.color.Z:F3}
-Kd {liquidInfo.color.X:F3} {liquidInfo.color.Y:F3} {liquidInfo.color.Z:F3}
-Ks 0.500 0.500 0.500
-d {liquidInfo.color.W:F3}
-Ns 50.0
-illum 2
-map_Kd {liquidInfo.texture}
-");
-
-            // Write OBJ file
             using var writer = new StreamWriter(outputPath);
-            writer.WriteLine($"mtllib {Path.GetFileName(mtlPath)}");
-            writer.WriteLine("usemtl liquid");
-
+            
+            // Write OBJ header
+            writer.WriteLine("# Water mesh exported from WLW/WLQ/WLM file");
+            writer.WriteLine($"# File: {wlw.FileName}");
+            writer.WriteLine();
+            
+            // Write material library reference
+            writer.WriteLine("mtllib water.mtl");
+            writer.WriteLine();
+            
+            // Write object name
+            writer.WriteLine($"o {Path.GetFileNameWithoutExtension(wlw.FileName)}");
+            writer.WriteLine();
+            
             // Write vertices
-            var vertexOffset = 1; // OBJ indices are 1-based
-            foreach (var block in wlw.Blocks)
+            foreach (var vertex in wlw.Vertices)
             {
-                foreach (var vertex in block.Vertices)
+                writer.WriteLine($"v {vertex.X} {vertex.Y} {vertex.Z}");
+            }
+            writer.WriteLine();
+            
+            // Write texture coordinates
+            foreach (var texCoord in wlw.TexCoords)
+            {
+                writer.WriteLine($"vt {texCoord.X} {texCoord.Y}");
+            }
+            writer.WriteLine();
+            
+            // Write normals (if available, otherwise use default up vector)
+            if (wlw.Normals != null && wlw.Normals.Count > 0)
+            {
+                foreach (var normal in wlw.Normals)
                 {
-                    writer.WriteLine($"v {vertex.X:F6} {vertex.Y:F6} {vertex.Z:F6}");
+                    writer.WriteLine($"vn {normal.X} {normal.Y} {normal.Z}");
                 }
-
-                // Create triangles from the 4x4 grid
-                for (int i = 0; i < 3; i++)
+            }
+            else
+            {
+                // Default normal pointing up
+                writer.WriteLine("vn 0 1 0");
+            }
+            writer.WriteLine();
+            
+            // Write material
+            writer.WriteLine("usemtl water");
+            writer.WriteLine();
+            
+            // Write faces
+            if (wlw.Indices != null && wlw.Indices.Count > 0)
+            {
+                // Use indices if available
+                for (int i = 0; i < wlw.Indices.Count; i += 3)
                 {
-                    for (int j = 0; j < 3; j++)
+                    int v1 = wlw.Indices[i] + 1; // OBJ indices are 1-based
+                    int v2 = wlw.Indices[i + 1] + 1;
+                    int v3 = wlw.Indices[i + 2] + 1;
+                    
+                    if (wlw.Normals != null && wlw.Normals.Count > 0)
                     {
-                        var v1 = i * 4 + j;
-                        var v2 = i * 4 + (j + 1);
-                        var v3 = (i + 1) * 4 + (j + 1);
-                        var v4 = (i + 1) * 4 + j;
-
-                        // Write two triangles for each quad
-                        writer.WriteLine($"f {v1 + vertexOffset} {v2 + vertexOffset} {v3 + vertexOffset}");
-                        writer.WriteLine($"f {v1 + vertexOffset} {v3 + vertexOffset} {v4 + vertexOffset}");
+                        writer.WriteLine($"f {v1}/{v1}/{v1} {v2}/{v2}/{v2} {v3}/{v3}/{v3}");
+                    }
+                    else
+                    {
+                        writer.WriteLine($"f {v1}/{v1}/1 {v2}/{v2}/1 {v3}/{v3}/1");
                     }
                 }
-
-                vertexOffset += block.Vertices.Length;
+            }
+            else
+            {
+                // Generate triangles from vertices (assuming triangle strip)
+                for (int i = 0; i < wlw.Vertices.Count - 2; i++)
+                {
+                    int v1 = i + 1; // OBJ indices are 1-based
+                    int v2 = i + 2;
+                    int v3 = i + 3;
+                    
+                    if (wlw.Normals != null && wlw.Normals.Count > 0)
+                    {
+                        writer.WriteLine($"f {v1}/{v1}/{v1} {v2}/{v2}/{v2} {v3}/{v3}/{v3}");
+                    }
+                    else
+                    {
+                        writer.WriteLine($"f {v1}/{v1}/1 {v2}/{v2}/1 {v3}/{v3}/1");
+                    }
+                }
+            }
+            
+            // Create a simple material file
+            string mtlPath = Path.Combine(Path.GetDirectoryName(outputPath), "water.mtl");
+            using (var mtlWriter = new StreamWriter(mtlPath))
+            {
+                mtlWriter.WriteLine("# Material definitions for water");
+                mtlWriter.WriteLine();
+                
+                // Water material
+                mtlWriter.WriteLine("newmtl water");
+                mtlWriter.WriteLine("Ka 0.2 0.4 0.8");
+                mtlWriter.WriteLine("Kd 0.2 0.4 0.8");
+                mtlWriter.WriteLine("Ks 0.8 0.8 0.8");
+                mtlWriter.WriteLine("d 0.7");
+                mtlWriter.WriteLine("Ns 50.0");
+                mtlWriter.WriteLine("illum 2");
+                
+                // Try to determine the water type and use an appropriate texture
+                string textureName = "WaterBlue_1.png";
+                
+                if (wlw.FileName.Contains("lava", StringComparison.OrdinalIgnoreCase) ||
+                    wlw.FileName.Contains("fire", StringComparison.OrdinalIgnoreCase))
+                {
+                    textureName = "Red_1.png";
+                }
+                else if (wlw.FileName.Contains("slime", StringComparison.OrdinalIgnoreCase) ||
+                         wlw.FileName.Contains("poison", StringComparison.OrdinalIgnoreCase))
+                {
+                    textureName = "Green_1.png";
+                }
+                else if (wlw.FileName.Contains("ocean", StringComparison.OrdinalIgnoreCase) ||
+                         wlw.FileName.Contains("sea", StringComparison.OrdinalIgnoreCase))
+                {
+                    textureName = "Blue_1.png";
+                }
+                
+                mtlWriter.WriteLine($"map_Kd {textureName}");
+                mtlWriter.WriteLine();
             }
         }
     }

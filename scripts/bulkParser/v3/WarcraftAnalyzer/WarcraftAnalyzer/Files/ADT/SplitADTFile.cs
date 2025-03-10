@@ -14,7 +14,7 @@ namespace WarcraftAnalyzer.Files.ADT
     /// <summary>
     /// Represents a modern split ADT (Azeroth Terrain) file with its associated _obj and _tex files.
     /// </summary>
-    public class SplitADTFile
+    public class SplitADTFile : ITerrainFile
     {
         /// <summary>
         /// Gets the main terrain data from the ADT file.
@@ -85,6 +85,11 @@ namespace WarcraftAnalyzer.Files.ADT
         /// Gets the list of errors encountered during parsing.
         /// </summary>
         public List<string> Errors { get; private set; } = new List<string>();
+        
+        /// <summary>
+        /// Gets or sets whether to enable verbose logging.
+        /// </summary>
+        private bool verbose = false;
 
         /// <summary>
         /// Creates a new instance of the SplitADTFile class.
@@ -93,7 +98,8 @@ namespace WarcraftAnalyzer.Files.ADT
         /// <param name="objFileData">The raw file data for the _obj ADT file.</param>
         /// <param name="texFileData">The raw file data for the _tex ADT file.</param>
         /// <param name="fileName">The name of the file.</param>
-        public SplitADTFile(byte[] mainFileData, byte[] objFileData, byte[] texFileData, string fileName)
+        /// <param name="verbose">Whether to enable verbose logging.</param>
+        public SplitADTFile(byte[] mainFileData, byte[] objFileData, byte[] texFileData, string fileName, bool verbose = false)
         {
             if (mainFileData == null)
                 throw new ArgumentNullException(nameof(mainFileData));
@@ -102,6 +108,7 @@ namespace WarcraftAnalyzer.Files.ADT
                 throw new ArgumentException("File name cannot be null or empty.", nameof(fileName));
 
             FileName = fileName;
+            this.verbose = verbose;
             
             try
             {
@@ -126,14 +133,53 @@ namespace WarcraftAnalyzer.Files.ADT
                 // Create instances using reflection
                 Terrain = Activator.CreateInstance(terrainType, new object[] { mainFileData });
                 
+                // Store the obj and tex data separately for reference
                 if (objFileData != null)
                 {
-                    ObjectData = Activator.CreateInstance(terrainType, new object[] { objFileData });
+                    try
+                    {
+                        ObjectData = Activator.CreateInstance(terrainType, new object[] { objFileData });
+                        if (verbose)
+                        {
+                            Console.WriteLine("Successfully loaded _obj file data");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Errors.Add($"Error loading _obj file data: {ex.Message}");
+                        if (verbose)
+                        {
+                            Console.WriteLine($"Error loading _obj file data: {ex.Message}");
+                        }
+                    }
                 }
                 
                 if (texFileData != null)
                 {
-                    TextureData = Activator.CreateInstance(terrainType, new object[] { texFileData });
+                    try
+                    {
+                        TextureData = Activator.CreateInstance(terrainType, new object[] { texFileData });
+                        if (verbose)
+                        {
+                            Console.WriteLine("Successfully loaded _tex file data");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Errors.Add($"Error loading _tex file data: {ex.Message}");
+                        if (verbose)
+                        {
+                            Console.WriteLine($"Error loading _tex file data: {ex.Message}");
+                        }
+                    }
+                }
+                
+                // Log the chunks found in each file for debugging
+                if (verbose)
+                {
+                    LogChunks(Terrain, "Main ADT");
+                    if (ObjectData != null) LogChunks(ObjectData, "Obj ADT");
+                    if (TextureData != null) LogChunks(TextureData, "Tex ADT");
                 }
                 
                 // Extract coordinates from filename
@@ -153,6 +199,52 @@ namespace WarcraftAnalyzer.Files.ADT
         }
 
         /// <summary>
+        /// Logs the chunks found in a terrain object.
+        /// </summary>
+        /// <param name="terrain">The terrain object.</param>
+        /// <param name="label">A label for the log output.</param>
+        private void LogChunks(object terrain, string label)
+        {
+            if (terrain == null)
+                return;
+                
+            Console.WriteLine($"Chunks in {label}:");
+            
+            // Get the Chunks property using reflection
+            var chunksProperty = terrain.GetType().GetProperty("Chunks");
+            if (chunksProperty != null)
+            {
+                var chunks = chunksProperty.GetValue(terrain) as Array;
+                if (chunks != null)
+                {
+                    Console.WriteLine($"  Found {chunks.Length} chunks");
+                    
+                    // Log the first few chunks for debugging
+                    int count = Math.Min(chunks.Length, 5);
+                    for (int i = 0; i < count; i++)
+                    {
+                        var chunk = chunks.GetValue(i);
+                        if (chunk != null)
+                        {
+                            Console.WriteLine($"  Chunk {i}: {chunk.GetType().Name}");
+                            
+                            // Log some properties of the chunk
+                            var headerProp = chunk.GetType().GetProperty("Header");
+                            if (headerProp != null)
+                            {
+                                var header = headerProp.GetValue(chunk);
+                                if (header != null)
+                                {
+                                    Console.WriteLine($"    Header: {header.GetType().Name}");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Processes the terrain data to extract references and other information.
         /// </summary>
         private void ProcessTerrain()
@@ -160,23 +252,44 @@ namespace WarcraftAnalyzer.Files.ADT
             if (Terrain == null)
                 return;
 
-            // Process textures from MTEX chunk if available (from main or tex file)
+            if (verbose)
+            {
+                Console.WriteLine("Processing split ADT file:");
+                Console.WriteLine($"  Base file: {FileName}");
+                Console.WriteLine($"  Obj file: {(ObjectData != null ? "Present" : "Not present")}");
+                Console.WriteLine($"  Tex file: {(TextureData != null ? "Present" : "Not present")}");
+            }
+
+            // Process textures from MTEX chunk (primarily from tex file, fallback to main)
             ProcessTextureReferences();
             
-            // Process models from MMDX chunk if available (from main or obj file)
+            // Process models from MMDX chunk (primarily from obj file, fallback to main)
             ProcessModelReferences();
             
-            // Process WMOs from MWMO chunk if available (from main or obj file)
+            // Process WMOs from MWMO chunk (primarily from obj file, fallback to main)
             ProcessWmoReferences();
             
-            // Process model placements from MDDF chunk if available (from main or obj file)
+            // Process model placements from MDDF chunk (primarily from obj file, fallback to main)
             ProcessModelPlacements();
             
-            // Process WMO placements from MODF chunk if available (from main or obj file)
+            // Process WMO placements from MODF chunk (primarily from obj file, fallback to main)
             ProcessWmoPlacements();
             
-            // Process terrain chunks
+            // Process terrain chunks (combine data from all files)
             ProcessTerrainChunks();
+            
+            if (verbose)
+            {
+                Console.WriteLine($"Processed split ADT file with:");
+                Console.WriteLine($"  {TextureReferences.Count} texture references");
+                Console.WriteLine($"  {ModelReferences.Count} model references");
+                Console.WriteLine($"  {WmoReferences.Count} WMO references");
+                Console.WriteLine($"  {ModelPlacements.Count} model placements");
+                Console.WriteLine($"  {WmoPlacements.Count} WMO placements");
+                Console.WriteLine($"  {TerrainChunks.Count} terrain chunks");
+                Console.WriteLine($"  {UniqueIds.Count} unique IDs");
+                Console.WriteLine($"  {Errors.Count} errors");
+            }
         }
 
         /// <summary>
@@ -398,77 +511,115 @@ namespace WarcraftAnalyzer.Files.ADT
         /// </summary>
         private void ProcessTerrainChunks()
         {
-            // Process terrain chunks using reflection
-            if (Terrain != null)
+            // We need to process terrain chunks from all three files and merge the data
+            // The main file contains the basic terrain data
+            // The obj file contains object data (models, WMOs)
+            // The tex file contains texture data
+            
+            if (verbose)
             {
-                var chunksProperty = Terrain.GetType().GetProperty("Chunks");
-                if (chunksProperty == null)
+                Console.WriteLine("Processing terrain chunks from all files...");
+            }
+            
+            // First, get the chunks from the main file
+            var mainChunks = GetChunksFromTerrain(Terrain);
+            if (mainChunks == null)
+            {
+                Errors.Add("Could not get chunks from main ADT file");
+                return;
+            }
+            
+            // Get chunks from obj file if available
+            var objChunks = ObjectData != null ? GetChunksFromTerrain(ObjectData) : null;
+            
+            // Get chunks from tex file if available
+            var texChunks = TextureData != null ? GetChunksFromTerrain(TextureData) : null;
+            
+            // Check if we have valid chunks to process
+            if (mainChunks.Length == 0 && (objChunks == null || objChunks.Length == 0) && (texChunks == null || texChunks.Length == 0))
+            {
+                Errors.Add("No valid chunks found in any of the ADT files");
+                return;
+            }
+            
+            // Determine the expected number of chunks (should be 256 for a standard ADT)
+            int expectedChunks = 256; // 16x16 grid
+            
+            if (verbose)
+            {
+                Console.WriteLine($"Main chunks: {mainChunks.Length}");
+                Console.WriteLine($"Obj chunks: {objChunks?.Length ?? 0}");
+                Console.WriteLine($"Tex chunks: {texChunks?.Length ?? 0}");
+            }
+            
+            // Process each chunk position
+            for (int y = 0; y < 16; y++)
+            {
+                for (int x = 0; x < 16; x++)
                 {
-                    Errors.Add("Could not find Chunks property on Terrain object");
-                    return;
-                }
-
-                var chunks = chunksProperty.GetValue(Terrain) as Array;
-                if (chunks == null)
-                {
-                    Errors.Add("Chunks property is null or not an array");
-                    return;
-                }
-
-                for (int y = 0; y < 16; y++)
-                {
-                    for (int x = 0; x < 16; x++)
+                    int index = y * 16 + x;
+                    
+                    // Get the chunk from each file
+                    var mainChunk = mainChunks.Length > index ? mainChunks.GetValue(index) : null;
+                    var objChunk = objChunks?.Length > index ? objChunks.GetValue(index) : null;
+                    var texChunk = texChunks?.Length > index ? texChunks.GetValue(index) : null;
+                    
+                    if (verbose && index < 5)
                     {
-                        var chunk = chunks.GetValue(y * 16 + x);
-                        if (chunk != null)
-                        {
-                            // Create a new terrain chunk with coordinates
-                            var terrainChunk = new TerrainChunk
-                            {
-                                X = x,
-                                Y = y
-                            };
-                            
-                            // Try to get MCNK header properties using reflection
-                            var headerProp = chunk.GetType().GetProperty("Header");
-                            if (headerProp != null)
-                            {
-                                var header = headerProp.GetValue(chunk);
-                                if (header != null)
-                                {
-                                    // Get AreaId
-                                    var areaIdProp = header.GetType().GetProperty("AreaId");
-                                    if (areaIdProp != null)
-                                    {
-                                        terrainChunk.AreaId = (int)areaIdProp.GetValue(header);
-                                    }
-                                    
-                                    // Get Flags
-                                    var flagsProp = header.GetType().GetProperty("Flags");
-                                    if (flagsProp != null)
-                                    {
-                                        terrainChunk.Flags = (int)flagsProp.GetValue(header);
-                                    }
-                                    
-                                    // Get Holes
-                                    var holesProp = header.GetType().GetProperty("Holes");
-                                    if (holesProp != null)
-                                    {
-                                        terrainChunk.Holes = Convert.ToInt32(holesProp.GetValue(header));
-                                    }
-                                }
-                            }
-
-                            // Process texture layers
-                            ProcessTextureLayersForChunk(chunk, terrainChunk);
-
-                            // Process doodad references
-                            ProcessDoodadReferencesForChunk(chunk, terrainChunk);
-
-                            TerrainChunks.Add(terrainChunk);
-                        }
+                        Console.WriteLine($"Chunk {x},{y} (index {index}):");
+                        Console.WriteLine($"  Main chunk: {(mainChunk != null ? mainChunk.GetType().Name : "null")}");
+                        Console.WriteLine($"  Obj chunk: {(objChunk != null ? objChunk.GetType().Name : "null")}");
+                        Console.WriteLine($"  Tex chunk: {(texChunk != null ? texChunk.GetType().Name : "null")}");
                     }
+                    
+                    // Skip if no chunks are available
+                    if (mainChunk == null && objChunk == null && texChunk == null)
+                    {
+                        if (verbose)
+                        {
+                            Console.WriteLine($"Skipping chunk at {x},{y} - no data available");
+                        }
+                        continue;
+                    }
+                    
+                    // Create a new terrain chunk with coordinates
+                    var terrainChunk = new TerrainChunk
+                    {
+                        X = x,
+                        Y = y
+                    };
+                    
+                    // Process main chunk data (terrain, holes, etc.)
+                    if (mainChunk != null)
+                    {
+                        ProcessMainChunkData(mainChunk, terrainChunk);
+                    }
+                    
+                    // Process obj chunk data (models, WMOs)
+                    if (objChunk != null)
+                    {
+                        ProcessObjChunkData(objChunk, terrainChunk);
+                    }
+                    
+                    // Process tex chunk data (textures)
+                    if (texChunk != null)
+                    {
+                        ProcessTexChunkData(texChunk, terrainChunk);
+                    }
+                    else if (mainChunk != null)
+                    {
+                        // Fallback to main chunk for textures if tex chunk is not available
+                        ProcessTextureLayersForChunk(mainChunk, terrainChunk);
+                    }
+                    
+                    // Add the processed chunk to the list
+                    TerrainChunks.Add(terrainChunk);
                 }
+            }
+            
+            if (verbose)
+            {
+                Console.WriteLine($"Processed {TerrainChunks.Count} terrain chunks");
             }
         }
 
@@ -543,6 +694,106 @@ namespace WarcraftAnalyzer.Files.ADT
                     }
                 }
             }
+        }
+        
+        /// <summary>
+        /// Gets the chunks array from a Terrain object.
+        /// </summary>
+        /// <param name="terrain">The terrain object.</param>
+        /// <returns>The chunks array, or null if not found.</returns>
+        private Array GetChunksFromTerrain(object terrain)
+        {
+            if (terrain == null)
+                return null;
+                
+            var chunksProperty = terrain.GetType().GetProperty("Chunks");
+            if (chunksProperty == null)
+            {
+                Errors.Add("Could not find Chunks property on Terrain object");
+                return null;
+            }
+
+            var chunks = chunksProperty.GetValue(terrain) as Array;
+            
+            // Log the number of chunks found for debugging
+            if (verbose && chunks != null)
+            {
+                Console.WriteLine($"Found {chunks.Length} chunks in terrain object");
+            }
+            
+            return chunks;
+        }
+        
+        /// <summary>
+        /// Processes the main chunk data (terrain, holes, etc.).
+        /// </summary>
+        /// <param name="chunk">The main chunk.</param>
+        /// <param name="terrainChunk">The terrain chunk to populate.</param>
+        private void ProcessMainChunkData(object chunk, TerrainChunk terrainChunk)
+        {
+            if (chunk == null)
+                return;
+                
+            // Try to get MCNK header properties using reflection
+            var headerProp = chunk.GetType().GetProperty("Header");
+            if (headerProp != null)
+            {
+                var header = headerProp.GetValue(chunk);
+                if (header != null)
+                {
+                    // Get AreaId
+                    var areaIdProp = header.GetType().GetProperty("AreaId");
+                    if (areaIdProp != null)
+                    {
+                        terrainChunk.AreaId = (int)areaIdProp.GetValue(header);
+                    }
+                    
+                    // Get Flags
+                    var flagsProp = header.GetType().GetProperty("Flags");
+                    if (flagsProp != null)
+                    {
+                        terrainChunk.Flags = (int)flagsProp.GetValue(header);
+                    }
+                    
+                    // Get Holes
+                    var holesProp = header.GetType().GetProperty("Holes");
+                    if (holesProp != null)
+                    {
+                        terrainChunk.Holes = Convert.ToInt32(holesProp.GetValue(header));
+                    }
+                }
+            }
+            
+            // Process doodad references
+            ProcessDoodadReferencesForChunk(chunk, terrainChunk);
+        }
+        
+        /// <summary>
+        /// Processes the obj chunk data (models, WMOs).
+        /// </summary>
+        /// <param name="chunk">The obj chunk.</param>
+        /// <param name="terrainChunk">The terrain chunk to populate.</param>
+        private void ProcessObjChunkData(object chunk, TerrainChunk terrainChunk)
+        {
+            if (chunk == null)
+                return;
+                
+            // Process doodad references (models, WMOs)
+            ProcessDoodadReferencesForChunk(chunk, terrainChunk);
+        }
+        
+        /// <summary>
+        /// Processes the tex chunk data (textures).
+        /// </summary>
+        /// <param name="chunk">The tex chunk.</param>
+        /// <param name="terrainChunk">The terrain chunk to populate.</param>
+        private void ProcessTexChunkData(object chunk, TerrainChunk terrainChunk)
+        {
+            if (chunk == null)
+                return;
+                
+            // Process texture layers
+            ProcessTextureLayersForChunk(chunk, terrainChunk);
         }
 
         /// <summary>

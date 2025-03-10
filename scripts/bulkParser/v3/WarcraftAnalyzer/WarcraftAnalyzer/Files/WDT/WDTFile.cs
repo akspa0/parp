@@ -65,6 +65,11 @@ namespace WarcraftAnalyzer.Files.WDT
         public WDTVersion Version { get; private set; }
 
         /// <summary>
+        /// Gets whether this is an Alpha WDT file based on file size.
+        /// </summary>
+        public bool IsAlphaWDT { get; private set; }
+
+        /// <summary>
         /// Gets the name of the file.
         /// </summary>
         public string FileName { get; private set; }
@@ -90,6 +95,9 @@ namespace WarcraftAnalyzer.Files.WDT
             WorldObjectNames = new List<string>();
             AdtOffsets = new Dictionary<(int x, int y), long>();
             AdtFiles = new Dictionary<(int x, int y), ADT.AlphaADTFile>();
+            
+            // Determine if this is an Alpha WDT file based on size
+            IsAlphaWDT = data.Length > 65536; // 64KB threshold
 
             try
             {
@@ -117,13 +125,24 @@ namespace WarcraftAnalyzer.Files.WDT
             var mdnmProp = _wdtData.GetType().GetProperty("MDNM");
             var monmProp = _wdtData.GetType().GetProperty("MONM");
 
-            if (mdnmProp != null || monmProp != null)
+            // Use both chunk detection and file size to determine version
+            if ((mdnmProp != null || monmProp != null) || IsAlphaWDT)
             {
                 Version = WDTVersion.Alpha;
+                
+                if (IsAlphaWDT)
+                {
+                    Console.WriteLine($"Detected Alpha WDT based on file size: {FileName}");
+                }
+                else
+                {
+                    Console.WriteLine($"Detected Alpha WDT based on MDNM/MONM chunks: {FileName}");
+                }
             }
             else
             {
                 Version = WDTVersion.Modern;
+                Console.WriteLine($"Detected Modern WDT: {FileName}");
             }
         }
 

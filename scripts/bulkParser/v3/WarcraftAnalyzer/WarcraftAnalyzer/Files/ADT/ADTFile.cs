@@ -15,7 +15,7 @@ namespace WarcraftAnalyzer.Files.ADT
     /// <summary>
     /// Represents an ADT (Azeroth Terrain) file.
     /// </summary>
-    public class ADTFile
+    public class ADTFile : ITerrainFile
     {
         /// <summary>
         /// Gets the terrain data from the ADT file.
