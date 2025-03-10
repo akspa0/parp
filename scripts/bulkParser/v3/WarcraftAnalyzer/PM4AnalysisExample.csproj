@@ -5,8 +5,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <BaseOutputPath>bin\ADTAnalysisExample</BaseOutputPath>
-    <BaseIntermediateOutputPath>obj\ADTAnalysisExample</BaseIntermediateOutputPath>
+    <BaseOutputPath>bin\PM4AnalysisExample</BaseOutputPath>
+    <BaseIntermediateOutputPath>obj\PM4AnalysisExample</BaseIntermediateOutputPath>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <RootNamespace>WarcraftAnalyzer.Examples</RootNamespace>
   </PropertyGroup>

@@ -3,24 +3,33 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using Warcraft.NET.Files.ADT;
 using Warcraft.NET.Files.ADT.Entries;
 using Warcraft.NET.Files.ADT.Terrain;
 using Warcraft.NET.Files.ADT.Terrain.MCNK;
-using Warcraft.NET.Files.ADT.Terrain.Wotlk;
+using Warcraft.NET.Files.Structures;
 
 namespace WarcraftAnalyzer.Files.ADT
 {
     /// <summary>
-    /// Represents an ADT (Azeroth Terrain) file.
+    /// Represents a modern split ADT (Azeroth Terrain) file with its associated _obj and _tex files.
     /// </summary>
-    public class ADTFile
+    public class SplitADTFile
     {
         /// <summary>
-        /// Gets the terrain data from the ADT file.
+        /// Gets the main terrain data from the ADT file.
         /// </summary>
-        public Terrain Terrain { get; private set; }
+        public object Terrain { get; private set; }
+
+        /// <summary>
+        /// Gets the object data from the _obj file.
+        /// </summary>
+        public object ObjectData { get; private set; }
+
+        /// <summary>
+        /// Gets the texture data from the _tex file.
+        /// </summary>
+        public object TextureData { get; private set; }
 
         /// <summary>
         /// Gets the file name.
@@ -78,14 +87,16 @@ namespace WarcraftAnalyzer.Files.ADT
         public List<string> Errors { get; private set; } = new List<string>();
 
         /// <summary>
-        /// Creates a new instance of the ADTFile class.
+        /// Creates a new instance of the SplitADTFile class.
         /// </summary>
-        /// <param name="fileData">The raw file data.</param>
+        /// <param name="mainFileData">The raw file data for the main ADT file.</param>
+        /// <param name="objFileData">The raw file data for the _obj ADT file.</param>
+        /// <param name="texFileData">The raw file data for the _tex ADT file.</param>
         /// <param name="fileName">The name of the file.</param>
-        public ADTFile(byte[] fileData, string fileName)
+        public SplitADTFile(byte[] mainFileData, byte[] objFileData, byte[] texFileData, string fileName)
         {
-            if (fileData == null)
-                throw new ArgumentNullException(nameof(fileData));
+            if (mainFileData == null)
+                throw new ArgumentNullException(nameof(mainFileData));
 
             if (string.IsNullOrEmpty(fileName))
                 throw new ArgumentException("File name cannot be null or empty.", nameof(fileName));
@@ -94,13 +105,35 @@ namespace WarcraftAnalyzer.Files.ADT
             
             try
             {
-                // Create the Terrain object with the file data
-                Terrain = new Terrain(fileData);
-                
-                // Ensure MCIN chunk is properly loaded
-                if (Terrain.MapChunkOffsets == null)
+                // Create the Terrain objects with the file data using reflection
+                Type terrainType = Type.GetType("Warcraft.NET.Files.ADT.Terrain.Terrain, Warcraft.NET");
+                if (terrainType == null)
                 {
-                    Errors.Add("MCIN chunk is missing or could not be loaded.");
+                    // Try to find the type in loaded assemblies
+                    foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                    {
+                        terrainType = assembly.GetType("Warcraft.NET.Files.ADT.Terrain.Terrain");
+                        if (terrainType != null)
+                            break;
+                    }
+                }
+
+                if (terrainType == null)
+                {
+                    throw new InvalidOperationException("Could not find Terrain type in Warcraft.NET");
+                }
+
+                // Create instances using reflection
+                Terrain = Activator.CreateInstance(terrainType, new object[] { mainFileData });
+                
+                if (objFileData != null)
+                {
+                    ObjectData = Activator.CreateInstance(terrainType, new object[] { objFileData });
+                }
+                
+                if (texFileData != null)
+                {
+                    TextureData = Activator.CreateInstance(terrainType, new object[] { texFileData });
                 }
                 
                 // Extract coordinates from filename
@@ -115,7 +148,7 @@ namespace WarcraftAnalyzer.Files.ADT
             }
             catch (Exception ex)
             {
-                Errors.Add($"Error parsing ADT file: {ex.Message}");
+                Errors.Add($"Error parsing Split ADT file: {ex.Message}");
             }
         }
 
@@ -127,8 +160,38 @@ namespace WarcraftAnalyzer.Files.ADT
             if (Terrain == null)
                 return;
 
-            // Process textures from MTEX chunk if available
+            // Process textures from MTEX chunk if available (from main or tex file)
+            ProcessTextureReferences();
+            
+            // Process models from MMDX chunk if available (from main or obj file)
+            ProcessModelReferences();
+            
+            // Process WMOs from MWMO chunk if available (from main or obj file)
+            ProcessWmoReferences();
+            
+            // Process model placements from MDDF chunk if available (from main or obj file)
+            ProcessModelPlacements();
+            
+            // Process WMO placements from MODF chunk if available (from main or obj file)
+            ProcessWmoPlacements();
+            
+            // Process terrain chunks
+            ProcessTerrainChunks();
+        }
+
+        /// <summary>
+        /// Processes texture references from MTEX chunk.
+        /// </summary>
+        private void ProcessTextureReferences()
+        {
+            // Try main file first
             var mtexChunk = Terrain.GetType().GetProperty("MTEX")?.GetValue(Terrain) as dynamic;
+            if (mtexChunk == null && TextureData != null)
+            {
+                // Try texture file if main file doesn't have MTEX
+                mtexChunk = TextureData.GetType().GetProperty("MTEX")?.GetValue(TextureData) as dynamic;
+            }
+
             if (mtexChunk != null)
             {
                 var textureNames = mtexChunk.GetType().GetProperty("Filenames")?.GetValue(mtexChunk) as IEnumerable<string>;
@@ -148,9 +211,21 @@ namespace WarcraftAnalyzer.Files.ADT
                     }
                 }
             }
+        }
 
-            // Process models from MMDX chunk if available
+        /// <summary>
+        /// Processes model references from MMDX chunk.
+        /// </summary>
+        private void ProcessModelReferences()
+        {
+            // Try main file first
             var mmdxChunk = Terrain.GetType().GetProperty("MMDX")?.GetValue(Terrain) as dynamic;
+            if (mmdxChunk == null && ObjectData != null)
+            {
+                // Try object file if main file doesn't have MMDX
+                mmdxChunk = ObjectData.GetType().GetProperty("MMDX")?.GetValue(ObjectData) as dynamic;
+            }
+
             if (mmdxChunk != null)
             {
                 var modelNames = mmdxChunk.GetType().GetProperty("Filenames")?.GetValue(mmdxChunk) as IEnumerable<string>;
@@ -170,9 +245,21 @@ namespace WarcraftAnalyzer.Files.ADT
                     }
                 }
             }
+        }
 
-            // Process WMOs from MWMO chunk if available
+        /// <summary>
+        /// Processes WMO references from MWMO chunk.
+        /// </summary>
+        private void ProcessWmoReferences()
+        {
+            // Try main file first
             var mwmoChunk = Terrain.GetType().GetProperty("MWMO")?.GetValue(Terrain) as dynamic;
+            if (mwmoChunk == null && ObjectData != null)
+            {
+                // Try object file if main file doesn't have MWMO
+                mwmoChunk = ObjectData.GetType().GetProperty("MWMO")?.GetValue(ObjectData) as dynamic;
+            }
+
             if (mwmoChunk != null)
             {
                 var wmoNames = mwmoChunk.GetType().GetProperty("Filenames")?.GetValue(mwmoChunk) as IEnumerable<string>;
@@ -192,9 +279,21 @@ namespace WarcraftAnalyzer.Files.ADT
                     }
                 }
             }
+        }
 
-            // Process model placements from MDDF chunk if available
+        /// <summary>
+        /// Processes model placements from MDDF chunk.
+        /// </summary>
+        private void ProcessModelPlacements()
+        {
+            // Try main file first
             var mddfChunk = Terrain.GetType().GetProperty("MDDF")?.GetValue(Terrain) as dynamic;
+            if (mddfChunk == null && ObjectData != null)
+            {
+                // Try object file if main file doesn't have MDDF
+                mddfChunk = ObjectData.GetType().GetProperty("MDDF")?.GetValue(ObjectData) as dynamic;
+            }
+
             if (mddfChunk != null)
             {
                 var modelInstances = mddfChunk.GetType().GetProperty("Entries")?.GetValue(mddfChunk) as System.Collections.IEnumerable;
@@ -212,8 +311,8 @@ namespace WarcraftAnalyzer.Files.ADT
                             scaleProp != null && uniqueIdProp != null)
                         {
                             int nameIndex = (int)nameIndexProp.GetValue(instance);
-                            var position = (Warcraft.NET.Files.Structures.C3Vector)positionProp.GetValue(instance);
-                            var rotation = (Warcraft.NET.Files.Structures.C3Vector)rotationProp.GetValue(instance);
+                            var position = (C3Vector)positionProp.GetValue(instance);
+                            var rotation = (C3Vector)rotationProp.GetValue(instance);
                             float scale = (float)scaleProp.GetValue(instance);
                             int uniqueId = (int)uniqueIdProp.GetValue(instance);
                             
@@ -238,9 +337,21 @@ namespace WarcraftAnalyzer.Files.ADT
                     }
                 }
             }
+        }
 
-            // Process WMO placements from MODF chunk if available
+        /// <summary>
+        /// Processes WMO placements from MODF chunk.
+        /// </summary>
+        private void ProcessWmoPlacements()
+        {
+            // Try main file first
             var modfChunk = Terrain.GetType().GetProperty("MODF")?.GetValue(Terrain) as dynamic;
+            if (modfChunk == null && ObjectData != null)
+            {
+                // Try object file if main file doesn't have MODF
+                modfChunk = ObjectData.GetType().GetProperty("MODF")?.GetValue(ObjectData) as dynamic;
+            }
+
             if (modfChunk != null)
             {
                 var wmoInstances = modfChunk.GetType().GetProperty("Entries")?.GetValue(modfChunk) as System.Collections.IEnumerable;
@@ -256,8 +367,8 @@ namespace WarcraftAnalyzer.Files.ADT
                         if (nameIndexProp != null && positionProp != null && rotationProp != null && uniqueIdProp != null)
                         {
                             int nameIndex = (int)nameIndexProp.GetValue(instance);
-                            var position = (Warcraft.NET.Files.Structures.C3Vector)positionProp.GetValue(instance);
-                            var rotation = (Warcraft.NET.Files.Structures.C3Vector)rotationProp.GetValue(instance);
+                            var position = (C3Vector)positionProp.GetValue(instance);
+                            var rotation = (C3Vector)rotationProp.GetValue(instance);
                             int uniqueId = (int)uniqueIdProp.GetValue(instance);
                             
                             if (nameIndex < WmoReferences.Count)
@@ -280,26 +391,35 @@ namespace WarcraftAnalyzer.Files.ADT
                     }
                 }
             }
+        }
 
-            // Process MCIN chunk to get terrain chunk offsets
-            var mcinChunk = Terrain.MapChunkOffsets;
-            if (mcinChunk != null)
+        /// <summary>
+        /// Processes terrain chunks from MCNK chunks.
+        /// </summary>
+        private void ProcessTerrainChunks()
+        {
+            // Process terrain chunks using reflection
+            if (Terrain != null)
             {
-                Console.WriteLine($"MCIN chunk found with {mcinChunk.Entries.Count} entries");
-            }
-            else
-            {
-                Errors.Add("MCIN chunk is missing or could not be loaded.");
-            }
-            
-            // Process terrain chunks
-            if (Terrain.Chunks != null)
-            {
+                var chunksProperty = Terrain.GetType().GetProperty("Chunks");
+                if (chunksProperty == null)
+                {
+                    Errors.Add("Could not find Chunks property on Terrain object");
+                    return;
+                }
+
+                var chunks = chunksProperty.GetValue(Terrain) as Array;
+                if (chunks == null)
+                {
+                    Errors.Add("Chunks property is null or not an array");
+                    return;
+                }
+
                 for (int y = 0; y < 16; y++)
                 {
                     for (int x = 0; x < 16; x++)
                     {
-                        var chunk = Terrain.Chunks[y * 16 + x];
+                        var chunk = chunks.GetValue(y * 16 + x);
                         if (chunk != null)
                         {
                             // Create a new terrain chunk with coordinates
@@ -340,69 +460,85 @@ namespace WarcraftAnalyzer.Files.ADT
                             }
 
                             // Process texture layers
-                            var mclyProp = chunk.GetType().GetProperty("MCLY");
-                            if (mclyProp != null)
-                            {
-                                var mcly = mclyProp.GetValue(chunk);
-                                if (mcly != null)
-                                {
-                                    var layersProp = mcly.GetType().GetProperty("Layers");
-                                    if (layersProp != null)
-                                    {
-                                        var layers = layersProp.GetValue(mcly) as System.Collections.IEnumerable;
-                                        if (layers != null)
-                                        {
-                                            foreach (var layer in layers)
-                                            {
-                                                var textureIdProp = layer.GetType().GetProperty("TextureId");
-                                                var effectIdProp = layer.GetType().GetProperty("EffectId");
-                                                var layerFlagsProp = layer.GetType().GetProperty("Flags");
-                                                
-                                                if (textureIdProp != null && effectIdProp != null && layerFlagsProp != null)
-                                                {
-                                                    int textureId = Convert.ToInt32(textureIdProp.GetValue(layer));
-                                                    int effectId = Convert.ToInt32(effectIdProp.GetValue(layer));
-                                                    int layerFlags = Convert.ToInt32(layerFlagsProp.GetValue(layer));
-                                                    
-                                                    if (textureId < TextureReferences.Count)
-                                                    {
-                                                        terrainChunk.TextureLayers.Add(new TextureLayer
-                                                        {
-                                                            TextureReference = TextureReferences[textureId],
-                                                            EffectId = effectId,
-                                                            Flags = layerFlags
-                                                        });
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                            ProcessTextureLayersForChunk(chunk, terrainChunk);
 
                             // Process doodad references
-                            var mcrfProp = chunk.GetType().GetProperty("MCRF");
-                            if (mcrfProp != null)
+                            ProcessDoodadReferencesForChunk(chunk, terrainChunk);
+
+                            TerrainChunks.Add(terrainChunk);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Processes texture layers for a terrain chunk.
+        /// </summary>
+        private void ProcessTextureLayersForChunk(dynamic chunk, TerrainChunk terrainChunk)
+        {
+            var mclyProp = chunk.GetType().GetProperty("MCLY");
+            if (mclyProp != null)
+            {
+                var mcly = mclyProp.GetValue(chunk);
+                if (mcly != null)
+                {
+                    var layersProp = mcly.GetType().GetProperty("Layers");
+                    if (layersProp != null)
+                    {
+                        var layers = layersProp.GetValue(mcly) as System.Collections.IEnumerable;
+                        if (layers != null)
+                        {
+                            foreach (var layer in layers)
                             {
-                                var mcrf = mcrfProp.GetValue(chunk);
-                                if (mcrf != null)
+                                var textureIdProp = layer.GetType().GetProperty("TextureId");
+                                var effectIdProp = layer.GetType().GetProperty("EffectId");
+                                var layerFlagsProp = layer.GetType().GetProperty("Flags");
+                                
+                                if (textureIdProp != null && effectIdProp != null && layerFlagsProp != null)
                                 {
-                                    var doodadRefsProp = mcrf.GetType().GetProperty("DoodadReferences");
-                                    if (doodadRefsProp != null)
+                                    int textureId = Convert.ToInt32(textureIdProp.GetValue(layer));
+                                    int effectId = Convert.ToInt32(effectIdProp.GetValue(layer));
+                                    int layerFlags = Convert.ToInt32(layerFlagsProp.GetValue(layer));
+                                    
+                                    if (textureId < TextureReferences.Count)
                                     {
-                                        var doodadRefs = doodadRefsProp.GetValue(mcrf) as System.Collections.IEnumerable;
-                                        if (doodadRefs != null)
+                                        terrainChunk.TextureLayers.Add(new TextureLayer
                                         {
-                                            foreach (var doodadRef in doodadRefs)
-                                            {
-                                                terrainChunk.DoodadRefs.Add(Convert.ToInt32(doodadRef));
-                                            }
-                                        }
+                                            TextureReference = TextureReferences[textureId],
+                                            EffectId = effectId,
+                                            Flags = layerFlags
+                                        });
                                     }
                                 }
                             }
+                        }
+                    }
+                }
+            }
+        }
 
-                            TerrainChunks.Add(terrainChunk);
+        /// <summary>
+        /// Processes doodad references for a terrain chunk.
+        /// </summary>
+        private void ProcessDoodadReferencesForChunk(dynamic chunk, TerrainChunk terrainChunk)
+        {
+            var mcrfProp = chunk.GetType().GetProperty("MCRF");
+            if (mcrfProp != null)
+            {
+                var mcrf = mcrfProp.GetValue(chunk);
+                if (mcrf != null)
+                {
+                    var doodadRefsProp = mcrf.GetType().GetProperty("DoodadReferences");
+                    if (doodadRefsProp != null)
+                    {
+                        var doodadRefs = doodadRefsProp.GetValue(mcrf) as System.Collections.IEnumerable;
+                        if (doodadRefs != null)
+                        {
+                            foreach (var doodadRef in doodadRefs)
+                            {
+                                terrainChunk.DoodadRefs.Add(Convert.ToInt32(doodadRef));
+                            }
                         }
                     }
                 }
@@ -423,6 +559,9 @@ namespace WarcraftAnalyzer.Files.ADT
 
             // Extract the base name without extension
             var baseName = Path.GetFileNameWithoutExtension(fileName);
+            
+            // Remove _obj or _tex suffix if present
+            baseName = baseName.Replace("_obj", "").Replace("_tex", "");
 
             // Look for patterns like "map_X_Y" or "map_XX_YY"
             var parts = baseName.Split('_');
@@ -451,176 +590,5 @@ namespace WarcraftAnalyzer.Files.ADT
             // Convert to lowercase and replace backslashes with forward slashes
             return path.ToLowerInvariant().Replace('\\', '/');
         }
-    }
-
-    /// <summary>
-    /// Represents a file reference in an ADT file.
-    /// </summary>
-    public class FileReference
-    {
-        /// <summary>
-        /// Gets or sets the original path of the file.
-        /// </summary>
-        public string Path { get; set; }
-
-        /// <summary>
-        /// Gets or sets the normalized path for consistent comparison.
-        /// </summary>
-        public string NormalizedPath { get; set; }
-
-        /// <summary>
-        /// Gets or sets the type of the reference.
-        /// </summary>
-        public ReferenceType Type { get; set; }
-
-        /// <summary>
-        /// Gets or sets whether the reference is valid.
-        /// </summary>
-        public bool IsValid { get; set; } = true;
-
-        /// <summary>
-        /// Gets or sets whether the reference exists in the listfile.
-        /// </summary>
-        public bool ExistsInListfile { get; set; } = true;
-    }
-
-    /// <summary>
-    /// Represents the type of a file reference.
-    /// </summary>
-    public enum ReferenceType
-    {
-        /// <summary>
-        /// A texture reference.
-        /// </summary>
-        Texture,
-
-        /// <summary>
-        /// A model reference.
-        /// </summary>
-        Model,
-
-        /// <summary>
-        /// A WMO (World Map Object) reference.
-        /// </summary>
-        Wmo
-    }
-
-    /// <summary>
-    /// Represents a model placement in an ADT file.
-    /// </summary>
-    public class ModelPlacement
-    {
-        /// <summary>
-        /// Gets or sets the reference to the model file.
-        /// </summary>
-        public FileReference ModelReference { get; set; }
-
-        /// <summary>
-        /// Gets or sets the position of the model.
-        /// </summary>
-        public Warcraft.NET.Files.Structures.C3Vector Position { get; set; }
-
-        /// <summary>
-        /// Gets or sets the rotation of the model.
-        /// </summary>
-        public Warcraft.NET.Files.Structures.C3Vector Rotation { get; set; }
-
-        /// <summary>
-        /// Gets or sets the scale of the model.
-        /// </summary>
-        public float Scale { get; set; }
-
-        /// <summary>
-        /// Gets or sets the unique ID of the model.
-        /// </summary>
-        public int UniqueId { get; set; }
-    }
-
-    /// <summary>
-    /// Represents a WMO placement in an ADT file.
-    /// </summary>
-    public class WmoPlacement
-    {
-        /// <summary>
-        /// Gets or sets the reference to the WMO file.
-        /// </summary>
-        public FileReference WmoReference { get; set; }
-
-        /// <summary>
-        /// Gets or sets the position of the WMO.
-        /// </summary>
-        public Warcraft.NET.Files.Structures.C3Vector Position { get; set; }
-
-        /// <summary>
-        /// Gets or sets the rotation of the WMO.
-        /// </summary>
-        public Warcraft.NET.Files.Structures.C3Vector Rotation { get; set; }
-
-        /// <summary>
-        /// Gets or sets the unique ID of the WMO.
-        /// </summary>
-        public int UniqueId { get; set; }
-    }
-
-    /// <summary>
-    /// Represents a terrain chunk in an ADT file.
-    /// </summary>
-    public class TerrainChunk
-    {
-        /// <summary>
-        /// Gets or sets the X coordinate of the chunk.
-        /// </summary>
-        public int X { get; set; }
-
-        /// <summary>
-        /// Gets or sets the Y coordinate of the chunk.
-        /// </summary>
-        public int Y { get; set; }
-
-        /// <summary>
-        /// Gets or sets the area ID of the chunk.
-        /// </summary>
-        public int AreaId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the flags of the chunk.
-        /// </summary>
-        public int Flags { get; set; }
-
-        /// <summary>
-        /// Gets or sets the holes in the chunk.
-        /// </summary>
-        public int Holes { get; set; }
-
-        /// <summary>
-        /// Gets or sets the texture layers in the chunk.
-        /// </summary>
-        public List<TextureLayer> TextureLayers { get; set; } = new List<TextureLayer>();
-
-        /// <summary>
-        /// Gets or sets the doodad references in the chunk.
-        /// </summary>
-        public List<int> DoodadRefs { get; set; } = new List<int>();
-    }
-
-    /// <summary>
-    /// Represents a texture layer in a terrain chunk.
-    /// </summary>
-    public class TextureLayer
-    {
-        /// <summary>
-        /// Gets or sets the reference to the texture file.
-        /// </summary>
-        public FileReference TextureReference { get; set; }
-
-        /// <summary>
-        /// Gets or sets the effect ID of the texture layer.
-        /// </summary>
-        public int EffectId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the flags of the texture layer.
-        /// </summary>
-        public int Flags { get; set; }
     }
 }

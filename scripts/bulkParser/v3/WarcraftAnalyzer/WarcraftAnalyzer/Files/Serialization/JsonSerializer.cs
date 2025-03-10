@@ -15,7 +15,7 @@ using WarcraftAnalyzer.Files.WDT;
 namespace WarcraftAnalyzer.Files.Serialization
 {
     /// <summary>
-    /// Provides JSON serialization for PM4, PD4, WLW, ADT, and WDT files.
+    /// Provides JSON serialization for PM4, PD4, WLW, ADT, Split ADT, and WDT files.
     /// </summary>
     public static class JsonSerializer
     {
@@ -286,6 +286,31 @@ namespace WarcraftAnalyzer.Files.Serialization
                 });
             }
             return entries;
+        }
+
+        /// <summary>
+        /// Serializes a Split ADT file to JSON.
+        /// </summary>
+        /// <param name="file">The Split ADT file to serialize.</param>
+        /// <returns>A JSON string containing the file's data.</returns>
+        public static string SerializeSplitADT(SplitADTFile file)
+        {
+            var data = new Dictionary<string, object>
+            {
+                ["FileName"] = file.FileName,
+                ["XCoord"] = file.XCoord,
+                ["YCoord"] = file.YCoord,
+                ["TextureReferences"] = SerializeFileReferences(file.TextureReferences),
+                ["ModelReferences"] = SerializeFileReferences(file.ModelReferences),
+                ["WmoReferences"] = SerializeFileReferences(file.WmoReferences),
+                ["ModelPlacements"] = SerializeModelPlacements(file.ModelPlacements),
+                ["WmoPlacements"] = SerializeWmoPlacements(file.WmoPlacements),
+                ["UniqueIds"] = file.UniqueIds.ToArray(),
+                ["TerrainChunks"] = SerializeTerrainChunks(file.TerrainChunks),
+                ["Errors"] = file.Errors.ToArray()
+            };
+
+            return System.Text.Json.JsonSerializer.Serialize(data, Options);
         }
 
         /// <summary>
